@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { AppConfig, DayData } from '../types';
 import DayCell from './DayCell';
 
@@ -412,4 +412,5 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
   );
 };
 
-export default YearGrid;
+// Memoize YearGrid to prevent unnecessary re-renders when parent (PreviewArea) updates state (e.g. zoom/pan)
+export default memo(YearGrid);
