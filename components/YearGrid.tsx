@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { AppConfig, DayData } from '../types';
+import DayCell from './DayCell';
 
 interface YearGridProps {
   config: AppConfig;
@@ -51,12 +52,14 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
   const MONTH_LABEL_WIDTH = Math.ceil(fontSize * 3);
 
   // --- Data Logic ---
-  const { dataItems, startDayOffset, monthPositions, year } = useMemo(() => {
+
+  // 1. Grid Data (Independent of layout params like gap, dotSize)
+  const { dataItems, startDayOffset, year } = useMemo(() => {
     try {
       const currentDate = new Date(date);
       // Validate date
       if (isNaN(currentDate.getTime())) {
-        return { dataItems: [], startDayOffset: 0, monthPositions: [], year: new Date().getFullYear() };
+        return { dataItems: [], startDayOffset: 0, year: new Date().getFullYear() };
       }
 
       const year = currentDate.getFullYear();
@@ -94,26 +97,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
             label: d.toDateString() + ` (Week ${visualWeekIndex})`
           });
         }
-
-        // Calculate Exact Month Positions for Labels
-        const positions: number[] = new Array(12).fill(0);
-        const foundMonths = new Set<number>();
-        
-        daysArr.forEach((d, i) => {
-            if (d.month !== undefined && !foundMonths.has(d.month)) {
-                foundMonths.add(d.month);
-                const gridIndex = i + initialOffset;
-                if (mode === 'horizontal') {
-                    const col = Math.floor(gridIndex / 7);
-                    positions[d.month] = col * (dotSize + gap);
-                } else {
-                    const row = Math.floor(gridIndex / 7);
-                    positions[d.month] = row * (dotSize + gap);
-                }
-            }
-        });
-
-        return { dataItems: daysArr, startDayOffset: initialOffset, monthPositions: positions, year };
+        return { dataItems: daysArr, startDayOffset: initialOffset, year };
       } 
       
       if (granularity === 'week') {
@@ -128,7 +112,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
             label: `Week ${i + 1}`,
           });
         }
-        return { dataItems: weeksArr, startDayOffset: 0, monthPositions: [], year };
+        return { dataItems: weeksArr, startDayOffset: 0, year };
       }
 
       if (granularity === 'month') {
@@ -142,13 +126,37 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
             label: monthNames[i],
           });
         }
-        return { dataItems: monthsArr, startDayOffset: 0, monthPositions: [], year };
+        return { dataItems: monthsArr, startDayOffset: 0, year };
       }
     } catch (e) {
       console.error("Error generating grid data", e);
     }
-    return { dataItems: [], startDayOffset: 0, monthPositions: [], year: new Date().getFullYear() };
-  }, [date, isMondayFirst, mode, dotSize, gap, granularity]);
+    return { dataItems: [], startDayOffset: 0, year: new Date().getFullYear() };
+  }, [date, granularity, isMondayFirst]);
+
+  // 2. Month Positions (Dependent on layout params)
+  const monthPositions = useMemo(() => {
+    if (granularity !== 'day') return [];
+
+    const positions: number[] = new Array(12).fill(0);
+    const foundMonths = new Set<number>();
+
+    // We need to re-calculate grid indices based on the same logic
+    dataItems.forEach((d, i) => {
+        if (d.month !== undefined && !foundMonths.has(d.month)) {
+            foundMonths.add(d.month);
+            const gridIndex = i + startDayOffset;
+            if (mode === 'horizontal') {
+                const col = Math.floor(gridIndex / 7);
+                positions[d.month] = col * (dotSize + gap);
+            } else {
+                const row = Math.floor(gridIndex / 7);
+                positions[d.month] = row * (dotSize + gap);
+            }
+        }
+    });
+    return positions;
+  }, [dataItems, startDayOffset, mode, dotSize, gap, granularity]);
 
   // --- Styles ---
   const containerStyle: React.CSSProperties = {
@@ -158,26 +166,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
     position: 'relative',
     overflow: 'hidden'
   };
-
-  const cellStyle = (filled: boolean, active?: boolean): React.CSSProperties => ({
-    width: `${dotSize}px`,
-    height: `${dotSize}px`,
-    backgroundColor: filled ? colors.fill : colors.empty,
-    borderRadius: `${radius}px`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: `${Math.max(8, dotSize * 0.4)}px`,
-    color: filled ? colors.bg : colors.text,
-    fontWeight: 'bold',
-    userSelect: 'none',
-    zIndex: active ? 10 : 2, 
-    position: 'relative',
-    boxShadow: 'none',
-    lineHeight: 1,
-    textAlign: 'center',
-    whiteSpace: 'pre-line'
-  });
 
   const watermarkStyle: React.CSSProperties = {
     position: 'absolute',
@@ -298,13 +286,17 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
                   }}>
                     {Array.from({ length: startDayOffset }).map((_, i) => <div key={`empty-${i}`} />)}
                     {dataItems.map((day, i) => (
-                      <div
+                      <DayCell
                         key={i}
-                        title={day.label}
-                        style={cellStyle(day.filled, day.active)}
+                        filled={day.filled}
+                        active={day.active}
+                        label={day.label}
+                        colors={colors}
+                        dotSize={dotSize}
+                        radius={radius}
                       >
-                        <span className="pointer-events-none w-full">{renderCellContent(day, i)}</span>
-                      </div>
+                        {renderCellContent(day, i)}
+                      </DayCell>
                     ))}
                   </div>
                 </div>
@@ -358,13 +350,17 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
                   }}>
                      {Array.from({ length: startDayOffset }).map((_, i) => <div key={`empty-${i}`} />)}
                      {dataItems.map((day, i) => (
-                      <div
+                      <DayCell
                         key={i}
-                        title={day.label}
-                        style={cellStyle(day.filled, day.active)}
+                        filled={day.filled}
+                        active={day.active}
+                        label={day.label}
+                        colors={colors}
+                        dotSize={dotSize}
+                        radius={radius}
                       >
-                         <span className="pointer-events-none w-full">{renderCellContent(day, i)}</span>
-                      </div>
+                        {renderCellContent(day, i)}
+                      </DayCell>
                     ))}
                   </div>
                 </div>
@@ -398,15 +394,17 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
       <ContentWrapper>
         <div style={gridStyle}>
           {dataItems.map((item, i) => (
-            <div
+            <DayCell
               key={i}
-              title={item.label}
-              style={cellStyle(item.filled, item.active)}
+              filled={item.filled}
+              active={item.active}
+              label={item.label}
+              colors={colors}
+              dotSize={dotSize}
+              radius={radius}
             >
-              <span className="pointer-events-none w-full">
-                 {renderCellContent(item, i)}
-              </span>
-            </div>
+              {renderCellContent(item, i)}
+            </DayCell>
           ))}
         </div>
       </ContentWrapper>
