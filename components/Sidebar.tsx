@@ -118,9 +118,10 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
         <section className="space-y-3">
           <h2 className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Progress Settings</h2>
           <div className="space-y-2">
-            <label className="text-xs text-gray-400 block">Current Date (Fill up to)</label>
+            <label htmlFor="date-input" className="text-xs text-gray-400 block">Current Date (Fill up to)</label>
             <div className="flex gap-2">
               <input 
+                id="date-input"
                 type="date"
                 value={config.date}
                 onChange={(e) => updateConfig('date', e.target.value)}
@@ -129,6 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               <button 
                 onClick={setDateToToday}
                 title="Set to Today"
+                aria-label="Set date to today"
                 className="bg-[#222] hover:bg-[#333] border border-[#333] rounded px-3 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">today</span>
@@ -142,6 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                 {['day', 'week', 'month'].map((g) => (
                   <button
                     key={g}
+                    aria-pressed={config.granularity === g}
                     onClick={() => updateConfig('granularity', g as any)}
                     className={`text-[10px] uppercase py-1.5 rounded transition-all ${config.granularity === g ? 'bg-[#333] text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                   >
@@ -170,12 +173,14 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           <h2 className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Grid Layout</h2>
           <div className="grid grid-cols-2 gap-2">
             <button 
+              aria-pressed={config.mode === 'horizontal'}
               onClick={() => updateConfig('mode', 'horizontal')}
               className={`text-xs py-2 rounded border transition-all ${config.mode === 'horizontal' ? 'bg-[#222] text-gray-300 border-[#444]' : 'bg-[#1a1a1a] text-gray-500 border-transparent hover:bg-[#333]'}`}
             >
               Horizontal
             </button>
             <button 
+              aria-pressed={config.mode === 'vertical'}
               onClick={() => updateConfig('mode', 'vertical')}
               className={`text-xs py-2 rounded border transition-all ${config.mode === 'vertical' ? 'bg-[#222] text-gray-300 border-[#444]' : 'bg-[#1a1a1a] text-gray-500 border-transparent hover:bg-[#333]'}`}
             >
@@ -186,10 +191,11 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           {config.granularity !== 'day' && (
             <div className="space-y-1 pt-2">
               <div className="flex justify-between text-xs text-gray-400">
-                <span>Items Per {config.mode === 'horizontal' ? 'Row' : 'Column'}</span>
+                <label htmlFor="input-items-per-row">Items Per {config.mode === 'horizontal' ? 'Row' : 'Column'}</label>
                 <span>{config.itemsPerRow}</span>
               </div>
               <input 
+                id="input-items-per-row"
                 type="range" min="1" max={config.granularity === 'week' ? 53 : 12} step="1" 
                 value={config.itemsPerRow}
                 onChange={(e) => updateConfig('itemsPerRow', parseInt(e.target.value))}
@@ -198,24 +204,36 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           )}
 
           <div className="space-y-1 pt-2">
-            <div className="flex justify-between text-xs text-gray-400"><span>Square Size</span><span>{config.dotSize}px</span></div>
+            <div className="flex justify-between text-xs text-gray-400">
+                <label htmlFor="input-dot-size">Square Size</label>
+                <span>{config.dotSize}px</span>
+            </div>
             <input 
+              id="input-dot-size"
               type="range" min="4" max="100" step="1" 
               value={config.dotSize}
               onChange={(e) => updateConfig('dotSize', parseInt(e.target.value))}
             />
           </div>
           <div className="space-y-1">
-            <div className="flex justify-between text-xs text-gray-400"><span>Gap</span><span>{config.gap}px</span></div>
+            <div className="flex justify-between text-xs text-gray-400">
+                <label htmlFor="input-gap">Gap</label>
+                <span>{config.gap}px</span>
+            </div>
             <input 
+              id="input-gap"
               type="range" min="0" max="50" step="1" 
               value={config.gap}
               onChange={(e) => updateConfig('gap', parseInt(e.target.value))}
             />
           </div>
           <div className="space-y-1">
-            <div className="flex justify-between text-xs text-gray-400"><span>Roundness</span><span>{config.radius}px</span></div>
+            <div className="flex justify-between text-xs text-gray-400">
+                <label htmlFor="input-radius">Roundness</label>
+                <span>{config.radius}px</span>
+            </div>
             <input 
+              id="input-radius"
               type="range" min="0" max="50" step="1" 
               value={config.radius}
               onChange={(e) => updateConfig('radius', parseInt(e.target.value))}
@@ -235,6 +253,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                  onClick={() => applyTheme(t.colors)}
                  className="w-full aspect-square rounded border border-[#333] hover:border-white transition-colors relative overflow-hidden group"
                  title={t.name}
+                 aria-label={t.name + ' Theme'}
                >
                  <div className="absolute inset-0 bg-gradient-to-br" style={{ backgroundImage: `linear-gradient(to bottom right, ${t.colors.bg} 50%, ${t.colors.fill} 50%)` }}></div>
                </button>
@@ -249,9 +268,10 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               { label: 'Filled Day', key: 'fill' },
             ].map(({ label, key }) => (
               <div key={key} className="space-y-1">
-                <label className="text-[10px] text-gray-500 uppercase">{label}</label>
+                <label htmlFor={`color-input-${key}`} className="text-[10px] text-gray-500 uppercase">{label}</label>
                 <div className="flex items-center gap-2 bg-[#1a1a1a] p-1.5 rounded border border-[#333]">
                   <input 
+                    id={`color-input-${key}`}
                     type="color" 
                     value={config.colors[key as keyof AppConfig['colors']]}
                     onChange={(e) => updateColor(key as keyof AppConfig['colors'], e.target.value)}
@@ -305,8 +325,9 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               {/* Active Label Format Selector - Only show if active label is enabled */}
               {config.showActiveLabel && config.granularity === 'day' && (
                 <div className="pl-2 border-l border-[#333]">
-                   <label className="text-[10px] text-gray-500 block mb-1">Label Content</label>
+                   <label htmlFor="select-active-label-format" className="text-[10px] text-gray-500 block mb-1">Label Content</label>
                    <select 
+                      id="select-active-label-format"
                       value={config.activeLabelFormat || 'date'}
                       onChange={(e) => updateConfig('activeLabelFormat', e.target.value as ActiveLabelFormat)}
                       className="w-full bg-[#1a1a1a] border border-[#333] rounded px-2 py-1.5 text-xs text-white outline-none focus:border-orange-500"
@@ -347,8 +368,12 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           )}
 
           <div className="space-y-1">
-            <div className="flex justify-between text-xs text-gray-400"><span>Label Size</span><span>{config.fontSize}px</span></div>
+            <div className="flex justify-between text-xs text-gray-400">
+                <label htmlFor="input-font-size">Label Size</label>
+                <span>{config.fontSize}px</span>
+            </div>
             <input 
+              id="input-font-size"
               type="range" min="8" max="32" step="1" 
               value={config.fontSize}
               onChange={(e) => updateConfig('fontSize', parseInt(e.target.value))}
@@ -356,8 +381,9 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-gray-400 block">Font Family</label>
+            <label htmlFor="select-font-family" className="text-xs text-gray-400 block">Font Family</label>
             <select 
+              id="select-font-family"
               value={config.fontFamily}
               onChange={(e) => updateConfig('fontFamily', e.target.value)}
               className="w-full bg-[#1a1a1a] border border-[#333] rounded px-2 py-1.5 text-xs text-white outline-none focus:border-orange-500"
