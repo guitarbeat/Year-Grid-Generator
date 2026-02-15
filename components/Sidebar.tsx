@@ -1,5 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppConfig, AppColors, ActiveLabelFormat } from '../types';
+
+const ColorInput = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => {
+  const [text, setText] = useState(value);
+
+  // Sync text when value changes externally (e.g. preset selection)
+  useEffect(() => {
+    setText(value);
+  }, [value]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newText = e.target.value;
+    setText(newText);
+
+    // Validate hex
+    if (/^#[0-9A-Fa-f]{6}$/.test(newText)) {
+      onChange(newText);
+    }
+  };
+
+  const handleBlur = () => {
+     // Reset to valid color on blur if invalid
+     if (!/^#[0-9A-Fa-f]{6}$/.test(text)) {
+       setText(value);
+     }
+  };
+
+  return (
+    <div className="space-y-1">
+      <label className="text-[10px] text-gray-500 uppercase">{label}</label>
+      <div className="flex items-center gap-2 bg-[#1a1a1a] p-1.5 rounded border border-[#333] focus-within:border-orange-500 transition-colors">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="bg-transparent"
+        />
+        <input
+          type="text"
+          value={text}
+          onChange={handleTextChange}
+          onBlur={handleBlur}
+          className="bg-transparent text-[10px] font-mono text-gray-400 uppercase w-full outline-none"
+          spellCheck={false}
+          aria-label={`Hex code for ${label}`}
+        />
+      </div>
+    </div>
+  );
+};
 
 interface SidebarProps {
   config: AppConfig;
@@ -267,20 +316,12 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               { label: 'Empty Day', key: 'empty' },
               { label: 'Filled Day', key: 'fill' },
             ].map(({ label, key }) => (
-              <div key={key} className="space-y-1">
-                <label htmlFor={`color-input-${key}`} className="text-[10px] text-gray-500 uppercase">{label}</label>
-                <div className="flex items-center gap-2 bg-[#1a1a1a] p-1.5 rounded border border-[#333]">
-                  <input 
-                    id={`color-input-${key}`}
-                    type="color" 
-                    value={config.colors[key as keyof AppConfig['colors']]}
-                    onChange={(e) => updateColor(key as keyof AppConfig['colors'], e.target.value)}
-                  />
-                  <span className="text-[10px] font-mono text-gray-400 uppercase">
-                    {config.colors[key as keyof AppConfig['colors']]}
-                  </span>
-                </div>
-              </div>
+              <ColorInput
+                key={key}
+                label={label}
+                value={config.colors[key as keyof AppConfig['colors']]}
+                onChange={(val) => updateColor(key as keyof AppConfig['colors'], val)}
+              />
             ))}
             <div className="col-span-2 pt-2 border-t border-[#222]">
                <div className="flex items-center gap-2">
