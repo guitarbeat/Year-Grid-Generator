@@ -1,5 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppConfig, AppColors, ActiveLabelFormat } from '../types';
+
+interface ColorControlProps {
+  label: string;
+  colorKey: string;
+  value: string;
+  onChange: (val: string) => void;
+}
+
+const ColorControl: React.FC<ColorControlProps> = ({ label, colorKey, value, onChange }) => {
+  const [textValue, setTextValue] = useState(value);
+
+  useEffect(() => {
+    setTextValue(value);
+  }, [value]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setTextValue(newVal);
+    // Only update parent immediately if full 6-digit hex
+    if (/^#[0-9A-F]{6}$/i.test(newVal)) {
+      onChange(newVal);
+    }
+  };
+
+  const handleBlur = () => {
+     // Check for 3-digit shorthand
+     if (/^#[0-9A-F]{3}$/i.test(textValue)) {
+        const expanded = '#' + textValue[1] + textValue[1] + textValue[2] + textValue[2] + textValue[3] + textValue[3];
+        onChange(expanded);
+        setTextValue(expanded);
+     }
+     // Check for valid 6-digit hex
+     else if (/^#[0-9A-F]{6}$/i.test(textValue)) {
+        onChange(textValue); // Ensure sync
+     }
+     // Invalid: reset to last known valid prop
+     else {
+        setTextValue(value);
+     }
+  };
+
+  return (
+    <div className="space-y-1">
+      <label htmlFor={`color-input-${colorKey}`} className="text-[10px] text-gray-500 uppercase">{label}</label>
+      <div className="flex items-center gap-2 bg-[#1a1a1a] p-1.5 rounded border border-[#333] focus-within:border-orange-500 transition-colors">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="bg-transparent border-none w-6 h-6 p-0 cursor-pointer"
+          aria-label={`Pick ${label} color`}
+        />
+        <input
+          id={`color-input-${colorKey}`}
+          type="text"
+          value={textValue}
+          onChange={handleTextChange}
+          onBlur={handleBlur}
+          className="bg-transparent border-none text-[10px] font-mono text-gray-400 uppercase w-full focus:outline-none focus:text-white"
+          maxLength={7}
+          aria-label={`Enter hex code for ${label} color`}
+        />
+      </div>
+    </div>
+  );
+};
 
 interface SidebarProps {
   config: AppConfig;
@@ -267,20 +333,13 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               { label: 'Empty Day', key: 'empty' },
               { label: 'Filled Day', key: 'fill' },
             ].map(({ label, key }) => (
-              <div key={key} className="space-y-1">
-                <label htmlFor={`color-input-${key}`} className="text-[10px] text-gray-500 uppercase">{label}</label>
-                <div className="flex items-center gap-2 bg-[#1a1a1a] p-1.5 rounded border border-[#333]">
-                  <input 
-                    id={`color-input-${key}`}
-                    type="color" 
-                    value={config.colors[key as keyof AppConfig['colors']]}
-                    onChange={(e) => updateColor(key as keyof AppConfig['colors'], e.target.value)}
-                  />
-                  <span className="text-[10px] font-mono text-gray-400 uppercase">
-                    {config.colors[key as keyof AppConfig['colors']]}
-                  </span>
-                </div>
-              </div>
+              <ColorControl
+                key={key}
+                label={label}
+                colorKey={key}
+                value={config.colors[key as keyof AppConfig['colors']]}
+                onChange={(val) => updateColor(key as keyof AppConfig['colors'], val)}
+              />
             ))}
             <div className="col-span-2 pt-2 border-t border-[#222]">
                <div className="flex items-center gap-2">
