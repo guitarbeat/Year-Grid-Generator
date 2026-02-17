@@ -13,7 +13,8 @@ const ContentWrapper: React.FC<React.PropsWithChildren<unknown>> = ({ children }
   <div className="relative z-10">{children}</div>
 );
 
-const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
+// Memoize to prevent unnecessary re-renders when parent state (like zoom/pan) changes
+const YearGrid: React.FC<YearGridProps> = React.memo(({ config, className, domRef }) => {
   const {
     date,
     mode,
@@ -410,7 +411,9 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
       </ContentWrapper>
     </div>
   );
-};
+});
+
+YearGrid.displayName = 'YearGrid';
 
 // Memoize YearGrid to prevent unnecessary re-renders when parent (PreviewArea) updates state (e.g. zoom/pan)
 export default memo(YearGrid);
