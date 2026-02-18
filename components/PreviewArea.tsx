@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 
@@ -77,6 +77,31 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
     setPosition({ x: 0, y: 0 });
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if (
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement ||
+        (document.activeElement as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === '=' || e.key === '+') {
+        handleZoom(0.1);
+      } else if (e.key === '-' || e.key === '_') {
+        handleZoom(-0.1);
+      } else if (e.key === '0') {
+        fitToScreen();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <main 
       ref={mainRef}
@@ -91,18 +116,24 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
       <div className="absolute bottom-6 right-6 flex gap-2 z-10 select-none" onMouseDown={e => e.stopPropagation()}>
         <button 
           onClick={() => handleZoom(-0.1)}
+          title="Zoom Out (-)"
+          aria-label="Zoom Out"
           className="w-8 h-8 bg-[#222] rounded hover:bg-[#333] text-white flex items-center justify-center border border-[#333] active:scale-95 transition-transform"
         >
           <span className="material-symbols-outlined text-[18px]">remove</span>
         </button>
         <button 
           onClick={fitToScreen}
+          title="Fit to Screen (0)"
+          aria-label="Fit to Screen"
           className="px-3 h-8 bg-[#222] rounded hover:bg-[#333] text-white text-xs font-mono border border-[#333] active:scale-95 transition-transform"
         >
           FIT
         </button>
         <button 
           onClick={() => handleZoom(0.1)}
+          title="Zoom In (+)"
+          aria-label="Zoom In"
           className="w-8 h-8 bg-[#222] rounded hover:bg-[#333] text-white flex items-center justify-center border border-[#333] active:scale-95 transition-transform"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
