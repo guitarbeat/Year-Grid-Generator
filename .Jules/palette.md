@@ -5,3 +5,7 @@
 ## 2024-02-15 - Limited Color Input Control
 **Learning:** Native `input type="color"` does not allow users to paste or type specific hex codes (e.g., brand colors) easily in all browsers. This limits precision.
 **Action:** Always pair `input type="color"` with a synchronized text input for better accessibility and usability.
+
+## 2024-02-16 - Accessible Canvas Controls
+**Learning:** Visual-heavy "canvas" interactions (like zooming) often neglect screen readers and keyboard users, making the app unusable for them.
+**Action:** When implementing zoom/pan controls, always add keyboard shortcuts (+/-/0) and descriptive ARIA labels to buttons.
