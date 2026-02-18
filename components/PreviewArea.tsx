@@ -112,7 +112,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
       {/* Render Content */}
       <div 
         ref={containerRef}
-        className="transition-transform duration-300 ease-out origin-center"
+        className={`origin-center ${isPanning ? '' : 'transition-transform duration-300 ease-out'}`}
         style={{ 
           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
         }}
