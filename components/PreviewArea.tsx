@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 
@@ -39,11 +39,11 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
   const handleMouseLeave = () => setIsPanning(false);
 
   // Zoom controls
-  const handleZoom = (delta: number) => {
+  const handleZoom = useCallback((delta: number) => {
     setZoom(prev => Math.max(0.05, Math.min(3.0, prev + delta)));
-  };
+  }, []);
   
-  const fitToScreen = () => {
+  const fitToScreen = useCallback(() => {
     if (!mainRef.current || !gridRef.current) return;
     
     const container = mainRef.current;
@@ -75,7 +75,31 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
     
     setZoom(clampedZoom);
     setPosition({ x: 0, y: 0 });
-  };
+  }, [gridRef]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+        return;
+      }
+
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault();
+        handleZoom(0.1);
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        handleZoom(-0.1);
+      } else if (e.key === '0') {
+        e.preventDefault();
+        fitToScreen();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleZoom, fitToScreen]);
 
   return (
     <main 
@@ -91,18 +115,24 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
       <div className="absolute bottom-6 right-6 flex gap-2 z-10 select-none" onMouseDown={e => e.stopPropagation()}>
         <button 
           onClick={() => handleZoom(-0.1)}
+          aria-label="Zoom Out"
+          title="Zoom Out (-)"
           className="w-8 h-8 bg-[#222] rounded hover:bg-[#333] text-white flex items-center justify-center border border-[#333] active:scale-95 transition-transform"
         >
           <span className="material-symbols-outlined text-[18px]">remove</span>
         </button>
         <button 
           onClick={fitToScreen}
+          aria-label="Fit to Screen"
+          title="Fit to Screen (0)"
           className="px-3 h-8 bg-[#222] rounded hover:bg-[#333] text-white text-xs font-mono border border-[#333] active:scale-95 transition-transform"
         >
           FIT
         </button>
         <button 
           onClick={() => handleZoom(0.1)}
+          aria-label="Zoom In"
+          title="Zoom In (+)"
           className="w-8 h-8 bg-[#222] rounded hover:bg-[#333] text-white flex items-center justify-center border border-[#333] active:scale-95 transition-transform"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
