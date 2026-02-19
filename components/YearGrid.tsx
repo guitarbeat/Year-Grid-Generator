@@ -288,10 +288,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
                     {dataItems.map((day, i) => (
                       <DayCell
                         key={i}
-                        filled={day.filled}
                         active={day.active}
                         label={day.label}
-                        colors={colors}
+                        backgroundColor={day.filled ? colors.fill : colors.empty}
+                        textColor={day.filled ? colors.bg : colors.text}
                         dotSize={dotSize}
                         radius={radius}
                       >
@@ -352,10 +352,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
                      {dataItems.map((day, i) => (
                       <DayCell
                         key={i}
-                        filled={day.filled}
                         active={day.active}
                         label={day.label}
-                        colors={colors}
+                        backgroundColor={day.filled ? colors.fill : colors.empty}
+                        textColor={day.filled ? colors.bg : colors.text}
                         dotSize={dotSize}
                         radius={radius}
                       >
@@ -396,10 +396,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
           {dataItems.map((item, i) => (
             <DayCell
               key={i}
-              filled={item.filled}
               active={item.active}
               label={item.label}
-              colors={colors}
+              backgroundColor={item.filled ? colors.fill : colors.empty}
+              textColor={item.filled ? colors.bg : colors.text}
               dotSize={dotSize}
               radius={radius}
             >

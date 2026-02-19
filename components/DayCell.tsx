@@ -1,21 +1,29 @@
 import React from 'react';
-import { AppColors } from '../types';
 
 interface DayCellProps {
-  filled: boolean;
+  // filled prop is not needed for rendering; color logic is handled by parent to optimize re-renders
   active?: boolean;
   label: string;
-  colors: AppColors;
+  backgroundColor: string;
+  textColor: string;
   dotSize: number;
   radius: number;
   children?: React.ReactNode;
 }
 
+/**
+ * Optimization Note:
+ * This component receives specific color strings (backgroundColor, textColor) instead of the full
+ * 'colors' object or 'filled' boolean. This ensures that React.memo is effective, as string
+ * primitives are compared by value. Passing the full 'colors' object would cause unnecessary
+ * re-renders whenever *any* color in the theme changes (new object reference), even if it
+ * doesn't affect this specific cell.
+ */
 const DayCell: React.FC<DayCellProps> = React.memo(({
-  filled,
   active,
   label,
-  colors,
+  backgroundColor,
+  textColor,
   dotSize,
   radius,
   children
@@ -23,13 +31,13 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
   const style: React.CSSProperties = {
     width: `${dotSize}px`,
     height: `${dotSize}px`,
-    backgroundColor: filled ? colors.fill : colors.empty,
+    backgroundColor: backgroundColor,
     borderRadius: `${radius}px`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: `${Math.max(8, dotSize * 0.4)}px`,
-    color: filled ? colors.bg : colors.text,
+    color: textColor,
     fontWeight: 'bold',
     userSelect: 'none',
     zIndex: active ? 10 : 2,
