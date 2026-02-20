@@ -159,12 +159,19 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
   }, [dataItems, startDayOffset, mode, dotSize, gap, granularity]);
 
   // --- Styles ---
-  const containerStyle: React.CSSProperties = {
+  const containerStyle: React.CSSProperties & Record<string, any> = {
     backgroundColor: transparentBg ? 'transparent' : colors.bg,
     color: colors.text,
     fontFamily: fontFamily,
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    // Inject CSS variables for DayCell
+    '--dot-size': `${dotSize}px`,
+    '--radius': `${radius}px`,
+    '--color-bg': colors.bg,
+    '--color-text': colors.text,
+    '--color-empty': colors.empty,
+    '--color-fill': colors.fill,
   };
 
   const watermarkStyle: React.CSSProperties = {
@@ -291,9 +298,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
                         filled={day.filled}
                         active={day.active}
                         label={day.label}
-                        colors={colors}
-                        dotSize={dotSize}
-                        radius={radius}
                       >
                         {renderCellContent(day, i)}
                       </DayCell>
@@ -355,9 +359,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
                         filled={day.filled}
                         active={day.active}
                         label={day.label}
-                        colors={colors}
-                        dotSize={dotSize}
-                        radius={radius}
                       >
                         {renderCellContent(day, i)}
                       </DayCell>
@@ -399,9 +400,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
               filled={item.filled}
               active={item.active}
               label={item.label}
-              colors={colors}
-              dotSize={dotSize}
-              radius={radius}
             >
               {renderCellContent(item, i)}
             </DayCell>

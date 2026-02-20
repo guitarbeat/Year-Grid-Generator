@@ -1,13 +1,9 @@
 import React from 'react';
-import { AppColors } from '../types';
 
 interface DayCellProps {
   filled: boolean;
   active?: boolean;
   label: string;
-  colors: AppColors;
-  dotSize: number;
-  radius: number;
   children?: React.ReactNode;
 }
 
@@ -15,21 +11,19 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
   filled,
   active,
   label,
-  colors,
-  dotSize,
-  radius,
   children
 }) => {
   const style: React.CSSProperties = {
-    width: `${dotSize}px`,
-    height: `${dotSize}px`,
-    backgroundColor: filled ? colors.fill : colors.empty,
-    borderRadius: `${radius}px`,
+    width: 'var(--dot-size)',
+    height: 'var(--dot-size)',
+    backgroundColor: filled ? 'var(--color-fill)' : 'var(--color-empty)',
+    borderRadius: 'var(--radius)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: `${Math.max(8, dotSize * 0.4)}px`,
-    color: filled ? colors.bg : colors.text,
+    // Using max() and calc() for responsive font size based on dot size
+    fontSize: 'max(8px, calc(var(--dot-size) * 0.4))',
+    color: filled ? 'var(--color-bg)' : 'var(--color-text)',
     fontWeight: 'bold',
     userSelect: 'none',
     zIndex: active ? 10 : 2,
