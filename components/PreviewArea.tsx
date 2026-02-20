@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 
@@ -77,6 +77,22 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
     setPosition({ x: 0, y: 0 });
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+      if ((e.target as HTMLElement).isContentEditable) return;
+
+      switch(e.key) {
+        case '=': case '+': handleZoom(0.1); break;
+        case '-': case '_': handleZoom(-0.1); break;
+        case '0': fitToScreen(); break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleZoom, fitToScreen]);
+
   return (
     <main 
       ref={mainRef}
@@ -91,18 +107,24 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef }) => {
       <div className="absolute bottom-6 right-6 flex gap-2 z-10 select-none" onMouseDown={e => e.stopPropagation()}>
         <button 
           onClick={() => handleZoom(-0.1)}
+          aria-label="Zoom Out"
+          title="Zoom Out (Minus)"
           className="w-8 h-8 bg-[#222] rounded hover:bg-[#333] text-white flex items-center justify-center border border-[#333] active:scale-95 transition-transform"
         >
           <span className="material-symbols-outlined text-[18px]">remove</span>
         </button>
         <button 
           onClick={fitToScreen}
+          aria-label="Fit to Screen"
+          title="Fit to Screen (0)"
           className="px-3 h-8 bg-[#222] rounded hover:bg-[#333] text-white text-xs font-mono border border-[#333] active:scale-95 transition-transform"
         >
           FIT
         </button>
         <button 
           onClick={() => handleZoom(0.1)}
+          aria-label="Zoom In"
+          title="Zoom In (Plus)"
           className="w-8 h-8 bg-[#222] rounded hover:bg-[#333] text-white flex items-center justify-center border border-[#333] active:scale-95 transition-transform"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
