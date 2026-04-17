@@ -18,6 +18,7 @@ interface SidebarProps {
   isDownloading: boolean;
   isOpen?: boolean;
   onToggle?: () => void;
+  resetConfig: () => void;
 }
 
 const THEMES: { name: string; colors: AppColors }[] = [
@@ -59,7 +60,7 @@ const THEMES: { name: string; colors: AppColors }[] = [
   },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDownloading, isOpen, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDownloading, isOpen, onToggle, resetConfig }) => {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'shortcut'>('idle');
   const [activeTab, setActiveTab] = useState<'config' | 'layout' | 'style'>('config');
   
@@ -116,9 +117,9 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
         {/* Tab Switcher */}
         <div className="flex bg-[#0a0a0a] border-b border-border sticky top-0 z-10">
           {[
-            { id: 'config', label: 'Setup', icon: 'settings' },
-            { id: 'layout', label: 'Space', icon: 'grid_guides' },
-            { id: 'style', label: 'Vis', icon: 'palette' }
+            { id: 'config', label: 'Plan', icon: 'event_note' },
+            { id: 'layout', label: 'Grid', icon: 'grid_view' },
+            { id: 'style', label: 'Look', icon: 'auto_fix' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -141,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           {activeTab === 'config' && (
             <>
               {/* Definition */}
-              <SidebarSection label="Core Definition">
+              <SidebarSection label="Structure">
                 <div className="space-y-4">
                   <ControlGroup label="Resolution">
                     <SegmentedControl 
@@ -152,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                       ]}
                       activeId={config.granularity}
                       onChange={(id) => {
-                        const itemsPerRow = id === 'day' ? 31 : id === 'week' ? 13 : 4;
+                        const itemsPerRow = id === 'day' ? 31 : id === 'week' ? 12 : 4;
                         setConfig(prev => ({ 
                           ...prev, 
                           granularity: id as any,
@@ -161,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                       }}
                     />
                   </ControlGroup>
-                  <ControlGroup label="Blueprint">
+                  <ControlGroup label="Canvas Mode">
                     <SegmentedControl 
                       cols={2}
                       options={[
@@ -178,43 +179,143 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               </SidebarSection>
 
               {/* Time */}
-              <SidebarSection label="Temporal Constraints">
+              <SidebarSection label="Timeframe">
                 <div className="space-y-4">
-                  <ControlGroup label="Origin">
-                    <div className="flex gap-2">
+                  <ControlGroup label="Asset Name (Export Meta)">
+                    <Input 
+                      type="text"
+                      placeholder="e.g. 2024 VISION"
+                      value={config.customTitle || ''}
+                      onChange={(e) => updateConfig('customTitle', e.target.value)}
+                      className="text-[11px]"
+                    />
+                  </ControlGroup>
+
+                  <div className="flex flex-col gap-3">
+                    <ControlGroup label="Origin Month">
+                      <div className="flex gap-2">
+                        <Input 
+                          type="date"
+                          value={config.date}
+                          onChange={(e) => updateConfig('date', e.target.value)}
+                          className="font-mono text-[11px] h-10"
+                        />
+                        <button 
+                          onClick={setDateToToday}
+                          className="bg-[#111] hover:bg-[#1a1a1a] border border-border/60 rounded-sm px-3 flex items-center justify-center text-gray-500 hover:text-accent transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">today</span>
+                        </button>
+                      </div>
+                    </ControlGroup>
+
+                    <ControlGroup label="Length of View" value={`${config.monthsToShow} units`}>
                       <Input 
-                        type="date"
-                        value={config.date}
-                        onChange={(e) => updateConfig('date', e.target.value)}
-                        className="font-mono text-[11px]"
+                        type="range" min="1" max="60" step="1"
+                        value={config.monthsToShow}
+                        onChange={(e) => updateConfig('monthsToShow', parseInt(e.target.value))}
+                        className="range-input"
                       />
-                      <button 
-                        onClick={setDateToToday}
-                        className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] rounded-sm px-3 flex items-center justify-center text-gray-500 hover:text-accent transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">today</span>
-                      </button>
+                    </ControlGroup>
+                    
+                    <ControlGroup 
+                      label={config.startFromJan ? 'Year Shift' : 'Calendar Scroll'}
+                      value={`${config.monthOffset > 0 ? '+' : ''}${config.monthOffset} ${config.startFromJan ? 'Yrs' : 'Mos'}`}
+                    >
+                      <Input 
+                        type="range" min={config.startFromJan ? -10 : -36} max={config.startFromJan ? 10 : 36} step="1" 
+                        value={config.monthOffset}
+                        onChange={(e) => updateConfig('monthOffset', parseInt(e.target.value))}
+                        className="range-input"
+                      />
+                    </ControlGroup>
+                  </div>
+
+                  <ControlGroup label="Chronology Rules">
+                    <div className="grid grid-cols-1 gap-1">
+                      <Toggle 
+                        id="opt-jan"
+                        label="Align January 1st"
+                        checked={config.startFromJan}
+                        onChange={(val) => updateConfig('startFromJan', val)}
+                      />
+                      <Toggle 
+                        id="opt-monday"
+                        label="Monday First"
+                        checked={config.isMondayFirst}
+                        onChange={(val) => updateConfig('isMondayFirst', val)}
+                      />
+                      <Toggle 
+                        id="opt-season"
+                        label="Group By Season"
+                        checked={config.groupBySeason}
+                        onChange={(val) => {
+                          if (val) {
+                            if (config.mode === 'grid') setConfig(prev => ({ ...prev, groupBySeason: val, monthsPerRow: 3 }));
+                            else if (config.mode === 'timeline') setConfig(prev => ({ ...prev, groupBySeason: val, itemsPerRow: 31 }));
+                            else setConfig(prev => ({ ...prev, groupBySeason: val }));
+                          } else {
+                            updateConfig('groupBySeason', val);
+                          }
+                        }}
+                      />
                     </div>
                   </ControlGroup>
 
-                  <ControlGroup label="Span" value={`${config.monthsToShow} ${config.granularity === 'day' ? 'Mos' : config.granularity === 'week' ? 'Wks' : 'Yrs'}`}>
-                    <Input 
-                      type="range" min="1" max="60" step="1"
-                      value={config.monthsToShow}
-                      onChange={(e) => updateConfig('monthsToShow', parseInt(e.target.value))}
-                      className="range-input"
-                    />
-                  </ControlGroup>
+                  <SidebarSection className="p-0 border-t border-border/20 pt-4 mt-2" label="Export Canvas">
+                    <div className="space-y-4">
+                      <ControlGroup label="Asset Format">
+                        <Select 
+                          value={config.assetFormat}
+                          onChange={(e) => updateConfig('assetFormat', e.target.value as any)}
+                        >
+                          <option value="auto">Adaptive</option>
+                          <option value="square">Square (1:1)</option>
+                          <option value="ios-widget">iOS Widget</option>
+                          <option value="ios-wallpaper">iOS Wallpaper</option>
+                        </Select>
+                      </ControlGroup>
+                      <ControlGroup label="Resolution Scale" value={`${config.resolutionScale}x`}>
+                        <Input 
+                          type="range" min="1" max="4" step="1"
+                          value={config.resolutionScale}
+                          onChange={(e) => updateConfig('resolutionScale', parseInt(e.target.value) as any)}
+                          className="range-input"
+                        />
+                      </ControlGroup>
+                    </div>
+                  </SidebarSection>
                 </div>
               </SidebarSection>
 
-              {/* Automation */}
-              <SidebarSection label="Automation">
+              {/* Automation & Storage */}
+              <SidebarSection label="Actions">
                 <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="secondary"
+                      icon="restart_alt"
+                      label="RESET"
+                      onClick={resetConfig}
+                      className="h-10 col-span-1"
+                    />
+                    <Button 
+                      variant="secondary"
+                      icon="content_copy"
+                      label="COPY JSON"
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(config, null, 2)).then(() => {
+                          setCopyStatus('shortcut');
+                          setTimeout(() => setCopyStatus('idle'), 2000);
+                        });
+                      }}
+                      className="h-10 col-span-1"
+                    />
+                  </div>
                   <Button 
                     variant="secondary"
                     icon="link"
-                    label={copyStatus === 'shortcut' ? 'COPIED' : 'AUTOMATION LINK'}
+                    label={copyStatus === 'shortcut' ? 'COPIED' : 'IOS SYNC LINK'}
                     onClick={() => {
                       const params = new URLSearchParams(window.location.search);
                       params.set('view', 'image');
@@ -225,10 +326,10 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                         setTimeout(() => setCopyStatus('idle'), 2000);
                       });
                     }}
-                    className="w-full"
+                    className="w-full h-10"
                   />
                   <p className="text-[9px] text-gray-500 font-mono leading-tight">
-                    STATIC ASSET LINK FOR IOS SHORTCUTS. FETCHES DYNAMIC GRID BASED ON CURRENT DATE.
+                    STATIC ASSET LINK. FETCHES DYNAMIC GRID BASED ON CURRENT DATE FOR WIDGETS.
                   </p>
                 </div>
               </SidebarSection>
@@ -237,9 +338,9 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
 
           {activeTab === 'layout' && (
             <>
-              <SidebarSection label="Geometry">
+              <SidebarSection label="Metric Scale">
                 <div className="space-y-5">
-                  <ControlGroup label="Unit Scale" value={`${config.dotSize}px`}>
+                  <ControlGroup label="Dot Diameter" value={`${config.dotSize}px`}>
                     <Input 
                       type="range" min="4" max="60" step="1"
                       value={config.dotSize}
@@ -248,7 +349,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                     />
                   </ControlGroup>
 
-                  <ControlGroup label="Internal Spacing" value={`${config.gap}px`}>
+                  <ControlGroup label="Inter-Gap" value={`${config.gap}px`}>
                     <Input 
                       type="range" min="0" max="20" step="1"
                       value={config.gap}
@@ -268,64 +369,28 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                 </div>
               </SidebarSection>
 
-              <SidebarSection label="Arrangement">
+              <SidebarSection label="Flow">
                 <div className="space-y-5">
-                  {config.mode === 'grid' && config.granularity !== 'month' && (
-                    <ControlGroup label="Modules Per Line" value={config.monthsPerRow}>
-                      <Input 
-                        type="range" min="1" max="12" step="1"
-                        value={config.monthsPerRow}
-                        onChange={(e) => updateConfig('monthsPerRow', parseInt(e.target.value))}
-                        className="range-input"
-                      />
-                    </ControlGroup>
-                  )}
-
-                  <ControlGroup 
-                    label={config.startFromJan ? 'Year Offset' : 'Month Start Offset'}
-                    value={`${config.monthOffset > 0 ? '+' : ''}${config.monthOffset} ${config.startFromJan ? 'Yrs' : 'Mos'}`}
-                  >
-                    <Input 
-                      type="range" min={config.startFromJan ? -4 : -24} max={config.startFromJan ? 4 : 24} step="1" 
-                      value={config.monthOffset}
-                      onChange={(e) => updateConfig('monthOffset', parseInt(e.target.value))}
-                      className="range-input"
-                    />
-                  </ControlGroup>
-
-                  {!(config.mode === 'rows' || config.mode === 'columns' || (config.mode === 'grid' && config.granularity === 'day')) && (
-                    <ControlGroup label="Items Per Row" value={config.itemsPerRow}>
-                      <Input 
-                        type="range" min="1" max="100" step="1"
-                        value={config.itemsPerRow}
-                        onChange={(e) => updateConfig('itemsPerRow', parseInt(e.target.value))}
-                        className="range-input"
-                      />
-                    </ControlGroup>
-                  )}
-                </div>
-              </SidebarSection>
-
-              <SidebarSection label="Typography">
-                <div className="space-y-5">
-                  <ControlGroup label="Label Size" value={`${config.fontSize}px`}>
-                    <Input 
-                      type="range" min="8" max="24" step="1"
-                      value={config.fontSize}
-                      onChange={(e) => updateConfig('fontSize', parseInt(e.target.value))}
-                      className="range-input"
-                    />
-                  </ControlGroup>
-                  <ControlGroup label="Font Family">
-                    <Select 
-                      value={config.fontFamily}
-                      onChange={(e) => updateConfig('fontFamily', e.target.value)}
+                  {(config.mode === 'grid' || config.mode === 'timeline') && config.granularity !== 'month' && (
+                    <ControlGroup 
+                      label={config.mode === 'timeline' ? 'Units Per Line' : 'Blocks Per Line'} 
+                      value={config.mode === 'timeline' ? config.itemsPerRow : config.monthsPerRow}
                     >
-                      <option value="'Inter', sans-serif">Inter</option>
-                      <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
-                      <option value="serif">Classic Serif</option>
-                    </Select>
-                  </ControlGroup>
+                      <Input 
+                        type="range" 
+                        min="1" 
+                        max={config.mode === 'timeline' ? (config.groupBySeason ? 31 : 366) : (config.groupBySeason ? 4 : 12)} 
+                        step="1"
+                        value={config.mode === 'timeline' ? config.itemsPerRow : config.monthsPerRow}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (config.mode === 'timeline') updateConfig('itemsPerRow', val);
+                          else updateConfig('monthsPerRow', val);
+                        }}
+                        className="range-input"
+                      />
+                    </ControlGroup>
+                  )}
                 </div>
               </SidebarSection>
             </>
@@ -333,53 +398,60 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
 
           {activeTab === 'style' && (
             <>
-              <SidebarSection label="Visibility">
-                <div className="grid grid-cols-1 gap-2">
-                  {[
-                    { id: 'check-jan', label: 'ALIGN JANUARY 1st', key: 'startFromJan' },
-                    { id: 'check-monday', label: 'MONDAY FIRST', key: 'isMondayFirst', hide: config.granularity === 'month' },
-                    { id: 'check-numbers', label: 'SHOW DIGITS', key: 'showDayNumbers', hide: config.granularity !== 'day' },
-                    { id: 'check-weekends', label: 'WEEKEND EMPHASIS', key: 'highlightWeekends', hide: config.granularity === 'month' },
-                    { id: 'check-dim', label: 'DIM HISTORICAL', key: 'dimPastDays' },
-                    { id: 'check-stats', label: 'PROGRESS BAR', key: 'showStats' },
-                    { id: 'check-year-lbl', label: 'YEAR BACKGROUND', key: 'showYearLabel' },
-                    { id: 'check-transparent', label: 'ALPHA EXPORT', key: 'transparentBg' },
-                  ].filter(opt => !opt.hide).map((opt) => (
-                    <Toggle 
-                      key={opt.id}
-                      id={opt.id}
-                      label={opt.label}
-                      checked={config[opt.key as keyof AppConfig] as boolean}
-                      onChange={(val) => updateConfig(opt.key as any, val)}
+              <SidebarSection label="Typography">
+                <div className="space-y-5">
+                  <ControlGroup label="Label Scale" value={`${config.fontSize}px`}>
+                    <Input 
+                      type="range" min="6" max="32" step="1"
+                      value={config.fontSize}
+                      onChange={(e) => updateConfig('fontSize', parseInt(e.target.value))}
+                      className="range-input"
                     />
-                  ))}
+                  </ControlGroup>
+                  <ControlGroup label="Typeface">
+                    <Select 
+                      value={config.fontFamily}
+                      onChange={(e) => updateConfig('fontFamily', e.target.value)}
+                    >
+                      <option value="'Inter', sans-serif">Inter Sans</option>
+                      <option value="'JetBrains Mono', monospace">Terminal Mono</option>
+                      <option value="serif">Modern Serif</option>
+                    </Select>
+                  </ControlGroup>
                 </div>
               </SidebarSection>
 
-              <SidebarSection label="Themes">
+              <SidebarSection label="Aesthetics">
                 <div className="space-y-6">
-                  <div className="grid grid-cols-5 gap-2">
-                    {THEMES.map(t => (
-                      <button 
-                        key={t.name}
-                        onClick={() => applyTheme(t.colors)}
-                        className="w-full aspect-square rounded-sm border border-border hover:border-accent transition-all relative overflow-hidden active:scale-95 shadow-lg group"
-                        title={t.name}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-br" style={{ backgroundImage: `linear-gradient(to bottom right, ${t.colors.bg} 50%, ${t.colors.fill} 50%)` }}></div>
-                        <div className="absolute inset-0 bg-accent/0 group-hover:bg-accent/10 transition-colors" />
-                      </button>
-                    ))}
+                  <div>
+                    <span className="text-[9px] text-gray-600 font-bold tracking-widest mb-3 block uppercase">Global Presets</span>
+                    <div className="grid grid-cols-5 gap-2">
+                      {THEMES.map(t => (
+                        <button 
+                          key={t.name}
+                          onClick={() => applyTheme(t.colors)}
+                          className={`
+                            w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg group
+                            ${JSON.stringify(config.colors) === JSON.stringify(t.colors) ? 'border-accent' : 'border-transparent'}
+                          `}
+                          title={t.name}
+                        >
+                          <div className="absolute inset-0" style={{ backgroundColor: t.colors.fill }}></div>
+                          <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(45deg, ${t.colors.bg}, transparent)` }} />
+                          <div className="absolute inset-0 bg-accent/0 group-hover:bg-accent/10 transition-colors" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     {[
                       { label: 'Surface', key: 'bg' },
-                      { label: 'Highlight', key: 'today' },
-                      { label: 'Future', key: 'futureDay' },
-                      { label: 'Legacy', key: 'pastDay' },
-                      { label: 'Rest', key: 'weekend' },
-                      { label: 'Metric', key: 'stats' },
+                      { label: 'Today', key: 'today' },
+                      { label: 'Inactive', key: 'futureDay' },
+                      { label: 'History', key: 'pastDay' },
+                      { label: 'Weekend', key: 'weekend' },
+                      { label: 'Accent', key: 'stats' },
                     ].map(({ label, key }) => (
                       <ColorInput 
                         key={key}
@@ -391,9 +463,72 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                   </div>
                 </div>
               </SidebarSection>
+
+              <SidebarSection label="Features & Guides">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-5">
+                    
+                    <ControlGroup label="Cell Content">
+                      <Select 
+                        value={
+                          config.showActiveLabel ? `active-${config.activeLabelFormat}` :
+                          (config.showDayNumbers || config.showWeekNumbers || config.showMonthLabels) ? 'all' : 'none'
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'none') {
+                            updateConfig('showActiveLabel', false);
+                            updateConfig('showDayNumbers', false);
+                            updateConfig('showWeekNumbers', false);
+                            updateConfig('showMonthLabels', false);
+                          } else if (val === 'all') {
+                            updateConfig('showActiveLabel', false);
+                            updateConfig('showDayNumbers', true);
+                            updateConfig('showWeekNumbers', true);
+                            updateConfig('showMonthLabels', true);
+                          } else if (val.startsWith('active-')) {
+                            updateConfig('showActiveLabel', true);
+                            updateConfig('activeLabelFormat', val.replace('active-', '') as any);
+                            updateConfig('showDayNumbers', false);
+                            updateConfig('showWeekNumbers', false);
+                            updateConfig('showMonthLabels', false);
+                          }
+                        }}
+                      >
+                        <option value="none">Empty (Data Driven)</option>
+                        <option value="all">Standard Units</option>
+                        <option disabled>── Active Unit Only ──</option>
+                        <option value="active-date">Date Context</option>
+                        <option value="active-weekNum">Week Number</option>
+                        <option value="active-dayName">Day Name</option>
+                        <option value="active-monthName">Month Name</option>
+                        <option value="active-monthDate">Month-Date</option>
+                        <option value="active-full">Full Detail</option>
+                      </Select>
+                    </ControlGroup>
+
+                    <ControlGroup label="Canvas Elements">
+                      <div className="grid grid-cols-1 gap-1">
+                        <Toggle id="chk-maxis" label="Month Headers" checked={config.showMonthAxis} onChange={(v) => updateConfig('showMonthAxis', v)} />
+                        <Toggle id="chk-waxis" label="Weekday Axis" checked={config.showWeekdayAxis} onChange={(v) => updateConfig('showWeekdayAxis', v)} />
+                        {config.groupBySeason && <Toggle id="chk-seasons" label="Season Names" checked={config.showSeasonLabels} onChange={(v) => updateConfig('showSeasonLabels', v)} />}
+                        <Toggle id="chk-watermark" label="Year Watermark" checked={config.showYearLabel} onChange={(v) => updateConfig('showYearLabel', v)} />
+                        <Toggle id="chk-stats" label="Progress Bar" checked={config.showStats} onChange={(v) => updateConfig('showStats', v)} />
+                      </div>
+                    </ControlGroup>
+
+                    <ControlGroup label="Visual Rules">
+                      <div className="grid grid-cols-1 gap-1">
+                        <Toggle id="chk-weekends" label="Highlight Weekends" checked={config.highlightWeekends} onChange={(v) => updateConfig('highlightWeekends', v)} />
+                        <Toggle id="chk-dim" label="Dim Past Units" checked={config.dimPastDays} onChange={(v) => updateConfig('dimPastDays', v)} />
+                        <Toggle id="chk-alpha" label="Transparent Export" checked={config.transparentBg} onChange={(v) => updateConfig('transparentBg', v)} />
+                      </div>
+                    </ControlGroup>
+                  </div>
+                </div>
+              </SidebarSection>
             </>
           )}
-
         </div>
 
         {/* Persistent Action Footer */}

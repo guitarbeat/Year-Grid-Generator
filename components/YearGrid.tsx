@@ -6,9 +6,10 @@ interface YearGridProps {
   config: AppConfig;
   className?: string;
   domRef?: React.RefObject<HTMLDivElement>;
+  onCellClick?: (id: string) => void;
 }
 
-const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
+const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellClick }) => {
   const {
     date,
     isMondayFirst,
@@ -24,16 +25,37 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
     monthsPerRow = 3,
     monthOffset = 0,
     showDayNumbers = false,
+    showWeekNumbers = true,
+    showMonthLabels = true,
+    showMonthAxis = true,
+    showWeekdayAxis = true,
     highlightWeekends = true,
     dimPastDays = true,
     showStats = true,
     mode = 'grid',
     startFromJan = false,
-    granularity = 'day'
+    granularity = 'day',
+    groupBySeason = false,
+    showSeasonLabels = true,
+    showActiveLabel = false,
+    activeLabelFormat = 'date'
   } = config;
 
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
+  const vDayLabels = isMondayFirst 
+    ? ['M','T','W','T','F','S','S'] 
+    : ['S','M','T','W','T','F','S'];
+
+  const dayHeaderLabels = isMondayFirst 
+    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] 
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Dynamic Dimensions based on font size to prevent clipping
+  const DAY_LABEL_WIDTH = Math.ceil(fontSize * 4.5); 
+  const DAY_LABEL_HEIGHT = Math.ceil(fontSize * 1.8);
+  const MONTH_LABEL_WIDTH = Math.ceil(fontSize * 5.5);
+
   const targetDate = useMemo(() => {
     const d = new Date(date);
     return isNaN(d.getTime()) ? new Date() : d;
@@ -53,6 +75,11 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
 
   // Helper to get day color based on Scriptable logic
   const getDayColor = (year: number, month: number, day: number) => {
+    const id = `day-${year}-${month}-${day}`;
+    if (config.overrides[id]) {
+      return colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
+    }
+
     const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
     const absTarget = year * 10000 + month * 100 + day;
 
@@ -72,6 +99,43 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
       return dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
     }
     return colors.futureDay;
+  };
+
+  const getActiveCellText = (year: number, month: number, day?: number, weekNum?: number) => {
+    let text = '';
+    const d = day ? new Date(year, month, day) : new Date(year, month, 1);
+
+    const dayNameShort = d.toLocaleDateString('default', { weekday: 'short' });
+    const monthNameShort = d.toLocaleDateString('default', { month: 'short' });
+    const monthNameLong = d.toLocaleDateString('default', { month: 'long' });
+    const dateNum = d.getDate();
+    const weekOfMonth = Math.ceil(dateNum / 7);
+    const weekOfYear = getWeekNumber(d);
+
+    if (granularity === 'month') {
+      if (activeLabelFormat === 'date') text = `${dateNum}`;
+      else if (activeLabelFormat === 'weekNum') text = `M${month + 1}`;
+      else if (activeLabelFormat === 'dayName') text = monthNameLong;
+      else if (activeLabelFormat === 'monthName') text = monthNameLong;
+      else if (activeLabelFormat === 'monthDate') text = `${monthNameShort} ${year}`;
+      else if (activeLabelFormat === 'full') text = `${monthNameLong} ${year}`;
+    } else if (granularity === 'week' && weekNum) {
+      if (activeLabelFormat === 'date') text = `W${weekNum}`;
+      else if (activeLabelFormat === 'weekNum') text = `W${weekNum}`;
+      else if (activeLabelFormat === 'dayName') text = `Week ${weekNum}`;
+      else if (activeLabelFormat === 'monthName') text = `${monthNameShort}`;
+      else if (activeLabelFormat === 'monthDate') text = `${monthNameShort} W${weekNum}`;
+      else if (activeLabelFormat === 'full') text = `Week ${weekNum}, ${year}`;
+    } else { 
+      if (activeLabelFormat === 'date') text = `${dateNum}`;
+      else if (activeLabelFormat === 'weekNum') text = `W${weekOfYear}`;
+      else if (activeLabelFormat === 'dayName') text = dayNameShort;
+      else if (activeLabelFormat === 'monthName') text = monthNameLong;
+      else if (activeLabelFormat === 'monthDate') text = `${monthNameShort} ${dateNum}`;
+      else if (activeLabelFormat === 'full') text = `${dayNameShort} Wk${weekOfMonth} ${dateNum}`;
+    }
+
+    return text;
   };
 
   const months = useMemo(() => {
@@ -97,11 +161,18 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
           // If it's a Monday (or Sunday if isMondayFirst is false) or the first of month, check if it starts a week here
           // For simplicity, we'll just check if the date falls in this month
           const weekNum = getWeekNumber(d);
-          const isPast = weekNum < currentWeekNumber && year <= currentYear;
-          const isToday = weekNum === currentWeekNumber && year === currentYear;
+          const isPast = year < currentYear || (year === currentYear && weekNum < currentWeekNumber);
+          const isToday = year === currentYear && weekNum === currentWeekNumber;
+          
           let color = colors.futureDay;
-          if (isToday) color = colors.today;
-          else if (isPast) color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+          const id = `week-${year}-${weekNum}`;
+          if (config.overrides[id]) {
+            color = colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
+          } else if (isToday) {
+            color = colors.today;
+          } else if (isPast) {
+            color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+          }
 
           // Only add if not already added
           if (!weeksInMonth.find(w => w.weekNum === weekNum)) {
@@ -116,22 +187,30 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
         name: monthNames[month],
         daysInMonth,
         weeksInMonth,
-        startOffset
+        startOffset,
+        season: getSeason(month)
       });
     }
     return result;
   }, [currentYear, currentMonth, monthOffset, monthsToShow, isMondayFirst, startFromJan, colors, currentWeekNumber, dimPastDays]);
 
+  function getSeason(month: number) {
+    if (month >= 2 && month <= 4) return 'SPRING';
+    if (month >= 5 && month <= 7) return 'SUMMER';
+    if (month >= 8 && month <= 10) return 'FALL';
+    return 'WINTER';
+  }
+
   const containerStyle: React.CSSProperties = {
     backgroundColor: transparentBg ? 'transparent' : colors.bg,
     color: colors.text,
     fontFamily: fontFamily,
-    padding: '48px',
+    padding: `${Math.max(24, fontSize * 3)}px`,
     display: 'inline-flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '32px',
-    borderRadius: '16px',
+    gap: `${Math.max(16, fontSize * 2)}px`,
+    borderRadius: `${radius || 16}px`,
     position: 'relative',
     transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
   };
@@ -171,9 +250,83 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
       Array.from({ length: m.daysInMonth }).map((_, i) => ({
         year: m.year,
         month: m.month,
-        day: i + 1
+        day: i + 1,
+        season: m.season
       }))
     );
+
+    if (groupBySeason) {
+      const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 8}px`, width: '100%' }}>
+          {seasonsOrder.map(s => {
+            const seasonDays = allDays.filter(d => d.season === s).sort((a, b) => {
+              const wA = (a.month + 1) % 12;
+              const wB = (b.month + 1) % 12;
+              if (wA !== wB) return wA - wB;
+              return a.day - b.day;
+            });
+            if (seasonDays.length === 0) return null;
+            return (
+              <div 
+                key={s} 
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: `${gap * 3}px`,
+                  backgroundColor: `${colors.text}05`,
+                  padding: `${gap * 4}px`,
+                  borderRadius: `${radius * 2}px`,
+                  border: `1px solid ${colors.text}08`
+                }}
+              >
+                {showSeasonLabels && (
+                  <div style={{ 
+                    fontSize: `${fontSize * 1.2}px`, 
+                    fontWeight: 900, 
+                    opacity: 0.2, 
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase'
+                  }}>
+                    {s}
+                  </div>
+                )}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${config.itemsPerRow || 31}, ${dotSize}px)`,
+                  gap: `${gap}px`,
+                }}>
+                  {seasonDays.map((d, i) => (
+                    <motion.div
+                      layout
+                      key={`${d.year}-${d.month}-${d.day}`}
+                      onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${d.year}-${d.month}-${d.day}`); }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      style={{
+                        width: `${dotSize}px`,
+                        height: `${dotSize}px`,
+                        backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day),
+                        borderRadius: `${radius}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
+                        color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
+                        fontWeight: 700,
+                        position: 'relative'
+                      }}
+                    >
+                      {showActiveLabel && (d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : showDayNumbers ? d.day : null}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
 
     return (
       <div style={{
@@ -185,6 +338,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
           <motion.div
             layout
             key={`${d.year}-${d.month}-${d.day}`}
+            onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${d.year}-${d.month}-${d.day}`); }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             style={{
@@ -195,12 +349,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: `${dotSize * 0.5}px`,
+              fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
               color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
               fontWeight: 700,
+              position: 'relative'
             }}
           >
-            {showDayNumbers ? d.day : null}
+            {showActiveLabel && (d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : showDayNumbers ? d.day : null}
           </motion.div>
         ))}
       </div>
@@ -208,178 +363,109 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
   };
 
   const renderFlatWeeks = () => {
-    const weeks = Array.from({ length: 52 }).map((_, i) => {
-      const weekNum = i + 1;
-      const isPast = weekNum < currentWeekNumber;
-      const isToday = weekNum === currentWeekNumber;
-      let color = colors.futureDay;
-      if (isToday) color = colors.today;
-      else if (isPast) color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
-
-      return { weekNum, color };
-    });
-
     const cols = mode === 'columns' ? 1 : mode === 'rows' ? 52 : (config.itemsPerRow || 13);
 
-    return (
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, ${dotSize * 1.5}px)`,
-        gap: `${gap * 2}px`,
-      }}>
-        {weeks.map(w => (
-          <motion.div
-            layout
-            key={w.weekNum}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            style={{
-              width: `${dotSize * 1.5}px`,
-              height: `${dotSize * 1.5}px`,
-              backgroundColor: w.color,
-              borderRadius: `${radius}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: `${dotSize * 0.7}px`,
-              color: colors.bg,
-              fontWeight: 900,
-            }}
-          >
-            {w.weekNum}
-          </motion.div>
-        ))}
-      </div>
-    );
-  };
+    if (groupBySeason) {
+      const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+      const grouped = seasonsOrder.map(s => ({
+        season: s,
+        months: months.filter(m => m.season === s).sort((a, b) => {
+          const wA = (a.month + 1) % 12;
+          const wB = (b.month + 1) % 12;
+          return wA - wB;
+        })
+      })).filter(g => g.months.length > 0);
 
-  const renderFlatMonths = () => {
-    const cols = mode === 'columns' ? 1 : mode === 'rows' ? 12 : (config.itemsPerRow || 4);
-
-    return (
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, ${dotSize * 2.5}px)`,
-        gap: `${gap * 3}px`,
-      }}>
-        {monthNames.map((name, i) => {
-          const isPast = i < currentMonth;
-          const isToday = i === currentMonth;
-          let color = colors.futureDay;
-          if (isToday) color = colors.today;
-          else if (isPast) color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
-
-          return (
-            <motion.div
-              layout
-              key={name}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              style={{
-                width: `${dotSize * 2.5}px`,
-                height: `${dotSize * 2.5}px`,
-                backgroundColor: color,
-                borderRadius: `${radius}px`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: `${dotSize * 0.7}px`,
-                color: colors.bg,
-                fontWeight: 900,
-              }}
-            >
-              {name.toUpperCase()}
-            </motion.div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderMonthlyGrid = () => {
-    return (
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: mode === 'rows' ? '1fr' : 
-                             mode === 'columns' ? `repeat(${months.length}, auto)` : 
-                             `repeat(${monthsPerRow}, auto)`,
-        gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-        width: '100%'
-      }}>
-        <AnimatePresence mode="popLayout">
-          {months.map((m) => (
-            <motion.div 
-              layout
-              key={`${m.year}-${m.month}`} 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 8}px`, width: '100%' }}>
+          {grouped.map(g => (
+            <div 
+              key={g.season} 
               style={{ 
                 display: 'flex', 
-                flexDirection: mode === 'rows' ? 'row' : 'column', 
-                alignItems: mode === 'rows' ? 'center' : 'flex-start',
-                gap: `${gap * 2}px` 
+                flexDirection: 'column', 
+                gap: `${gap * 4}px`,
+                backgroundColor: `${colors.text}05`,
+                padding: `${gap * 4}px`,
+                borderRadius: `${radius * 2}px`,
+                border: `1px solid ${colors.text}08`
               }}
             >
+              {showSeasonLabels && (
+                <div style={{ 
+                  fontSize: `${fontSize * 1.5}px`, 
+                  fontWeight: 900, 
+                  opacity: 0.2, 
+                  textAlign: 'center',
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase'
+                }}>
+                  {g.season}
+                </div>
+              )}
               <div style={{ 
-                fontSize: `${fontSize * 1.1}px`, 
-                fontWeight: 700, 
-                color: colors.text,
-                minWidth: mode === 'rows' ? '48px' : 'auto',
-                opacity: 0.8,
-                letterSpacing: '-0.02em',
-                textAlign: mode === 'columns' ? 'center' : 'left',
-                width: mode === 'columns' ? '100%' : 'auto'
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: `${gap * 6}px`, 
+                justifyContent: 'center'
               }}>
-                {m.name}
-              </div>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 
-                  granularity === 'week' ? `repeat(${m.weeksInMonth.length}, ${dotSize * 1.5}px)` :
-                  mode === 'rows' ? `repeat(${m.daysInMonth}, ${dotSize}px)` : 
-                  `repeat(${mode === 'grid' ? 7 : 1}, ${dotSize}px)`,
-                gap: `${gap}px`,
-              }}>
-                {/* Day Grid Specific: Empty offsets */}
-                {granularity === 'day' && mode === 'grid' && Array.from({ length: m.startOffset }).map((_, i) => (
-                  <div key={`empty-${i}`} style={{ width: dotSize, height: dotSize }} />
+                {g.months.map(m => (
+                   <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
+                    {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{m.name}</span>}
+                    <div style={{ display: 'flex', gap: `${gap}px` }}>
+                      {m.weeksInMonth.map(w => (
+                         <motion.div
+                          layout
+                          key={w.weekNum}
+                          onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${m.year}-${w.weekNum}`); }}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          style={{
+                            width: `${dotSize * 1.5}px`,
+                            height: `${dotSize * 1.5}px`,
+                            backgroundColor: w.color,
+                            borderRadius: `${radius}px`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: `${Math.min(dotSize * 0.8, fontSize * 0.9)}px`,
+                            color: colors.bg,
+                            fontWeight: 900,
+                            position: 'relative'
+                          }}
+                        >
+                          {showActiveLabel && m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : showWeekNumbers ? w.weekNum : null}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
                 ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
 
-                {/* Day items */}
-                {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
-                  const day = i + 1;
-                  const color = getDayColor(m.year, m.month, day);
-                  return (
-                    <motion.div
-                      layout
-                      key={`day-${day}`}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      style={{
-                        width: `${dotSize}px`,
-                        height: `${dotSize}px`,
-                        backgroundColor: showDayNumbers ? 'transparent' : color,
-                        borderRadius: `${radius}px`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: `${dotSize * 0.5}px`,
-                        color: showDayNumbers ? color : colors.bg,
-                        fontWeight: 700,
-                        flexShrink: 0
-                      }}
-                    >
-                      {showDayNumbers ? day : null}
-                    </motion.div>
-                  );
-                })}
-
-                {/* Week items (if granularity is week and mode is grid) */}
-                {granularity === 'week' && m.weeksInMonth.map((w) => (
-                   <motion.div
+    // If showMonthAxis is on, we'll use a grouped approach to show month labels
+    if (showMonthAxis) {
+      return (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: mode === 'rows' ? 'row' : 'column',
+          gap: `${gap * 4}px`,
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
+          {months.map(m => (
+            <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
+              <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{m.name}</span>
+              <div style={{ display: 'flex', gap: `${gap}px` }}>
+                {m.weeksInMonth.map(w => (
+                  <motion.div
                     layout
-                    key={`week-${w.weekNum}`}
+                    key={w.weekNum}
+                    onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${m.year}-${w.weekNum}`); }}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     style={{
@@ -390,19 +476,414 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: `${dotSize * 0.7}px`,
+                      fontSize: `${Math.min(dotSize * 0.8, fontSize * 0.9)}px`,
                       color: colors.bg,
                       fontWeight: 900,
+                      position: 'relative'
                     }}
                   >
-                    {w.weekNum}
+                    {showActiveLabel && m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : showWeekNumbers ? w.weekNum : null}
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           ))}
+        </div>
+      );
+    }
+
+    const allWeeks: { weekNum: number; color: string; identifier: string }[] = [];
+    const seenWeeks = new Set<string>();
+    months.forEach(m => {
+      m.weeksInMonth.forEach(w => {
+        const identifier = `${m.year}-${w.weekNum}`;
+        if (!seenWeeks.has(identifier)) {
+          seenWeeks.add(identifier);
+          allWeeks.push({ ...w, identifier });
+        }
+      });
+    });
+
+    return (
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, ${dotSize * 1.5}px)`,
+        gap: `${gap * 2}px`,
+      }}>
+        {allWeeks.map(w => (
+          <motion.div
+            layout
+            key={w.identifier}
+            onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${w.identifier}`); }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            style={{
+              width: `${dotSize * 1.5}px`,
+              height: `${dotSize * 1.5}px`,
+              backgroundColor: w.color,
+              borderRadius: `${radius}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: `${Math.min(dotSize * 0.8, fontSize * 0.9)}px`,
+              color: colors.bg,
+              fontWeight: 900,
+              position: 'relative'
+            }}
+          >
+            {showActiveLabel && parseInt(w.identifier.split('-')[0]) === currentYear && parseInt(w.identifier.split('-')[1]) === currentWeekNumber ? getActiveCellText(currentYear, currentMonth, undefined, currentWeekNumber) : showWeekNumbers ? w.weekNum : null}
+          </motion.div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderFlatMonths = () => {
+    const cols = mode === 'columns' ? 1 : mode === 'rows' ? 12 : (config.itemsPerRow || 4);
+
+    if (groupBySeason) {
+      const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 8}px`, width: '100%' }}>
+          {seasonsOrder.map(s => {
+            const seasonMonths = months
+              .filter(m => m.season === s)
+              .sort((a, b) => {
+                const wA = (a.month + 1) % 12;
+                const wB = (b.month + 1) % 12;
+                return wA - wB;
+              });
+            if (seasonMonths.length === 0) return null;
+            return (
+              <div 
+                key={s} 
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: `${gap * 4}px`,
+                  backgroundColor: `${colors.text}05`,
+                  padding: `${gap * 4}px`,
+                  borderRadius: `${radius * 2}px`,
+                  border: `1px solid ${colors.text}08`
+                }}
+              >
+                {showSeasonLabels && (
+                  <div style={{ 
+                    fontSize: `${fontSize * 1.2}px`, 
+                    fontWeight: 900, 
+                    opacity: 0.2, 
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase'
+                  }}>
+                    {s}
+                  </div>
+                )}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${cols}, ${dotSize * 2.5}px)`,
+                  gap: `${gap * 4}px`,
+                }}>
+                  {seasonMonths.map(m => {
+                    const name = m.name;
+                    const absCurrentParams = currentYear * 12 + currentMonth;
+                    const absTargetParams = m.year * 12 + m.month;
+                    const isPast = absTargetParams < absCurrentParams;
+                    const isToday = absTargetParams === absCurrentParams;
+                    
+                    let color = colors.futureDay;
+                    const id = `month-${m.year}-${m.month}`;
+                    if (config.overrides[id]) {
+                      color = colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
+                    } else if (isToday) {
+                      color = colors.today;
+                    } else if (isPast) {
+                      color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+                    }
+
+                    return (
+                      <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
+                        {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{name}</span>}
+                        <motion.div
+                          layout
+                          onClick={(e) => { e.stopPropagation(); onCellClick?.(`month-${m.year}-${m.month}`); }}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          style={{
+                            width: `${dotSize * 2.5}px`,
+                            height: `${dotSize * 2.5}px`,
+                            backgroundColor: color,
+                            borderRadius: `${radius}px`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: `${Math.min(dotSize * 1.2, fontSize * 1.2)}px`,
+                            color: colors.bg,
+                            fontWeight: 900,
+                            position: 'relative'
+                          }}
+                        >
+                          {showActiveLabel && isToday ? getActiveCellText(m.year, m.month) : showMonthLabels ? name.toUpperCase().substring(0, 3) : null}
+                        </motion.div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, ${dotSize * 2.5}px)`,
+        gap: `${gap * 4}px`,
+      }}>
+        {months.map((m, i) => {
+          const name = m.name;
+          const absCurrentParams = currentYear * 12 + currentMonth;
+          const absTargetParams = m.year * 12 + m.month;
+          const isPast = absTargetParams < absCurrentParams;
+          const isToday = absTargetParams === absCurrentParams;
+          
+          let color = colors.futureDay;
+          const id = `month-${m.year}-${m.month}`;
+          if (config.overrides[id]) {
+            color = colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
+          } else if (isToday) {
+            color = colors.today;
+          } else if (isPast) {
+            color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+          }
+
+          return (
+            <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
+              {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{name}</span>}
+              <motion.div
+                layout
+                onClick={(e) => { e.stopPropagation(); onCellClick?.(`month-${m.year}-${m.month}`); }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                style={{
+                  width: `${dotSize * 2.5}px`,
+                  height: `${dotSize * 2.5}px`,
+                  backgroundColor: color,
+                  borderRadius: `${radius}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: `${Math.min(dotSize * 1.2, fontSize * 1.2)}px`,
+                  color: colors.bg,
+                  fontWeight: 900,
+                  position: 'relative'
+                }}
+              >
+                {showActiveLabel && isToday ? getActiveCellText(m.year, m.month) : showMonthLabels ? name.toUpperCase().substring(0, 3) : null}
+              </motion.div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderMonthlyGrid = () => {
+    if (groupBySeason) {
+      const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+      const grouped = seasonsOrder.map(s => ({
+        season: s,
+        months: months.filter(m => m.season === s).sort((a, b) => {
+          const wA = (a.month + 1) % 12;
+          const wB = (b.month + 1) % 12;
+          return wA - wB;
+        })
+      })).filter(g => g.months.length > 0);
+
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 10}px`, width: '100%' }}>
+          {grouped.map(g => (
+            <div 
+              key={g.season} 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: `${gap * 4}px`,
+                backgroundColor: `${colors.text}05`,
+                padding: `${gap * 4}px`,
+                borderRadius: `${radius * 2}px`,
+                border: `1px solid ${colors.text}08`
+              }}
+            >
+              {showSeasonLabels && (
+                <div style={{ 
+                  fontSize: `${fontSize * 1.5}px`, 
+                  fontWeight: 900, 
+                  letterSpacing: '0.25em', 
+                  opacity: 0.3,
+                  textAlign: 'center',
+                  borderBottom: `1px solid ${colors.text}22`,
+                  paddingBottom: `${gap * 2}px`,
+                  marginBottom: `${gap * 2}px`,
+                  textTransform: 'uppercase'
+                }}>
+                  {g.season}
+                </div>
+              )}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: mode === 'rows' ? '1fr' : 
+                                     mode === 'columns' ? `repeat(${g.months.length}, auto)` : 
+                                     `repeat(${monthsPerRow}, auto)`,
+                gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+                width: '100%'
+              }}>
+                {g.months.map(m => renderMonthItem(m))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: mode === 'rows' ? '1fr' : 
+                             mode === 'columns' ? `repeat(${months.length}, auto)` : 
+                             `repeat(${monthsPerRow}, auto)`,
+        gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+        width: '100%'
+      }}>
+        <AnimatePresence mode="popLayout">
+          {months.map((m) => renderMonthItem(m))}
         </AnimatePresence>
       </div>
+    );
+  };
+
+  const renderMonthItem = (m: any) => {
+    return (
+      <motion.div 
+        layout
+        key={`${m.year}-${m.month}`} 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        style={{ 
+          display: 'flex', 
+          flexDirection: mode === 'rows' ? 'row' : 'column', 
+          alignItems: mode === 'rows' ? 'center' : 'flex-start',
+          gap: `${gap * 2}px` 
+        }}
+      >
+        {showMonthAxis && (
+          <div style={{ 
+            fontSize: `${fontSize * 1.1}px`, 
+            fontWeight: 700, 
+            color: colors.text,
+            minWidth: mode === 'rows' ? `${MONTH_LABEL_WIDTH}px` : 'auto',
+            opacity: 0.8,
+            letterSpacing: '-0.02em',
+            textAlign: mode === 'columns' ? 'center' : 'left',
+            width: mode === 'columns' ? '100%' : (mode === 'rows' ? `${MONTH_LABEL_WIDTH}px` : 'auto')
+          }}>
+            {m.name}
+          </div>
+        )}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 
+            granularity === 'week' ? `repeat(${m.weeksInMonth.length}, ${dotSize * 1.5}px)` :
+            mode === 'rows' ? `repeat(${m.daysInMonth}, ${dotSize}px)` : 
+            `repeat(${mode === 'grid' ? 7 : 1}, ${dotSize}px)`,
+          gap: `${gap}px`,
+        }}>
+          {/* Day Headers for Grid Mode */}
+          {granularity === 'day' && mode === 'grid' && showWeekdayAxis && (
+            dayHeaderLabels.map((lbl, idx) => (
+              <div 
+                key={`header-${idx}`} 
+                style={{ 
+                  fontSize: `${fontSize * 0.6}px`,
+                  height: `${DAY_LABEL_HEIGHT}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: 0.3,
+                  fontWeight: 'bold',
+                  fontFamily: 'JetBrains Mono, monospace'
+                }}
+              >
+                {lbl.substring(0, 1)}
+              </div>
+            ))
+          )}
+
+          {/* Day Grid Specific: Empty offsets */}
+          {granularity === 'day' && mode === 'grid' && Array.from({ length: m.startOffset }).map((_, i) => (
+            <div key={`empty-${i}`} style={{ width: dotSize, height: dotSize }} />
+          ))}
+
+          {/* Day items */}
+          {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const color = getDayColor(m.year, m.month, day);
+            return (
+              <motion.div
+                layout
+                key={`day-${day}`}
+                onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${m.year}-${m.month}-${day}`); }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                style={{
+                  width: `${dotSize}px`,
+                  height: `${dotSize}px`,
+                  backgroundColor: showDayNumbers ? 'transparent' : color,
+                  borderRadius: `${radius}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.7)}px`,
+                  color: showDayNumbers ? color : colors.bg,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                  position: 'relative'
+                }}
+              >
+                {showActiveLabel && (m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(m.year, m.month, day) : showDayNumbers ? day : null}
+              </motion.div>
+            );
+          })}
+
+          {/* Week items (if granularity is week and mode is grid) */}
+          {granularity === 'week' && m.weeksInMonth.map((w) => (
+              <motion.div
+                layout
+                key={`week-${w.weekNum}`}
+                onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${m.year}-${w.weekNum}`); }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                style={{
+                  width: `${dotSize * 1.5}px`,
+                  height: `${dotSize * 1.5}px`,
+                  backgroundColor: w.color,
+                  borderRadius: `${radius}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: `${Math.min(dotSize * 1, fontSize * 0.9)}px`,
+                  color: colors.bg,
+                  fontWeight: 900,
+                  position: 'relative'
+                }}
+              >
+                {showActiveLabel && m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : showWeekNumbers ? w.weekNum : null}
+              </motion.div>
+          ))}
+        </div>
+      </motion.div>
     );
   };
 

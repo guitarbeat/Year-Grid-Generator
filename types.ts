@@ -30,10 +30,23 @@ export interface AppConfig {
   monthsPerRow: number;
   monthOffset: number;
   showDayNumbers: boolean;
+  showWeekNumbers: boolean;
+  showMonthLabels: boolean;
+  showMonthAxis: boolean;
+  showWeekdayAxis: boolean;
   highlightWeekends: boolean;
   dimPastDays: boolean;
   showStats: boolean;
+  showActiveLabel: boolean;
+  activeLabelFormat: 'date' | 'weekNum' | 'dayName' | 'monthName' | 'monthDate' | 'full';
   startFromJan: boolean;
+  groupBySeason: boolean;
+  showSeasonLabels: boolean;
+  // Visual refinement
+  customTitle?: string;
+  assetFormat: 'auto' | 'square' | 'ios-widget' | 'ios-wallpaper';
+  resolutionScale: 1 | 2 | 3 | 4;
+  overrides: Record<string, string>;
 }
 
 export interface DayData {

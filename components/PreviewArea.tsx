@@ -7,9 +7,10 @@ interface PreviewAreaProps {
   config: AppConfig;
   gridRef: React.RefObject<HTMLDivElement>;
   onToggleSidebar?: () => void;
+  onCellClick?: (id: string) => void;
 }
 
-const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSidebar }) => {
+const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSidebar, onCellClick }) => {
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -127,12 +128,12 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
       {/* Render Content */}
       <div 
         ref={containerRef}
-        className="transition-transform duration-300 ease-out origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)]"
+        className="transition-transform duration-300 ease-out origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer"
         style={{ 
           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
         }}
       >
-        <YearGrid config={config} domRef={gridRef} />
+        <YearGrid config={config} domRef={gridRef} onCellClick={onCellClick} />
       </div>
     </main>
   );

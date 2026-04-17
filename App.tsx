@@ -38,10 +38,22 @@ const DEFAULT_CONFIG: AppConfig = {
   monthsPerRow: 3,
   monthOffset: 0,
   showDayNumbers: false,
+  showWeekNumbers: true,
+  showMonthLabels: true,
+  showMonthAxis: true,
+  showWeekdayAxis: true,
   highlightWeekends: true,
   dimPastDays: true,
   showStats: true,
-  startFromJan: false
+  showActiveLabel: false,
+  activeLabelFormat: 'date',
+  startFromJan: false,
+  groupBySeason: false,
+  showSeasonLabels: true,
+  customTitle: '',
+  assetFormat: 'auto',
+  resolutionScale: 2,
+  overrides: {}
 };
 
 // --- URL Helpers ---
@@ -72,7 +84,8 @@ const migrateConfig = (config: Partial<AppConfig>): AppConfig => {
   return {
     ...DEFAULT_CONFIG,
     ...migrated,
-    colors: { ...DEFAULT_CONFIG.colors, ...(migrated.colors || {}) }
+    colors: { ...DEFAULT_CONFIG.colors, ...(migrated.colors || {}) },
+    overrides: { ...(migrated.overrides || {}) }
   };
 };
 
@@ -151,6 +164,27 @@ const App: React.FC = () => {
     }
   }, [config]);
 
+  const resetConfig = () => {
+    if (confirm('Reset all configurations to default?')) {
+      setConfig(DEFAULT_CONFIG);
+    }
+  };
+
+  const handleCellClick = (id: string) => {
+    setConfig(prev => {
+      const overrides = { ...(prev.overrides || {}) };
+      
+      // Simple toggle: default <-> significant (accent color)
+      if (overrides[id]) {
+        delete overrides[id];
+      } else {
+        overrides[id] = 'significant';
+      }
+
+      return { ...prev, overrides };
+    });
+  };
+
   const handleDownload = async () => {
     if (!gridRef.current || typeof html2canvas === 'undefined') {
       alert('Image generation library not loaded yet. Please wait a moment.');
@@ -163,7 +197,7 @@ const App: React.FC = () => {
 
       const canvas = await html2canvas(gridRef.current, {
         backgroundColor: config.transparentBg ? null : config.colors.bg,
-        scale: 3,
+        scale: config.resolutionScale || 2,
         logging: false,
         useCORS: true,
       });
@@ -208,10 +242,11 @@ const App: React.FC = () => {
         isDownloading={isDownloading}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        resetConfig={resetConfig}
       />
       
       <div className="flex-1 flex flex-col min-w-0">
-        <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onCellClick={handleCellClick} />
       </div>
     </div>
   );
