@@ -27,6 +27,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     showDayNumbers = false,
     showWeekNumbers = true,
     showMonthLabels = true,
+    showMonthNumbers = false,
     showMonthAxis = true,
     showWeekdayAxis = true,
     highlightWeekends = true,
@@ -444,7 +445,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                             position: 'relative'
                           }}
                         >
-                          {showActiveLabel ? (m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : null) : (showWeekNumbers ? w.weekNum : null)}
+                          {showActiveLabel ? (m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : null) : (showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null))}
                         </motion.div>
                       ))}
                     </div>

@@ -31,6 +31,7 @@ export interface AppConfig {
   monthsPerRow: number;
   showDayNumbers: boolean;
   showWeekNumbers: boolean;
+  showMonthNumbers: boolean;
   showMonthLabels: boolean;
   showMonthAxis: boolean;
   showWeekdayAxis: boolean;

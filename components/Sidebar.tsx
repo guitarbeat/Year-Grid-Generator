@@ -258,6 +258,9 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                 {config.granularity !== 'month' && (
                   <Toggle id="chk-weeknumbers" label="Show Week Numbers" checked={config.showWeekNumbers} onChange={(v) => updateConfig('showWeekNumbers', v)} />
                 )}
+                <Toggle id="chk-daynumbers" label="Show Day Numbers" checked={config.showDayNumbers} onChange={(v) => updateConfig('showDayNumbers', v)} />
+                <Toggle id="chk-monthnumbers" label="Show Month Numbers" checked={config.showMonthNumbers} onChange={(v) => updateConfig('showMonthNumbers', v)} />
+                <Toggle id="chk-monthlabels" label="Show Month Labels" checked={config.showMonthLabels} onChange={(v) => updateConfig('showMonthLabels', v)} />
               </ControlGroup>
               <ControlGroup label="Typography">
                 <div className="space-y-2">
