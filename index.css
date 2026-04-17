@@ -1,0 +1,90 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-border: #1a1a1a;
+  --color-surface: #0a0a0a;
+  --color-surface-hover: #141414;
+  --color-accent: #ea580c;
+  --color-accent-dim: #923407;
+  --color-plate: #111111;
+}
+
+@layer base {
+  body {
+    @apply bg-[#050505] text-[#e5e5e5] font-sans overflow-hidden antialiased;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-[#222] rounded-none hover:bg-[#333] transition-colors;
+  }
+}
+
+@layer components {
+  .sidebar-section {
+    @apply py-6 border-b border-border/60 last:border-0 relative;
+  }
+  
+  .sidebar-label {
+    @apply text-[9px] uppercase tracking-[0.2em] text-gray-600 font-mono font-bold mb-4 block;
+  }
+
+  .control-group {
+    @apply space-y-4;
+  }
+
+  .input-text {
+    @apply w-full bg-[#0a0a0a] border border-[#222] rounded-sm px-3 py-2 text-sm text-white font-mono focus:border-accent/50 focus:ring-1 focus:ring-accent/20 outline-none transition-all placeholder:text-gray-700;
+  }
+
+  .btn-primary {
+    @apply text-[10px] bg-accent text-white px-4 py-2 rounded-sm font-mono font-bold hover:bg-accent/90 active:translate-y-[1px] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider shadow-[0_4px_0_theme(colors.accent-dim)] hover:shadow-[0_2px_0_theme(colors.accent-dim)] hover:translate-y-[2px] active:shadow-none active:translate-y-[4px];
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    @apply normal-case;
+  }
+
+  /* Industrial Range Slider */
+  .range-input {
+    @apply w-full h-1 bg-[#1a1a1a] rounded-none appearance-none cursor-pointer border-x border-[#222];
+    background-image: linear-gradient(to right, #333 1px, transparent 1px);
+    background-size: 10% 100%;
+  }
+
+  .range-input::-webkit-slider-thumb {
+    @apply appearance-none w-2 h-4 bg-accent rounded-none cursor-pointer hover:bg-white active:scale-y-110 transition-all border border-black/20;
+  }
+
+  .range-input::-moz-range-thumb {
+    @apply w-2 h-4 bg-accent rounded-none cursor-pointer border-none hover:bg-white transition-all;
+  }
+
+  /* Toggle */
+  .toggle-track {
+    @apply w-7 h-3.5 bg-[#161616] rounded-none transition-colors border border-[#222];
+  }
+
+  .toggle-checkbox input:checked + .toggle-track {
+    @apply bg-accent/20 border-accent/40;
+  }
+
+  .toggle-thumb {
+    @apply absolute left-[3px] top-[4px] w-2 h-2 bg-[#333] rounded-none transition-all;
+  }
+
+  .toggle-checkbox input:checked + .toggle-track .toggle-thumb {
+    @apply translate-x-3 bg-accent shadow-[0_0_8px_rgba(234,88,12,0.4)];
+  }
+}
