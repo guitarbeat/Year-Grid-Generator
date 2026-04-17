@@ -1,0 +1,3 @@
+## 2026-04-17 - [React.memo for Heavy Child Components]
+**Learning:** In applications where a parent component frequently updates its state to handle interactions like panning and zooming (e.g., `PreviewArea`), child components that render many DOM nodes (e.g., `YearGrid`) and rely entirely on stable props will cause massive performance bottlenecks if not memoized.
+**Action:** Always wrap heavy display components with `React.memo` when they are rendered inside interactive container components that trigger frequent re-renders due to local state changes (mouse movement tracking, panning offsets).

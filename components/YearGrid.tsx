@@ -448,4 +448,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef }) => {
   );
 };
 
-export default YearGrid;
+// ⚡ Bolt: Wrapped YearGrid in React.memo()
+// 💡 What: Prevents unnecessary re-renders of the entire year grid.
+// 🎯 Why: The parent PreviewArea frequently updates its state (zoom/position) during drag/scroll. YearGrid is a heavy component that renders many DOM nodes, and re-rendering it on every pan/zoom event causes lag. Since YearGrid receives stable props (config, domRef), memoizing it skips the render cycle when only parent local state changes.
+// 📊 Impact: Significantly improves frame rate during panning and zooming interactions by avoiding O(N) DOM node reconciliations where N is days in a year.
+export default React.memo(YearGrid);
