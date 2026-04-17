@@ -23,12 +23,12 @@ export interface AppConfig {
   gap: number;
   radius: number;
   fontSize: number;
+  linkFontDotSize: boolean;
   fontFamily: string;
   colors: AppColors;
   transparentBg: boolean;
   monthsToShow: number;
   monthsPerRow: number;
-  monthOffset: number;
   showDayNumbers: boolean;
   showWeekNumbers: boolean;
   showMonthLabels: boolean;
@@ -36,15 +36,17 @@ export interface AppConfig {
   showWeekdayAxis: boolean;
   highlightWeekends: boolean;
   dimPastDays: boolean;
+  dimPastDaysStrength: number;
   showStats: boolean;
   showActiveLabel: boolean;
   activeLabelFormat: 'date' | 'weekNum' | 'dayName' | 'monthName' | 'monthDate' | 'full';
   startFromJan: boolean;
-  groupBySeason: boolean;
+  groupBy: 'none' | 'day' | 'week' | 'month' | 'season';
   showSeasonLabels: boolean;
   // Visual refinement
   customTitle?: string;
   assetFormat: 'auto' | 'square' | 'ios-widget' | 'ios-wallpaper';
+  density: 'compact' | 'normal' | 'spacious';
   resolutionScale: 1 | 2 | 3 | 4;
   overrides: Record<string, string>;
 }

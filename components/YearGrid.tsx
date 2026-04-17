@@ -31,11 +31,12 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     showWeekdayAxis = true,
     highlightWeekends = true,
     dimPastDays = true,
+    dimPastDaysStrength = 50,
     showStats = true,
     mode = 'grid',
     startFromJan = false,
     granularity = 'day',
-    groupBySeason = false,
+    groupBy = 'none',
     showSeasonLabels = true,
     showActiveLabel = false,
     activeLabelFormat = 'date'
@@ -58,7 +59,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
   const targetDate = useMemo(() => {
     const d = new Date(date);
-    return isNaN(d.getTime()) ? new Date() : d;
+    if (isNaN(d.getTime())) return new Date();
+    // Force interpretation as local date YYYY-MM-DD
+    const [y, m, day] = date.split('-').map(Number);
+    return new Date(y, m - 1, day);
   }, [date]);
 
   const currentYear = targetDate.getFullYear();
@@ -72,6 +76,12 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   };
 
   const currentWeekNumber = getWeekNumber(targetDate);
+
+  const getDimmedColor = (color: string) => {
+    if (!dimPastDays) return color;
+    const opacity = Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
+    return `${color}${opacity}`;
+  };
 
   // Helper to get day color based on Scriptable logic
   const getDayColor = (year: number, month: number, day: number) => {
@@ -92,11 +102,11 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     const d = new Date(year, month, day);
     const dayOfWeek = d.getDay();
     if (highlightWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
-      return isPast && dimPastDays ? `${colors.weekend}4D` : colors.weekend;
+      return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
     }
 
     if (isPast) {
-      return dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+      return getDimmedColor(colors.pastDay);
     }
     return colors.futureDay;
   };
@@ -171,7 +181,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           } else if (isToday) {
             color = colors.today;
           } else if (isPast) {
-            color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+            color = getDimmedColor(colors.pastDay);
           }
 
           // Only add if not already added
@@ -192,7 +202,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       });
     }
     return result;
-  }, [currentYear, currentMonth, monthOffset, monthsToShow, isMondayFirst, startFromJan, colors, currentWeekNumber, dimPastDays]);
+  }, [currentYear, currentMonth, monthOffset, monthsToShow, isMondayFirst, startFromJan, colors, currentWeekNumber, dimPastDays, dimPastDaysStrength]);
 
   function getSeason(month: number) {
     if (month >= 2 && month <= 4) return 'SPRING';
@@ -255,7 +265,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       }))
     );
 
-    if (groupBySeason) {
+    if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 8}px`, width: '100%' }}>
@@ -317,7 +327,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                         position: 'relative'
                       }}
                     >
-                      {showActiveLabel && (d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : showDayNumbers ? d.day : null}
+                      {showActiveLabel ? ((d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : null) : (showDayNumbers ? d.day : null)}
                     </motion.div>
                   ))}
                 </div>
@@ -365,7 +375,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const renderFlatWeeks = () => {
     const cols = mode === 'columns' ? 1 : mode === 'rows' ? 52 : (config.itemsPerRow || 13);
 
-    if (groupBySeason) {
+    if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       const grouped = seasonsOrder.map(s => ({
         season: s,
@@ -434,7 +444,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                             position: 'relative'
                           }}
                         >
-                          {showActiveLabel && m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : showWeekNumbers ? w.weekNum : null}
+                          {showActiveLabel ? (m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : null) : (showWeekNumbers ? w.weekNum : null)}
                         </motion.div>
                       ))}
                     </div>
@@ -531,7 +541,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
               position: 'relative'
             }}
           >
-            {showActiveLabel && parseInt(w.identifier.split('-')[0]) === currentYear && parseInt(w.identifier.split('-')[1]) === currentWeekNumber ? getActiveCellText(currentYear, currentMonth, undefined, currentWeekNumber) : showWeekNumbers ? w.weekNum : null}
+            {showActiveLabel ? (parseInt(w.identifier.split('-')[0]) === currentYear && parseInt(w.identifier.split('-')[1]) === currentWeekNumber ? getActiveCellText(currentYear, currentMonth, undefined, currentWeekNumber) : null) : (showWeekNumbers ? w.weekNum : null)}
           </motion.div>
         ))}
       </div>
@@ -541,7 +551,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const renderFlatMonths = () => {
     const cols = mode === 'columns' ? 1 : mode === 'rows' ? 12 : (config.itemsPerRow || 4);
 
-    if (groupBySeason) {
+    if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 8}px`, width: '100%' }}>
@@ -597,7 +607,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                     } else if (isToday) {
                       color = colors.today;
                     } else if (isPast) {
-                      color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+                      color = getDimmedColor(colors.pastDay);
                     }
 
                     return (
@@ -622,7 +632,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                             position: 'relative'
                           }}
                         >
-                          {showActiveLabel && isToday ? getActiveCellText(m.year, m.month) : showMonthLabels ? name.toUpperCase().substring(0, 3) : null}
+                          {showActiveLabel ? (isToday ? getActiveCellText(m.year, m.month) : null) : (showMonthLabels ? name.toUpperCase().substring(0, 3) : null)}
                         </motion.div>
                       </div>
                     );
@@ -655,7 +665,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           } else if (isToday) {
             color = colors.today;
           } else if (isPast) {
-            color = dimPastDays ? `${colors.pastDay}4D` : colors.pastDay;
+            color = getDimmedColor(colors.pastDay);
           }
 
           return (
@@ -680,7 +690,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                   position: 'relative'
                 }}
               >
-                {showActiveLabel && isToday ? getActiveCellText(m.year, m.month) : showMonthLabels ? name.toUpperCase().substring(0, 3) : null}
+                {showActiveLabel ? (isToday ? getActiveCellText(m.year, m.month) : null) : (showMonthLabels ? name.toUpperCase().substring(0, 3) : null)}
               </motion.div>
             </div>
           );
@@ -690,7 +700,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   };
 
   const renderMonthlyGrid = () => {
-    if (groupBySeason) {
+    if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       const grouped = seasonsOrder.map(s => ({
         season: s,
@@ -733,8 +743,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
               )}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: mode === 'rows' ? '1fr' : 
-                                     mode === 'columns' ? `repeat(${g.months.length}, auto)` : 
+                gridTemplateColumns: mode === 'rows' || mode === 'columns' ? '1fr' : 
                                      `repeat(${monthsPerRow}, auto)`,
                 gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
                 width: '100%'
@@ -750,8 +759,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     return (
       <div style={{
         display: 'grid',
-        gridTemplateColumns: mode === 'rows' ? '1fr' : 
-                             mode === 'columns' ? `repeat(${months.length}, auto)` : 
+        gridTemplateColumns: mode === 'rows' || mode === 'columns' ? '1fr' : 
                              `repeat(${monthsPerRow}, auto)`,
         gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
         width: '100%'
@@ -792,6 +800,33 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             {m.name}
           </div>
         )}
+
+        {granularity === 'day' && mode === 'grid' && showWeekdayAxis && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(7, ${dotSize}px)`,
+            gap: `${gap}px`
+          }}>
+            {dayHeaderLabels.map((lbl, idx) => (
+              <div 
+                key={`header-${idx}`} 
+                style={{ 
+                  fontSize: `${fontSize * 0.7}px`,
+                  height: `${DAY_LABEL_HEIGHT}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: 0.6,
+                  fontWeight: 'bold',
+                  fontFamily: 'JetBrains Mono, monospace'
+                }}
+              >
+                {lbl.substring(0, 1)}
+              </div>
+            ))}
+          </div>
+        )}
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 
@@ -800,27 +835,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             `repeat(${mode === 'grid' ? 7 : 1}, ${dotSize}px)`,
           gap: `${gap}px`,
         }}>
-          {/* Day Headers for Grid Mode */}
-          {granularity === 'day' && mode === 'grid' && showWeekdayAxis && (
-            dayHeaderLabels.map((lbl, idx) => (
-              <div 
-                key={`header-${idx}`} 
-                style={{ 
-                  fontSize: `${fontSize * 0.6}px`,
-                  height: `${DAY_LABEL_HEIGHT}px`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: 0.3,
-                  fontWeight: 'bold',
-                  fontFamily: 'JetBrains Mono, monospace'
-                }}
-              >
-                {lbl.substring(0, 1)}
-              </div>
-            ))
-          )}
-
           {/* Day Grid Specific: Empty offsets */}
           {granularity === 'day' && mode === 'grid' && Array.from({ length: m.startOffset }).map((_, i) => (
             <div key={`empty-${i}`} style={{ width: dotSize, height: dotSize }} />
@@ -852,7 +866,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                   position: 'relative'
                 }}
               >
-                {showActiveLabel && (m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(m.year, m.month, day) : showDayNumbers ? day : null}
+                {showActiveLabel ? ((m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(m.year, m.month, day) : null) : (showDayNumbers ? day : null)}
               </motion.div>
             );
           })}
@@ -917,7 +931,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
         // Day view can be timeline (flat) or grouped monthly (grid, rows, columns)
         if (granularity === 'day') {
-          if (mode === 'timeline') return renderTimeline();
           return renderMonthlyGrid();
         }
 
