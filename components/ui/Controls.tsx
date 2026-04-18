@@ -130,7 +130,7 @@ export const Modal: React.FC<{
         <div className="flex items-center gap-3">
           {icon && (
             <div className={`w-8 h-8 ${iconColor} rounded-lg flex items-center justify-center shadow-lg`}>
-              <span className="material-symbols-outlined text-white text-xl">{icon}</span>
+              <span className="material-symbols-outlined text-white text-xl" aria-hidden="true">{icon}</span>
             </div>
           )}
           <div>
@@ -138,8 +138,8 @@ export const Modal: React.FC<{
             {subtitle && <p className="text-[10px] text-gray-500 uppercase font-medium">{subtitle}</p>}
           </div>
         </div>
-        <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
-          <span className="material-symbols-outlined">close</span>
+        <button onClick={onClose} aria-label="Close modal" title="Close modal" className="text-gray-500 hover:text-white transition-colors">
+          <span className="material-symbols-outlined" aria-hidden="true">close</span>
         </button>
       </div>
 
@@ -163,7 +163,9 @@ export const Button: React.FC<{
   label?: string;
   className?: string;
   disabled?: boolean;
-}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled }) => {
+  'aria-label'?: string;
+  title?: string;
+}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, 'aria-label': ariaLabel, title }) => {
   const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed";
   const variants = {
     primary: "btn-primary",
@@ -173,8 +175,8 @@ export const Button: React.FC<{
   };
 
   return (
-    <button onClick={onClick} disabled={disabled} className={`${baseClasses} ${variants[variant]} ${className}`}>
-      {icon && <span className="material-symbols-outlined !text-[18px]">{icon}</span>}
+    <button onClick={onClick} disabled={disabled} aria-label={ariaLabel} title={title} className={`${baseClasses} ${variants[variant]} ${className}`}>
+      {icon && <span className="material-symbols-outlined !text-[18px]" aria-hidden="true">{icon}</span>}
       {label && <span className="truncate">{label}</span>}
     </button>
   );
@@ -185,13 +187,15 @@ export const IconButton: React.FC<{
   icon: string;
   className?: string;
   title?: string;
-}> = ({ onClick, icon, className = '', title }) => (
+  'aria-label'?: string;
+}> = ({ onClick, icon, className = '', title, 'aria-label': ariaLabel }) => (
   <button 
     onClick={onClick}
     title={title}
+    aria-label={ariaLabel}
     className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 ${className}`}
   >
-    <span className="material-symbols-outlined">{icon}</span>
+    <span className="material-symbols-outlined" aria-hidden="true">{icon}</span>
   </button>
 );
 
