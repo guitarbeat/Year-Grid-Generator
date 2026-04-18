@@ -902,6 +902,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     );
   };
 
+  /*
+   * ⚡ BOLT PERFORMANCE OPTIMIZATION
+   * 💡 What: Wrapped YearGrid in React.memo
+   * 🎯 Why: PreviewArea frequently updates state (pan/zoom) which caused the entire grid (hundreds of day/week elements) to re-render.
+   * 📊 Impact: Prevents expensive layout calculation and DOM reconciliation during pan/zoom interactions, making panning and zooming buttery smooth.
+   */
+
   return (
     <div ref={domRef} style={containerStyle} className={className}>
       {showYearLabel && (
@@ -943,4 +950,4 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   );
 };
 
-export default YearGrid;
+export default React.memo(YearGrid);
