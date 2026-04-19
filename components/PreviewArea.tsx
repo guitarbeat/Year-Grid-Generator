@@ -93,9 +93,10 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
       <div className="absolute top-6 left-6 flex items-center gap-4 z-10 select-none">
         <button 
           onClick={onToggleSidebar}
+          aria-label="Toggle sidebar"
           className="md:hidden w-10 h-10 bg-[#161616] rounded flex items-center justify-center border border-[#222] text-accent pointer-events-auto shadow-xl transition-all active:scale-95"
         >
-          <span className="material-symbols-outlined">menu</span>
+          <span className="material-symbols-outlined" aria-hidden="true">menu</span>
         </button>
         <div className="flex flex-col gap-1 pointer-events-none opacity-40">
           <span className="text-[10px] font-mono uppercase tracking-[0.2em]">{config.mode} view</span>

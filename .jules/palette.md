@@ -1,0 +1,3 @@
+## 2024-05-24 - Interactive Element Accessibility
+**Learning:** The CDN-loaded Tailwind preflight resets default browser focus outlines, rendering keyboard navigation invisible on this app's dark backgrounds. Additionally, custom button components using Material Symbols expose raw font ligatures (like "close" or "menu") to screen readers if not explicitly hidden.
+**Action:** Always explicitly define `focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none` on interactive elements. Pair `aria-label` on the parent button with `aria-hidden="true"` on inner icon spans to prevent screen readers from reading raw icon names.
