@@ -943,4 +943,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   );
 };
 
-export default YearGrid;
+// ⚡ Bolt: Wrapped in React.memo to prevent expensive re-renders
+// when parent component (PreviewArea) updates zoom or pan position.
+// This prevents reconciliation of hundreds of DOM nodes on every frame of a drag.
+export default React.memo(YearGrid);
