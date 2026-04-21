@@ -1,3 +1,7 @@
-## 2024-05-15 - React.memo for Panning State in PreviewArea
-**Learning:** The `PreviewArea` parent component locally manages high-frequency interaction state like mouse panning and zooming, which continuously updates the React state on every pixel movement. Because `YearGrid` renders 365+ individual DOM elements, passing this un-memoized component down caused severe re-render lag.
-**Action:** When a parent container controls interaction transforms (like pan/zoom) via state, always ensure the inner heavy child components (like `YearGrid`) are wrapped in `React.memo()`. This isolates the frequent state changes to just the wrapper's CSS transform, preserving 60fps interactions.
+## 2024-05-24 - Avoid Date Allocations in Render Loops
+**Learning:** Frequent React re-renders combined with `new Date()` allocations inside loops (e.g., rendering thousands of grid cells) cause massive garbage collection pauses and frame drops.
+**Action:** Pre-calculate `Date` requirements (like first day of the month) in a `useMemo` block, and use basic arithmetic (e.g., `(firstDay + day - 1) % 7`) for deriving date properties like `dayOfWeek` within render loops.
+
+## 2024-05-24 - Pre-calculate Expensive Flat Structures
+**Learning:** Array manipulation methods like `flatMap` to produce un-nested versions of prop arrays cause object recreation on every render, defeating React.memo downstream.
+**Action:** Use `useMemo` specifically on flat arrays based on data source updates, protecting against re-evaluation on pure style updates (like gap or font size).

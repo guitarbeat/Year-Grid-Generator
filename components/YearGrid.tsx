@@ -78,10 +78,38 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
   const currentWeekNumber = getWeekNumber(targetDate);
 
+  const dimmedOpacityHex = useMemo(() => {
+    return Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
+  }, [config.dimPastDaysStrength]);
+
   const getDimmedColor = (color: string) => {
     if (!dimPastDays) return color;
-    const opacity = Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
-    return `${color}${opacity}`;
+    return `${color}${dimmedOpacityHex}`;
+  };
+
+  // Pre-calculate the first day of each month included in the view to avoid creating Date objects during render.
+  const monthFirstDays = useMemo(() => {
+    const cache = new Map<string, number>();
+    const effectiveOffset = startFromJan ? -currentMonth + (monthOffset * 12) : monthOffset;
+
+    for (let i = effectiveOffset; i < effectiveOffset + monthsToShow; i++) {
+      let targetMonthIndex = currentMonth + i;
+      const year = currentYear + Math.floor(targetMonthIndex / 12);
+      const month = ((targetMonthIndex % 12) + 12) % 12;
+
+      const key = `${year}-${month}`;
+      cache.set(key, new Date(year, month, 1).getDay());
+    }
+    return cache;
+  }, [currentMonth, currentYear, startFromJan, monthOffset, monthsToShow]);
+
+  const getFirstDayOfMonthCached = (year: number, month: number) => {
+    const key = `${year}-${month}`;
+    if (monthFirstDays.has(key)) {
+      return monthFirstDays.get(key)!;
+    }
+    // Fallback just in case
+    return new Date(year, month, 1).getDay();
   };
 
   // Helper to get day color based on Scriptable logic
@@ -100,8 +128,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     if (isToday) return colors.today;
 
     // Weekend check
-    const d = new Date(year, month, day);
-    const dayOfWeek = d.getDay();
+    // O(1) math to find dayOfWeek instead of allocating new Date()
+    const firstDay = getFirstDayOfMonthCached(year, month);
+    const dayOfWeek = (firstDay + day - 1) % 7;
+
     if (highlightWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
       return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
     }
@@ -256,8 +286,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     );
   }, [showStats, currentYear, targetDate, colors.stats, fontSize]);
 
-  const renderTimeline = () => {
-    const allDays = months.flatMap(m => 
+  const allDays = useMemo(() => {
+    return months.flatMap(m =>
       Array.from({ length: m.daysInMonth }).map((_, i) => ({
         year: m.year,
         month: m.month,
@@ -265,7 +295,24 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         season: m.season
       }))
     );
+  }, [months]);
 
+  const allWeeks = useMemo(() => {
+    const weeks: { weekNum: number; color: string; identifier: string }[] = [];
+    const seenWeeks = new Set<string>();
+    months.forEach(m => {
+      m.weeksInMonth.forEach(w => {
+        const identifier = `${m.year}-${w.weekNum}`;
+        if (!seenWeeks.has(identifier)) {
+          seenWeeks.add(identifier);
+          weeks.push({ ...w, identifier });
+        }
+      });
+    });
+    return weeks;
+  }, [months]);
+
+  const renderTimeline = () => {
     if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       return (
@@ -502,18 +549,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         </div>
       );
     }
-
-    const allWeeks: { weekNum: number; color: string; identifier: string }[] = [];
-    const seenWeeks = new Set<string>();
-    months.forEach(m => {
-      m.weeksInMonth.forEach(w => {
-        const identifier = `${m.year}-${w.weekNum}`;
-        if (!seenWeeks.has(identifier)) {
-          seenWeeks.add(identifier);
-          allWeeks.push({ ...w, identifier });
-        }
-      });
-    });
 
     return (
       <div style={{
