@@ -105,8 +105,8 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           
           <div className="flex items-center gap-2">
             {/* Close Button Mobile */}
-            <button onClick={onToggle} className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white">
-              <span className="material-symbols-outlined">close</span>
+            <button onClick={onToggle} aria-label="Close sidebar" className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white">
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
           </div>
         </div>
@@ -216,9 +216,10 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                     />
                     <button 
                       onClick={setDateToToday}
+                      aria-label="Set to today"
                       className="bg-[#111] hover:bg-[#1a1a1a] border border-border/60 rounded-sm px-3 flex items-center justify-center text-gray-500 hover:text-accent transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[18px]">today</span>
+                      <span className="material-symbols-outlined text-[18px]" aria-hidden="true">today</span>
                     </button>
                   </div>
                 </ControlGroup>
@@ -320,6 +321,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                     <button 
                       key={t.name}
                       onClick={() => applyTheme(t.colors)}
+                      aria-label={`Apply ${t.name} theme`}
                       className={`
                         w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg
                         ${JSON.stringify(config.colors) === JSON.stringify(t.colors) ? 'border-accent' : 'border-transparent'}
