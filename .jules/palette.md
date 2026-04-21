@@ -1,0 +1,3 @@
+## 2024-04-21 - Accessible Icon-Only Buttons with Material Symbols
+**Learning:** Material Symbols ligatures (e.g., `<span className="material-symbols-outlined">menu</span>`) are read literally by screen readers. Custom wrapper components like `Button` and `IconButton` need explicit support for passing ARIA properties to the underlying native `<button>`.
+**Action:** Always add `aria-hidden="true"` to the inner `<span className="material-symbols-outlined">` and ensure the parent `<button>` has a descriptive `aria-label` or `title`. Update wrapper components to forward these props if they don't already.
