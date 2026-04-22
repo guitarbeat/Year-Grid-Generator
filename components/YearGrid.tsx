@@ -85,7 +85,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   };
 
   // Helper to get day color based on Scriptable logic
-  const getDayColor = (year: number, month: number, day: number) => {
+  // ⚡ Bolt: Accept optional `dayOfWeek` to avoid `new Date()` allocation during render
+  const getDayColor = (year: number, month: number, day: number, dayOfWeek?: number) => {
     const id = `day-${year}-${month}-${day}`;
     if (config.overrides[id]) {
       return colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
@@ -100,9 +101,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     if (isToday) return colors.today;
 
     // Weekend check
-    const d = new Date(year, month, day);
-    const dayOfWeek = d.getDay();
-    if (highlightWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
+    const dow = dayOfWeek !== undefined ? dayOfWeek : new Date(year, month, day).getDay();
+    if (highlightWeekends && (dow === 0 || dow === 6)) {
       return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
     }
 
@@ -167,10 +167,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       const oneJan = new Date(year, 0, 1);
       
       for (let day = 1; day <= daysInMonth; day++) {
-        const d = new Date(year, month, day);
-        if (d.getDay() === (isMondayFirst ? 1 : 0) || day === 1) {
+        // ⚡ Bolt: Use modulo arithmetic instead of `new Date().getDay()` to prevent GC pauses
+        const dayOfWeek = (firstDayOfMonth + day - 1) % 7;
+        if (dayOfWeek === (isMondayFirst ? 1 : 0) || day === 1) {
           // If it's a Monday (or Sunday if isMondayFirst is false) or the first of month, check if it starts a week here
           // For simplicity, we'll just check if the date falls in this month
+          // Allocate Date only when necessary for week calculation
+          const d = new Date(year, month, day);
           const weekNum = getWeekNumber(d);
           const isPast = year < currentYear || (year === currentYear && weekNum < currentWeekNumber);
           const isToday = year === currentYear && weekNum === currentWeekNumber;
@@ -199,6 +202,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         daysInMonth,
         weeksInMonth,
         startOffset,
+        firstDayOfMonth, // ⚡ Bolt: Exported for O(1) day-of-week lookups during render
         season: getSeason(month)
       });
     }
@@ -256,16 +260,20 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     );
   }, [showStats, currentYear, targetDate, colors.stats, fontSize]);
 
-  const renderTimeline = () => {
-    const allDays = months.flatMap(m => 
+  // ⚡ Bolt: Memoize flat arrays to prevent recreating 365 objects on every pan/zoom state update
+  const allDays = useMemo(() => {
+    return months.flatMap(m =>
       Array.from({ length: m.daysInMonth }).map((_, i) => ({
         year: m.year,
         month: m.month,
         day: i + 1,
+        dayOfWeek: (m.firstDayOfMonth + i) % 7,
         season: m.season
       }))
     );
+  }, [months]);
 
+  const renderTimeline = () => {
     if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       return (
@@ -317,13 +325,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                       style={{
                         width: `${dotSize}px`,
                         height: `${dotSize}px`,
-                        backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day),
+                        backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day, d.dayOfWeek),
                         borderRadius: `${radius}px`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
-                        color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
+                        color: showDayNumbers ? getDayColor(d.year, d.month, d.day, d.dayOfWeek) : colors.bg,
                         fontWeight: 700,
                         position: 'relative'
                       }}
@@ -355,13 +363,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             style={{
               width: `${dotSize}px`,
               height: `${dotSize}px`,
-              backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day),
+              backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day, d.dayOfWeek),
               borderRadius: `${radius}px`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
-              color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
+              color: showDayNumbers ? getDayColor(d.year, d.month, d.day, d.dayOfWeek) : colors.bg,
               fontWeight: 700,
               position: 'relative'
             }}
@@ -372,6 +380,21 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       </div>
     );
   };
+
+  const allWeeks = useMemo(() => {
+    const weeks: { weekNum: number; color: string; identifier: string; year: number; month: number }[] = [];
+    const seenWeeks = new Set<string>();
+    months.forEach(m => {
+      m.weeksInMonth.forEach(w => {
+        const identifier = `${m.year}-${w.weekNum}`;
+        if (!seenWeeks.has(identifier)) {
+          seenWeeks.add(identifier);
+          weeks.push({ ...w, identifier, year: m.year, month: m.month });
+        }
+      });
+    });
+    return weeks;
+  }, [months]);
 
   const renderFlatWeeks = () => {
     const cols = mode === 'columns' ? 1 : mode === 'rows' ? 52 : (config.itemsPerRow || 13);
@@ -502,18 +525,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         </div>
       );
     }
-
-    const allWeeks: { weekNum: number; color: string; identifier: string }[] = [];
-    const seenWeeks = new Set<string>();
-    months.forEach(m => {
-      m.weeksInMonth.forEach(w => {
-        const identifier = `${m.year}-${w.weekNum}`;
-        if (!seenWeeks.has(identifier)) {
-          seenWeeks.add(identifier);
-          allWeeks.push({ ...w, identifier });
-        }
-      });
-    });
 
     return (
       <div style={{
@@ -844,7 +855,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           {/* Day items */}
           {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
             const day = i + 1;
-            const color = getDayColor(m.year, m.month, day);
+            const dayOfWeek = (m.firstDayOfMonth + i) % 7;
+            const color = getDayColor(m.year, m.month, day, dayOfWeek);
             return (
               <motion.div
                 layout
