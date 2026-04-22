@@ -1,3 +1,9 @@
 ## 2024-05-15 - React.memo for Panning State in PreviewArea
 **Learning:** The `PreviewArea` parent component locally manages high-frequency interaction state like mouse panning and zooming, which continuously updates the React state on every pixel movement. Because `YearGrid` renders 365+ individual DOM elements, passing this un-memoized component down caused severe re-render lag.
 **Action:** When a parent container controls interaction transforms (like pan/zoom) via state, always ensure the inner heavy child components (like `YearGrid`) are wrapped in `React.memo()`. This isolates the frequent state changes to just the wrapper's CSS transform, preserving 60fps interactions.
+## 2024-05-16 - Date Allocation GC Pauses in Render Loops
+**Learning:** Instantiating `new Date()` excessively inside nested render loops (like rendering a day grid for a whole year) causes massive memory allocation and Garbage Collection (GC) pauses during rapid state updates, such as when dragging a slider in the parent component.
+**Action:** Lift `new Date()` outside loops. Compute properties like `firstDayOfMonth` once per month. Use O(1) modulo arithmetic `(firstDayOfMonth + day - 1) % 7` to determine the day of the week, and defer full Date allocation to only when required (e.g. ISO week calculation).
+## 2024-05-16 - Iterator Objects in Flattened Arrays
+**Learning:** When flattening nested objects (like weeks inside months) into flat arrays using `useMemo`, properties injected into the flat representation (like `.identifier` or `.month`) do *not* exist on the original nested objects. Relying on them in shared render block code will cause runtime `TypeError` crashes.
+**Action:** When extracting render blocks, ensure variables and property accessors map exactly to the scope of the iterator they are called with.
