@@ -98,15 +98,15 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
         <div className="p-6 border-b border-border flex justify-between items-center bg-surface">
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-white flex items-center gap-2">
-              <span className="material-symbols-outlined text-accent !text-[20px]">calendar_apps</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-accent !text-[20px]">calendar_apps</span>
               Grid Gen
             </h1>
           </div>
           
           <div className="flex items-center gap-2">
             {/* Close Button Mobile */}
-            <button onClick={onToggle} className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white">
-              <span className="material-symbols-outlined">close</span>
+            <button onClick={onToggle} aria-label="Close sidebar" className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none rounded">
+              <span aria-hidden="true" className="material-symbols-outlined">close</span>
             </button>
           </div>
         </div>
@@ -216,9 +216,11 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                     />
                     <button 
                       onClick={setDateToToday}
-                      className="bg-[#111] hover:bg-[#1a1a1a] border border-border/60 rounded-sm px-3 flex items-center justify-center text-gray-500 hover:text-accent transition-colors"
+                      aria-label="Set to today"
+                      title="Set to today"
+                      className="bg-[#111] hover:bg-[#1a1a1a] border border-border/60 rounded-sm px-3 flex items-center justify-center text-gray-500 hover:text-accent transition-colors focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
                     >
-                      <span className="material-symbols-outlined text-[18px]">today</span>
+                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">today</span>
                     </button>
                   </div>
                 </ControlGroup>
@@ -321,10 +323,11 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                       key={t.name}
                       onClick={() => applyTheme(t.colors)}
                       className={`
-                        w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg
+                        w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none
                         ${JSON.stringify(config.colors) === JSON.stringify(t.colors) ? 'border-accent' : 'border-transparent'}
                       `}
                       title={t.name}
+                      aria-label={`Theme ${t.name}`}
                     >
                       <div className="absolute inset-0" style={{ backgroundColor: t.colors.fill }}></div>
                     </button>
