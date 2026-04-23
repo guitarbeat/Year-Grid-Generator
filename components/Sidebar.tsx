@@ -105,8 +105,8 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           
           <div className="flex items-center gap-2">
             {/* Close Button Mobile */}
-            <button onClick={onToggle} className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white">
-              <span className="material-symbols-outlined">close</span>
+            <button aria-label="Close sidebar" title="Close sidebar" onClick={onToggle} className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white">
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
           </div>
         </div>
@@ -216,9 +216,11 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                     />
                     <button 
                       onClick={setDateToToday}
+                      aria-label="Set date to today"
+                      title="Set date to today"
                       className="bg-[#111] hover:bg-[#1a1a1a] border border-border/60 rounded-sm px-3 flex items-center justify-center text-gray-500 hover:text-accent transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[18px]">today</span>
+                      <span className="material-symbols-outlined text-[18px]" aria-hidden="true">today</span>
                     </button>
                   </div>
                 </ControlGroup>
