@@ -84,8 +84,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     return `${color}${opacity}`;
   };
 
-  // Helper to get day color based on Scriptable logic
-  const getDayColor = (year: number, month: number, day: number) => {
+  // ⚡ Bolt: Modified getDayColor to calculate dayOfWeek using O(1) modulo arithmetic
+  // based on the cached firstDayOfMonth instead of O(N) `new Date()` allocations.
+  // Impact: Eliminates ~365 expensive Date allocations per render in Day views.
+  const getDayColor = (year: number, month: number, day: number, firstDayOfMonth?: number) => {
     const id = `day-${year}-${month}-${day}`;
     if (config.overrides[id]) {
       return colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
@@ -100,8 +102,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     if (isToday) return colors.today;
 
     // Weekend check
-    const d = new Date(year, month, day);
-    const dayOfWeek = d.getDay();
+    const dayOfWeek = firstDayOfMonth !== undefined ? (firstDayOfMonth + day - 1) % 7 : new Date(year, month, day).getDay();
     if (highlightWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
       return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
     }
@@ -199,7 +200,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         daysInMonth,
         weeksInMonth,
         startOffset,
-        season: getSeason(month)
+        season: getSeason(month),
+        firstDayOfMonth
       });
     }
     return result;
@@ -262,7 +264,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         year: m.year,
         month: m.month,
         day: i + 1,
-        season: m.season
+        season: m.season,
+        firstDayOfMonth: m.firstDayOfMonth
       }))
     );
 
@@ -317,13 +320,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                       style={{
                         width: `${dotSize}px`,
                         height: `${dotSize}px`,
-                        backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day),
+                        backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day, d.firstDayOfMonth),
                         borderRadius: `${radius}px`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
-                        color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
+                        color: showDayNumbers ? getDayColor(d.year, d.month, d.day, d.firstDayOfMonth) : colors.bg,
                         fontWeight: 700,
                         position: 'relative'
                       }}
@@ -355,13 +358,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             style={{
               width: `${dotSize}px`,
               height: `${dotSize}px`,
-              backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day),
+                backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day, d.firstDayOfMonth),
               borderRadius: `${radius}px`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
-              color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
+                color: showDayNumbers ? getDayColor(d.year, d.month, d.day, d.firstDayOfMonth) : colors.bg,
               fontWeight: 700,
               position: 'relative'
             }}
@@ -844,7 +847,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           {/* Day items */}
           {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
             const day = i + 1;
-            const color = getDayColor(m.year, m.month, day);
+            const color = getDayColor(m.year, m.month, day, m.firstDayOfMonth);
             return (
               <motion.div
                 layout
