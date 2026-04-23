@@ -83,7 +83,7 @@ export const SegmentedControl: React.FC<{
           <div className="absolute top-0 left-0 w-full h-[1px] bg-accent/50 shadow-[0_0_8px_rgba(234,88,12,0.8)]" />
         )}
         {opt.icon && (
-          <span className={`material-symbols-outlined !text-[18px] ${activeId === opt.id ? 'opacity-100' : 'opacity-40'}`}>{opt.icon}</span>
+          <span className={`material-symbols-outlined !text-[18px] ${activeId === opt.id ? 'opacity-100' : 'opacity-40'}`} aria-hidden="true">{opt.icon}</span>
         )}
         <span className="text-[9px] uppercase tracking-tighter">{opt.label}</span>
       </button>
@@ -138,8 +138,8 @@ export const Modal: React.FC<{
             {subtitle && <p className="text-[10px] text-gray-500 uppercase font-medium">{subtitle}</p>}
           </div>
         </div>
-        <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
-          <span className="material-symbols-outlined">close</span>
+        <button onClick={onClose} aria-label="Close modal" title="Close modal" className="text-gray-500 hover:text-white transition-colors">
+          <span className="material-symbols-outlined" aria-hidden="true">close</span>
         </button>
       </div>
 
@@ -163,7 +163,9 @@ export const Button: React.FC<{
   label?: string;
   className?: string;
   disabled?: boolean;
-}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled }) => {
+  'aria-label'?: string;
+  title?: string;
+}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, 'aria-label': ariaLabel, title }) => {
   const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed";
   const variants = {
     primary: "btn-primary",
@@ -173,8 +175,14 @@ export const Button: React.FC<{
   };
 
   return (
-    <button onClick={onClick} disabled={disabled} className={`${baseClasses} ${variants[variant]} ${className}`}>
-      {icon && <span className="material-symbols-outlined !text-[18px]">{icon}</span>}
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${variants[variant]} ${className}`}
+      aria-label={ariaLabel}
+      title={title}
+    >
+      {icon && <span className="material-symbols-outlined !text-[18px]" aria-hidden="true">{icon}</span>}
       {label && <span className="truncate">{label}</span>}
     </button>
   );
@@ -185,13 +193,15 @@ export const IconButton: React.FC<{
   icon: string;
   className?: string;
   title?: string;
-}> = ({ onClick, icon, className = '', title }) => (
+  'aria-label'?: string;
+}> = ({ onClick, icon, className = '', title, 'aria-label': ariaLabel }) => (
   <button 
     onClick={onClick}
     title={title}
+    aria-label={ariaLabel}
     className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 ${className}`}
   >
-    <span className="material-symbols-outlined">{icon}</span>
+    <span className="material-symbols-outlined" aria-hidden="true">{icon}</span>
   </button>
 );
 
