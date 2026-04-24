@@ -70,6 +70,17 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const currentMonth = targetDate.getMonth();
   const currentDay = targetDate.getDate();
 
+  // ⚡ Bolt: Cache first day of month to avoid creating ~365 Date objects per render
+  // Impact: Reduces GC pauses during high-frequency renders (e.g. dragging sliders)
+  const firstDayCache = React.useRef<Record<string, number>>({});
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    const key = `${year}-${month}`;
+    if (firstDayCache.current[key] === undefined) {
+      firstDayCache.current[key] = new Date(year, month, 1).getDay();
+    }
+    return firstDayCache.current[key];
+  };
+
   const getWeekNumber = (d: Date) => {
     const oneJan = new Date(d.getFullYear(), 0, 1);
     const numberOfDays = Math.floor((d.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
@@ -100,10 +111,14 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     if (isToday) return colors.today;
 
     // Weekend check
-    const d = new Date(year, month, day);
-    const dayOfWeek = d.getDay();
-    if (highlightWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
-      return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
+    // ⚡ Bolt: Use mathematical day of week calculation instead of new Date()
+    // Impact: Eliminates ~365 Date object allocations per render
+    if (highlightWeekends) {
+      const firstDay = getFirstDayOfMonth(year, month);
+      const dayOfWeek = (firstDay + day - 1) % 7;
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
+      }
     }
 
     if (isPast) {
@@ -167,10 +182,14 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       const oneJan = new Date(year, 0, 1);
       
       for (let day = 1; day <= daysInMonth; day++) {
-        const d = new Date(year, month, day);
-        if (d.getDay() === (isMondayFirst ? 1 : 0) || day === 1) {
+        // ⚡ Bolt: Use mathematical day of week calculation instead of new Date()
+        // Impact: Eliminates Date object allocations in loop
+        const firstDay = getFirstDayOfMonth(year, month);
+        const dayOfWeek = (firstDay + day - 1) % 7;
+        if (dayOfWeek === (isMondayFirst ? 1 : 0) || day === 1) {
           // If it's a Monday (or Sunday if isMondayFirst is false) or the first of month, check if it starts a week here
           // For simplicity, we'll just check if the date falls in this month
+          const d = new Date(year, month, day);
           const weekNum = getWeekNumber(d);
           const isPast = year < currentYear || (year === currentYear && weekNum < currentWeekNumber);
           const isToday = year === currentYear && weekNum === currentWeekNumber;
