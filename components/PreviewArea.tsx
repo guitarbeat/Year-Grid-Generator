@@ -126,9 +126,10 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
       </div>
 
       {/* Render Content */}
+      {/* ⚡ Bolt: Disabled transition-transform during panning to ensure 1:1 mouse tracking without visual lag */}
       <div 
         ref={containerRef}
-        className="transition-transform duration-300 ease-out origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer"
+        className={`${!isPanning ? 'transition-transform duration-300 ease-out' : ''} origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer`}
         style={{ 
           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
         }}
