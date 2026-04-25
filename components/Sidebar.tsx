@@ -98,15 +98,15 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
         <div className="p-6 border-b border-border flex justify-between items-center bg-surface">
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-white flex items-center gap-2">
-              <span className="material-symbols-outlined text-accent !text-[20px]">calendar_apps</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-accent !text-[20px]">calendar_apps</span>
               Grid Gen
             </h1>
           </div>
           
           <div className="flex items-center gap-2">
             {/* Close Button Mobile */}
-            <button onClick={onToggle} className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white">
-              <span className="material-symbols-outlined">close</span>
+            <button aria-label="Close Sidebar" onClick={onToggle} className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white">
+              <span aria-hidden="true" className="material-symbols-outlined">close</span>
             </button>
           </div>
         </div>
@@ -216,9 +216,10 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                     />
                     <button 
                       onClick={setDateToToday}
+                      aria-label="Today"
                       className="bg-[#111] hover:bg-[#1a1a1a] border border-border/60 rounded-sm px-3 flex items-center justify-center text-gray-500 hover:text-accent transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[18px]">today</span>
+                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">today</span>
                     </button>
                   </div>
                 </ControlGroup>
