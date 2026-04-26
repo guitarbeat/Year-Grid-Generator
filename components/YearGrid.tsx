@@ -70,6 +70,12 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const currentMonth = targetDate.getMonth();
   const currentDay = targetDate.getDate();
 
+  // ⚡ Bolt: Cache dimmed opacity hex string
+  // Impact: Prevents 365+ string allocations per render
+  const dimmedOpacityHex = useMemo(() => {
+    return Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
+  }, [config.dimPastDaysStrength]);
+
   // ⚡ Bolt: Cache first day of month to avoid creating ~365 Date objects per render
   // Impact: Reduces GC pauses during high-frequency renders (e.g. dragging sliders)
   const firstDayCache = React.useRef<Record<string, number>>({});
@@ -91,9 +97,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
   const getDimmedColor = (color: string) => {
     if (!dimPastDays) return color;
-    const opacity = Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
-    return `${color}${opacity}`;
+    return `${color}${dimmedOpacityHex}`;
   };
+
+  // ⚡ Bolt: Precalculate absolute current dates (no useMemo overhead for trivial math)
+  // Impact: Eliminates redundant arithmetic 365+ times per render
+  const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
+  const absCurrentParams = currentYear * 12 + currentMonth;
 
   // Helper to get day color based on Scriptable logic
   const getDayColor = (year: number, month: number, day: number) => {
@@ -102,7 +112,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       return colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
     }
 
-    const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
     const absTarget = year * 10000 + month * 100 + day;
 
     const isPast = absTarget < absCurrent;
@@ -245,6 +254,19 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
   };
 
+  // ⚡ Bolt: Memoize allDays to avoid recreating ~365 objects per render
+  // Impact: Prevents expensive GC pauses and object allocations on interactions
+  const allDays = useMemo(() => {
+    return months.flatMap(m =>
+      Array.from({ length: m.daysInMonth }).map((_, i) => ({
+        year: m.year,
+        month: m.month,
+        day: i + 1,
+        season: m.season
+      }))
+    );
+  }, [months]);
+
   const statsSection = useMemo(() => {
     if (!showStats) return null;
 
@@ -276,15 +298,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   }, [showStats, currentYear, targetDate, colors.stats, fontSize]);
 
   const renderTimeline = () => {
-    const allDays = months.flatMap(m => 
-      Array.from({ length: m.daysInMonth }).map((_, i) => ({
-        year: m.year,
-        month: m.month,
-        day: i + 1,
-        season: m.season
-      }))
-    );
-
     if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       return (
@@ -615,7 +628,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                 }}>
                   {seasonMonths.map(m => {
                     const name = m.name;
-                    const absCurrentParams = currentYear * 12 + currentMonth;
                     const absTargetParams = m.year * 12 + m.month;
                     const isPast = absTargetParams < absCurrentParams;
                     const isToday = absTargetParams === absCurrentParams;
@@ -673,7 +685,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       }}>
         {months.map((m, i) => {
           const name = m.name;
-          const absCurrentParams = currentYear * 12 + currentMonth;
           const absTargetParams = m.year * 12 + m.month;
           const isPast = absTargetParams < absCurrentParams;
           const isToday = absTargetParams === absCurrentParams;
