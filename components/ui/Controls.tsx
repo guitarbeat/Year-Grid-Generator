@@ -52,9 +52,9 @@ export const Toggle: React.FC<{
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
+        className="sr-only peer"
       />
-      <div className="toggle-track">
+      <div className="toggle-track peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:ring-offset-2 peer-focus-visible:outline-none">
         <div className={`toggle-thumb ${checked ? 'translate-x-3 bg-accent' : 'translate-x-0 bg-[#333]'}`}></div>
       </div>
     </label>
@@ -72,8 +72,9 @@ export const SegmentedControl: React.FC<{
       <button
         key={opt.id}
         onClick={() => onChange(opt.id)}
+        aria-pressed={activeId === opt.id}
         className={`
-          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden
+          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none focus-visible:z-10
           ${activeId === opt.id 
             ? 'bg-[#0a0a0a] text-accent font-bold' 
             : 'bg-[#050505] text-gray-600 hover:text-gray-400 hover:bg-[#080808]'}
@@ -104,7 +105,8 @@ export const ColorInput: React.FC<{
           type="color" 
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-4 h-4 rounded-none border-0 bg-transparent cursor-pointer"
+          aria-label={label}
+          className="w-4 h-4 rounded-none border-0 bg-transparent cursor-pointer focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
         />
       </div>
       <span className="flex-1 text-[10px] font-mono text-gray-500 select-all px-2 py-1.5">
