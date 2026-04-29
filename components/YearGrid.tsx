@@ -89,11 +89,20 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
   const currentWeekNumber = getWeekNumber(targetDate);
 
+  // ⚡ Bolt: Cache opacity hex to prevent 365+ string conversions per layout render
+  // Impact: Removes `toString(16)` math and string parsing from high-frequency tight loop rendering
+  const dimmedOpacityHex = useMemo(() => {
+    return Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
+  }, [config.dimPastDaysStrength]);
+
   const getDimmedColor = (color: string) => {
     if (!dimPastDays) return color;
-    const opacity = Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
-    return `${color}${opacity}`;
+    return `${color}${dimmedOpacityHex}`;
   };
+
+  // ⚡ Bolt: Pre-calculate absolute current integer for date comparisons once per render
+  // Impact: Removes redundant math evaluations per day iteration (365x savings)
+  const absCurrentDate = useMemo(() => currentYear * 10000 + currentMonth * 100 + currentDay, [currentYear, currentMonth, currentDay]);
 
   // Helper to get day color based on Scriptable logic
   const getDayColor = (year: number, month: number, day: number) => {
@@ -102,11 +111,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       return colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
     }
 
-    const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
     const absTarget = year * 10000 + month * 100 + day;
 
-    const isPast = absTarget < absCurrent;
-    const isToday = absTarget === absCurrent;
+    const isPast = absTarget < absCurrentDate;
+    const isToday = absTarget === absCurrentDate;
 
     if (isToday) return colors.today;
 
@@ -275,8 +283,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     );
   }, [showStats, currentYear, targetDate, colors.stats, fontSize]);
 
-  const renderTimeline = () => {
-    const allDays = months.flatMap(m => 
+  // ⚡ Bolt: Cache flat array mapping for Timeline rendering
+  // Impact: Removes 365+ mapping/object instantiations per layout frame render
+  const allDaysTimeline = useMemo(() => {
+    return months.flatMap(m =>
       Array.from({ length: m.daysInMonth }).map((_, i) => ({
         year: m.year,
         month: m.month,
@@ -284,13 +294,15 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         season: m.season
       }))
     );
+  }, [months]);
 
+  const renderTimeline = () => {
     if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 8}px`, width: '100%' }}>
           {seasonsOrder.map(s => {
-            const seasonDays = allDays.filter(d => d.season === s).sort((a, b) => {
+            const seasonDays = allDaysTimeline.filter(d => d.season === s).sort((a, b) => {
               const wA = (a.month + 1) % 12;
               const wB = (b.month + 1) % 12;
               if (wA !== wB) return wA - wB;
@@ -364,7 +376,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         gridTemplateColumns: `repeat(${config.itemsPerRow || 31}, ${dotSize}px)`,
         gap: `${gap}px`,
       }}>
-        {allDays.map((d, i) => (
+        {allDaysTimeline.map((d, i) => (
           <motion.div
             layout
             key={`${d.year}-${d.month}-${d.day}`}
