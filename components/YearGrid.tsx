@@ -275,8 +275,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     );
   }, [showStats, currentYear, targetDate, colors.stats, fontSize]);
 
-  const renderTimeline = () => {
-    const allDays = months.flatMap(m => 
+  const allDays = useMemo(() => {
+    return months.flatMap(m =>
       Array.from({ length: m.daysInMonth }).map((_, i) => ({
         year: m.year,
         month: m.month,
@@ -284,6 +284,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         season: m.season
       }))
     );
+  }, [months]);
+
+  const renderTimeline = () => {
+
 
     if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
@@ -391,6 +395,21 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       </div>
     );
   };
+
+  const allWeeks = useMemo(() => {
+    const weeks: { weekNum: number; color: string; identifier: string }[] = [];
+    const seenWeeks = new Set<string>();
+    months.forEach(m => {
+      m.weeksInMonth.forEach(w => {
+        const identifier = `${m.year}-${w.weekNum}`;
+        if (!seenWeeks.has(identifier)) {
+          seenWeeks.add(identifier);
+          weeks.push({ ...w, identifier });
+        }
+      });
+    });
+    return weeks;
+  }, [months]);
 
   const renderFlatWeeks = () => {
     const cols = mode === 'columns' ? 1 : mode === 'rows' ? 52 : (config.itemsPerRow || 13);
@@ -522,17 +541,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       );
     }
 
-    const allWeeks: { weekNum: number; color: string; identifier: string }[] = [];
-    const seenWeeks = new Set<string>();
-    months.forEach(m => {
-      m.weeksInMonth.forEach(w => {
-        const identifier = `${m.year}-${w.weekNum}`;
-        if (!seenWeeks.has(identifier)) {
-          seenWeeks.add(identifier);
-          allWeeks.push({ ...w, identifier });
-        }
-      });
-    });
+
 
     return (
       <div style={{
