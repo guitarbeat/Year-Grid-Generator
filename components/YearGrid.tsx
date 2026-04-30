@@ -2,6 +2,59 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppConfig } from '../types';
 
+
+interface DayCellProps {
+  id: string;
+  color: string;
+  textColor: string;
+  content: React.ReactNode;
+  activeContent: React.ReactNode;
+  showDayNumbers: boolean;
+  showActiveLabel: boolean;
+  isActive: boolean;
+  onClick?: (id: string) => void;
+}
+
+// ⚡ Bolt: Extracted inline <motion.div> into a memoized DayCell component.
+// Why: Prevents re-rendering 365+ individual DOM elements when layout configuration updates.
+// Impact: Dramatically reduces jank when tweaking UI sliders like dot size, gap, or radius.
+const DayCell = React.memo(({
+  id,
+  color,
+  textColor,
+  content,
+  activeContent,
+  showDayNumbers,
+  showActiveLabel,
+  isActive,
+  onClick
+}: DayCellProps) => {
+  return (
+    <motion.div
+      layout
+      onClick={(e) => { e.stopPropagation(); onClick?.(id); }}
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      style={{
+        width: 'var(--dot-size)',
+        height: 'var(--dot-size)',
+        backgroundColor: showDayNumbers ? 'transparent' : color,
+        borderRadius: 'var(--radius)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 'var(--dot-font-size)',
+        color: showDayNumbers ? color : textColor,
+        fontWeight: 700,
+        flexShrink: 0,
+        position: 'relative'
+      }}
+    >
+      {showActiveLabel ? (isActive ? activeContent : null) : (showDayNumbers ? content : null)}
+    </motion.div>
+  );
+});
+
 interface YearGridProps {
   config: AppConfig;
   className?: string;
@@ -251,8 +304,12 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     gap: `${Math.max(16, fontSize * 2)}px`,
     borderRadius: `${radius || 16}px`,
     position: 'relative',
-    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
-  };
+    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+    // ⚡ Bolt: Set CSS variables on parent so children don't re-render when slider drags
+    '--dot-size': `${dotSize}px`,
+    '--radius': `${radius}px`,
+    '--dot-font-size': `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
+  } as React.CSSProperties;
 
   // ⚡ Bolt: Memoize allDays to avoid recreating ~365 objects per render
   // Impact: Prevents expensive GC pauses and object allocations on interactions
@@ -339,30 +396,22 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                   gridTemplateColumns: `repeat(${config.itemsPerRow || 31}, ${dotSize}px)`,
                   gap: `${gap}px`,
                 }}>
-                  {seasonDays.map((d, i) => (
-                    <motion.div
-                      layout
+                  {seasonDays.map((d, i) => {
+                    const isActive = (d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay);
+                    return (
+                    <DayCell
                       key={`${d.year}-${d.month}-${d.day}`}
-                      onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${d.year}-${d.month}-${d.day}`); }}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      style={{
-                        width: `${dotSize}px`,
-                        height: `${dotSize}px`,
-                        backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day),
-                        borderRadius: `${radius}px`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
-                        color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
-                        fontWeight: 700,
-                        position: 'relative'
-                      }}
-                    >
-                      {showActiveLabel ? ((d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : null) : (showDayNumbers ? d.day : null)}
-                    </motion.div>
-                  ))}
+                      id={`day-${d.year}-${d.month}-${d.day}`}
+                      color={getDayColor(d.year, d.month, d.day)}
+                      textColor={colors.bg}
+                      content={d.day}
+                      activeContent={isActive ? getActiveCellText(d.year, d.month, d.day) : null}
+                      showDayNumbers={showDayNumbers}
+                      showActiveLabel={showActiveLabel}
+                      isActive={isActive}
+                      onClick={onCellClick}
+                    />
+                  )})}
                 </div>
               </div>
             );
@@ -377,30 +426,22 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         gridTemplateColumns: `repeat(${config.itemsPerRow || 31}, ${dotSize}px)`,
         gap: `${gap}px`,
       }}>
-        {allDays.map((d, i) => (
-          <motion.div
-            layout
+        {allDays.map((d, i) => {
+          const isActive = (d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay);
+          return (
+          <DayCell
             key={`${d.year}-${d.month}-${d.day}`}
-            onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${d.year}-${d.month}-${d.day}`); }}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            style={{
-              width: `${dotSize}px`,
-              height: `${dotSize}px`,
-              backgroundColor: showDayNumbers ? 'transparent' : getDayColor(d.year, d.month, d.day),
-              borderRadius: `${radius}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
-              color: showDayNumbers ? getDayColor(d.year, d.month, d.day) : colors.bg,
-              fontWeight: 700,
-              position: 'relative'
-            }}
-          >
-            {showActiveLabel && (d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : showDayNumbers ? d.day : null}
-          </motion.div>
-        ))}
+            id={`day-${d.year}-${d.month}-${d.day}`}
+            color={getDayColor(d.year, d.month, d.day)}
+            textColor={colors.bg}
+            content={d.day}
+            activeContent={isActive ? getActiveCellText(d.year, d.month, d.day) : null}
+            showDayNumbers={showDayNumbers}
+            showActiveLabel={showActiveLabel}
+            isActive={isActive}
+            onClick={onCellClick}
+          />
+        )})}
       </div>
     );
   };
@@ -875,30 +916,20 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
             const day = i + 1;
             const color = getDayColor(m.year, m.month, day);
+            const isActive = (m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay);
             return (
-              <motion.div
-                layout
+              <DayCell
                 key={`day-${day}`}
-                onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${m.year}-${m.month}-${day}`); }}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                style={{
-                  width: `${dotSize}px`,
-                  height: `${dotSize}px`,
-                  backgroundColor: showDayNumbers ? 'transparent' : color,
-                  borderRadius: `${radius}px`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: `${Math.min(dotSize * 0.6, fontSize * 0.7)}px`,
-                  color: showDayNumbers ? color : colors.bg,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                  position: 'relative'
-                }}
-              >
-                {showActiveLabel ? ((m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(m.year, m.month, day) : null) : (showDayNumbers ? day : null)}
-              </motion.div>
+                id={`day-${m.year}-${m.month}-${day}`}
+                color={color}
+                textColor={colors.bg}
+                content={day}
+                activeContent={isActive ? getActiveCellText(m.year, m.month, day) : null}
+                showDayNumbers={showDayNumbers}
+                showActiveLabel={showActiveLabel}
+                isActive={isActive}
+                onClick={onCellClick}
+              />
             );
           })}
 

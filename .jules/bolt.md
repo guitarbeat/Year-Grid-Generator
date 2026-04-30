@@ -12,3 +12,7 @@
 ## 2025-03-05 - Never nest hooks in helper functions
 **Learning:** React rules dictate that hooks (like `useMemo`) must be called at the top-level of a function component or custom hook. Calling `useMemo` inside a nested helper function (like `renderTimeline` within `YearGrid`) will trigger fatal ESLint `react-hooks/rules-of-hooks` errors and result in a build failure or runtime crash.
 **Action:** When memoizing values created inside helper functions, hoist the logic and the `useMemo` call up to the main component's top level, ensuring they appear before the helper function that consumes them.
+
+## 2025-03-05 - Avoid layout thrashing in large arrays
+**Learning:** Rendering 365+ items in a single view and directly updating their inline style values (`width`, `height`) during high-frequency parent config changes (like slider drags) triggers massive React layout re-renders resulting in jank.
+**Action:** Extract the individual items into a component wrapped in `React.memo()`. Pass primitive non-changing props. For styles that DO change dynamically, set them as CSS variables (`--dot-size`) on the parent container, and have the children reference `var(--dot-size)`. This prevents prop changes and blocks the React render tree, allowing the browser's CSS engine to handle the layout updates independently.
