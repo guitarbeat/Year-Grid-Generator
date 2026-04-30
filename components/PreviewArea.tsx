@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 import { Button } from './ui/Controls';
@@ -45,7 +45,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
   const handleZoom = (delta: number) => {
     setZoom(prev => Math.max(0.05, Math.min(3.0, prev + delta)));
   };
-  
+
   const fitToScreen = () => {
     if (!mainRef.current || !gridRef.current) return;
     
@@ -74,6 +74,38 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
     setZoom(clampedZoom);
     setPosition({ x: 0, y: 0 });
   };
+
+  // Explicit ref for handling inside useEffect to avoid exhaustive-deps rule triggering on fitToScreen
+  const fitToScreenRef = useRef(fitToScreen);
+  useEffect(() => {
+    fitToScreenRef.current = fitToScreen;
+  }, [fitToScreen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if using modifier keys to prevent hijacking browser zoom
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+
+      // Focus guard: ignore shortcuts if typing in an input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+        return;
+      }
+
+      if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd') {
+        handleZoom(0.1);
+      } else if (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract') {
+        handleZoom(-0.1);
+      } else if (e.key === '0' || e.code === 'Numpad0') {
+        fitToScreenRef.current();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <main 
@@ -110,6 +142,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           icon="remove"
           aria-label="Zoom out"
+          title="Zoom Out (-)"
           onClick={() => handleZoom(-0.1)}
           className="shadow-2xl"
         />
@@ -117,12 +150,14 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
           label="Reset"
+          title="Reset Zoom (0)"
           onClick={fitToScreen}
         />
         <Button 
           variant="action"
           icon="add"
           aria-label="Zoom in"
+          title="Zoom In (+)"
           onClick={() => handleZoom(0.1)}
           className="shadow-2xl"
         />
