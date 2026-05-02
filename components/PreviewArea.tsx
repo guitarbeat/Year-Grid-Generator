@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 import { Button } from './ui/Controls';
@@ -46,6 +46,13 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
     setZoom(prev => Math.max(0.05, Math.min(3.0, prev + delta)));
   };
   
+  const fitToScreenRef = useRef<() => void>(() => {});
+  const handleZoomRef = useRef<(delta: number) => void>(() => {});
+
+  useEffect(() => {
+    handleZoomRef.current = handleZoom;
+  }, [zoom]); // Add zoom as dependency to correctly apply relative zoom
+
   const fitToScreen = () => {
     if (!mainRef.current || !gridRef.current) return;
     
@@ -74,6 +81,39 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
     setZoom(clampedZoom);
     setPosition({ x: 0, y: 0 });
   };
+
+  useEffect(() => {
+    fitToScreenRef.current = fitToScreen;
+  }, [fitToScreen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      // Ignore modifier keys to allow browser native zoom
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      if (e.key === '+' || e.key === '=' || e.key === 'NumpadAdd') {
+        handleZoomRef.current(0.1);
+      } else if (e.key === '-' || e.key === '_' || e.key === 'NumpadSubtract') {
+        handleZoomRef.current(-0.1);
+      } else if (e.key === '0' || e.key === 'Numpad0') {
+        fitToScreenRef.current();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <main 
@@ -110,6 +150,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           icon="remove"
           aria-label="Zoom out"
+          title="Zoom out (-)"
           onClick={() => handleZoom(-0.1)}
           className="shadow-2xl"
         />
@@ -117,12 +158,14 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
           label="Reset"
+          title="Reset zoom (0)"
           onClick={fitToScreen}
         />
         <Button 
           variant="action"
           icon="add"
           aria-label="Zoom in"
+          title="Zoom in (+)"
           onClick={() => handleZoom(0.1)}
           className="shadow-2xl"
         />
@@ -131,7 +174,9 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
       {/* Render Content */}
       <div 
         ref={containerRef}
-        className="transition-transform duration-300 ease-out origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer"
+        className={`origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer ${
+          isPanning ? '!transition-none !duration-0' : 'transition-transform duration-300 ease-out'
+        }`}
         style={{ 
           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
         }}
