@@ -72,6 +72,7 @@ export const SegmentedControl: React.FC<{
       <button
         key={opt.id}
         onClick={() => onChange(opt.id)}
+        aria-pressed={activeId === opt.id}
         className={`
           flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none z-10
           ${activeId === opt.id 
