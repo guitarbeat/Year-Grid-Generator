@@ -4,3 +4,6 @@
 ## 2024-05-15 - Focus States on Custom Form Controls
 **Learning:** When creating custom visual representations of hidden native inputs (like hiding an `input type="checkbox"` with `sr-only` to style a custom toggle track), the hidden input must receive the `peer` class and the custom visual elements must use `peer-focus-visible` classes (e.g., `peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500`) to ensure keyboard focus states are preserved and visible to users. Additionally, when using native `<input type="color">`, it requires explicit `focus-visible` styles as the Tailwind preflight resets default browser outlines.
 **Action:** Always ensure that hidden inputs powering custom UI components use the `peer` pattern to pass their focus state to their visual counterparts, and ensure all native form inputs have explicit `focus-visible` styling applied.
+## 2026-05-02 - Segmented Control Accessibility
+**Learning:** Custom segmented controls composed of individual buttons need explicit `aria-pressed` attributes to communicate which segment is currently active to screen readers.
+**Action:** Always add `aria-pressed={isActive}` to the buttons that make up custom segmented control components to ensure state is accurately reported.
