@@ -329,7 +329,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear + 1, 0, 1);
-    const totalDays = (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 1000);
+    const totalDays = (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24);
     const daysPassed = Math.ceil(Math.abs(targetDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
     const percentPassed = Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
 
