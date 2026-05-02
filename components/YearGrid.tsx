@@ -307,7 +307,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
     // ⚡ Bolt: Set CSS variables on parent so children don't re-render when slider drags
     '--dot-size': `${dotSize}px`,
-    '--radius': `${radius}px`,
+    '--radius': `${radius || 16}px`,
     '--dot-font-size': `${Math.min(dotSize * 0.6, fontSize * 0.8)}px`,
   } as React.CSSProperties;
 
@@ -329,7 +329,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear + 1, 0, 1);
-    const totalDays = (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24);
+    const totalDays = (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 1000);
     const daysPassed = Math.ceil(Math.abs(targetDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
     const percentPassed = Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
 
