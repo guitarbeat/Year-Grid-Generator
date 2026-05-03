@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 import { Button } from './ui/Controls';
@@ -75,6 +75,30 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
     setPosition({ x: 0, y: 0 });
   };
 
+  const fitToScreenRef = useRef(fitToScreen);
+  fitToScreenRef.current = fitToScreen;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if modifier keys are pressed (to avoid interfering with browser zoom)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // Ignore if focus is in an input field
+      if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+      if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd') {
+        handleZoom(0.1);
+      } else if (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract') {
+        handleZoom(-0.1);
+      } else if (e.key === '0' || e.code === 'Numpad0') {
+        fitToScreenRef.current();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <main 
       ref={mainRef}
@@ -110,6 +134,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           icon="remove"
           aria-label="Zoom out"
+          title="Zoom Out (-)"
           onClick={() => handleZoom(-0.1)}
           className="shadow-2xl"
         />
@@ -117,12 +142,14 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
           label="Reset"
+          title="Reset Zoom (0)"
           onClick={fitToScreen}
         />
         <Button 
           variant="action"
           icon="add"
           aria-label="Zoom in"
+          title="Zoom In (+)"
           onClick={() => handleZoom(0.1)}
           className="shadow-2xl"
         />
