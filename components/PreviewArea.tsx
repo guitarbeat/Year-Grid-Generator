@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 import { Button } from './ui/Controls';
@@ -75,6 +75,40 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
     setPosition({ x: 0, y: 0 });
   };
 
+  const handleZoomRef = useRef(handleZoom);
+  const fitToScreenRef = useRef(fitToScreen);
+
+  useEffect(() => {
+    handleZoomRef.current = handleZoom;
+    fitToScreenRef.current = fitToScreen;
+  }, [handleZoom, fitToScreen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLElement &&
+        (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')
+      ) {
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+
+      if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd') {
+        handleZoomRef.current(0.1);
+      } else if (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract') {
+        handleZoomRef.current(-0.1);
+      } else if (e.key === '0' || e.code === 'Numpad0') {
+        fitToScreenRef.current();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <main 
       ref={mainRef}
@@ -110,6 +144,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           icon="remove"
           aria-label="Zoom out"
+          title="Zoom Out (-)"
           onClick={() => handleZoom(-0.1)}
           className="shadow-2xl"
         />
@@ -117,12 +152,14 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
           label="Reset"
+          title="Reset Zoom (0)"
           onClick={fitToScreen}
         />
         <Button 
           variant="action"
           icon="add"
           aria-label="Zoom in"
+          title="Zoom In (+)"
           onClick={() => handleZoom(0.1)}
           className="shadow-2xl"
         />
