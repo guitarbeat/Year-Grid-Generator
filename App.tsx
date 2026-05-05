@@ -8,6 +8,8 @@ import { AppConfig } from './types';
 declare const html2canvas: any;
 
 const STORAGE_KEY = 'year-grid-config-v1';
+// ⚡ Bolt: Named constant for debounce delay — easier to tune and keeps intent clear
+const CONFIG_SYNC_DEBOUNCE_MS = 300;
 
 const DEFAULT_CONFIG: AppConfig = {
   date: new Date().toISOString().split('T')[0],
@@ -152,10 +154,7 @@ const App: React.FC = () => {
 
   // 3. Sync Config to URL & LocalStorage
   useEffect(() => {
-    // ⚡ Bolt: Debounce config sync to URL and LocalStorage
-    // What: Wraps history.replaceState and localStorage.setItem in a 300ms debounce
-    // Why: Prevents main thread blocking and browser history rate-limiting during rapid slider drags
-    // Impact: Smooths 60fps interactions by dropping 90% of redundant I/O writes during active dragging
+    // ⚡ Bolt: Debounce config sync to URL and LocalStorage to avoid main thread blocking during rapid slider drags
     const timeoutId = setTimeout(() => {
       try {
         const params = new URLSearchParams(window.location.search);
@@ -170,7 +169,7 @@ const App: React.FC = () => {
       } catch (e) {
         console.error('Error syncing state:', e);
       }
-    }, 300);
+    }, CONFIG_SYNC_DEBOUNCE_MS);
 
     return () => clearTimeout(timeoutId);
   }, [config]);
