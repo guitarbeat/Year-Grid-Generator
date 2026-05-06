@@ -94,6 +94,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
         <button 
           onClick={onToggleSidebar}
           aria-label="Toggle sidebar"
+          title="Toggle sidebar"
           className="md:hidden w-10 h-10 bg-[#161616] rounded flex items-center justify-center border border-[#222] text-accent pointer-events-auto shadow-xl transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
         >
           <span className="material-symbols-outlined" aria-hidden="true">menu</span>
@@ -110,6 +111,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           icon="remove"
           aria-label="Zoom out"
+          title="Zoom out"
           onClick={() => handleZoom(-0.1)}
           className="shadow-2xl"
         />
@@ -117,12 +119,14 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
           label="Reset"
+          title="Reset zoom"
           onClick={fitToScreen}
         />
         <Button 
           variant="action"
           icon="add"
           aria-label="Zoom in"
+          title="Zoom in"
           onClick={() => handleZoom(0.1)}
           className="shadow-2xl"
         />

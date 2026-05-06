@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
           
           <div className="flex items-center gap-2">
             {/* Close Button Mobile */}
-            <button onClick={onToggle} aria-label="Close sidebar" className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none rounded-sm">
+            <button onClick={onToggle} aria-label="Close sidebar" title="Close sidebar" className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none rounded-sm">
               <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
           </div>
@@ -315,21 +315,27 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
 
 
               <div>
-                <span className="text-[9px] text-gray-600 font-bold tracking-widest mb-3 block uppercase">Color Theme</span>
-                <div className="grid grid-cols-5 gap-2">
-                  {THEMES.map(t => (
-                    <button 
-                      key={t.name}
-                      onClick={() => applyTheme(t.colors)}
-                      className={`
-                        w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg
-                        ${JSON.stringify(config.colors) === JSON.stringify(t.colors) ? 'border-accent' : 'border-transparent'}
-                      `}
-                      title={t.name}
-                    >
-                      <div className="absolute inset-0" style={{ backgroundColor: t.colors.fill }}></div>
-                    </button>
-                  ))}
+                <span id="theme-group-label" className="text-[9px] text-gray-600 font-bold tracking-widest mb-3 block uppercase">Color Theme</span>
+                <div role="radiogroup" aria-labelledby="theme-group-label" className="grid grid-cols-5 gap-2">
+                  {THEMES.map(t => {
+                    const isSelected = JSON.stringify(config.colors) === JSON.stringify(t.colors);
+                    return (
+                      <button
+                        key={t.name}
+                        role="radio"
+                        aria-checked={isSelected}
+                        aria-label={`Theme: ${t.name}`}
+                        onClick={() => applyTheme(t.colors)}
+                        className={`
+                          w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none focus-visible:ring-offset-2 focus-visible:ring-offset-[#161616]
+                          ${isSelected ? 'border-accent' : 'border-transparent'}
+                        `}
+                        title={t.name}
+                      >
+                        <div className="absolute inset-0" style={{ backgroundColor: t.colors.fill }}></div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
