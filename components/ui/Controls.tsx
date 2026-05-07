@@ -67,10 +67,12 @@ export const SegmentedControl: React.FC<{
   onChange: (id: string) => void;
   cols?: number;
 }> = ({ options, activeId, onChange, cols = 3 }) => (
-  <div className={`grid grid-cols-${cols} gap-[1px] bg-[#1a1a1a] border border-[#1a1a1a]`}>
+  <div role="radiogroup" className={`grid grid-cols-${cols} gap-[1px] bg-[#1a1a1a] border border-[#1a1a1a]`}>
     {options.map((opt) => (
       <button
         key={opt.id}
+        role="radio"
+        aria-checked={activeId === opt.id}
         onClick={() => onChange(opt.id)}
         className={`
           flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none z-10
