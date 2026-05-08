@@ -150,6 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               </ControlGroup>
               <ControlGroup label="Unit Precision">
                 <SegmentedControl 
+                  aria-label="Select Unit Precision"
                   options={[
                     { id: 'day', label: 'Day', icon: 'calendar_view_day' },
                     { id: 'week', label: 'Week', icon: 'date_range' },
@@ -316,13 +317,16 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
 
               <div>
                 <span className="text-[9px] text-gray-600 font-bold tracking-widest mb-3 block uppercase">Color Theme</span>
-                <div className="grid grid-cols-5 gap-2">
+                <div role="radiogroup" aria-label="Color Theme" className="grid grid-cols-5 gap-2">
                   {THEMES.map(t => (
                     <button 
                       key={t.name}
+                      role="radio"
+                      aria-checked={JSON.stringify(config.colors) === JSON.stringify(t.colors)}
+                      aria-label={t.name}
                       onClick={() => applyTheme(t.colors)}
                       className={`
-                        w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg
+                        w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]
                         ${JSON.stringify(config.colors) === JSON.stringify(t.colors) ? 'border-accent' : 'border-transparent'}
                       `}
                       title={t.name}
@@ -351,6 +355,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                     <div className="space-y-4">
                       <SegmentedControl
                         cols={3}
+                        aria-label="Cell Content Visibility"
                         options={[
                           { id: 'none', label: 'Empty', icon: 'visibility_off' },
                           { id: 'all', label: 'Standard', icon: 'visibility' },
