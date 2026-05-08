@@ -152,19 +152,26 @@ const App: React.FC = () => {
 
   // 3. Sync Config to URL & LocalStorage
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const encoded = encodeConfig(config);
-      
-      if (params.get('config') !== encoded) {
-        params.set('config', encoded);
-        window.history.replaceState(null, '', `?${params.toString()}`);
-      }
+    // ⚡ Bolt: Debounce URL and localStorage syncing to prevent main thread blocking
+    // and browser history API rate-limits during rapid configuration changes (e.g., slider drags).
+    // Impact: Ensures smooth 60fps interaction on UI controls without expensive side effects on every render.
+    const timeoutId = setTimeout(() => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = encodeConfig(config);
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    } catch (e) {
-      console.error('Error syncing state:', e);
-    }
+        if (params.get('config') !== encoded) {
+          params.set('config', encoded);
+          window.history.replaceState(null, '', `?${params.toString()}`);
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      } catch (e) {
+        console.error('Error syncing state:', e);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   }, [config]);
 
   const resetConfig = () => {
