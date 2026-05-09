@@ -4,3 +4,6 @@
 ## 2024-05-15 - Focus States on Custom Form Controls
 **Learning:** When creating custom visual representations of hidden native inputs (like hiding an `input type="checkbox"` with `sr-only` to style a custom toggle track), the hidden input must receive the `peer` class and the custom visual elements must use `peer-focus-visible` classes (e.g., `peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500`) to ensure keyboard focus states are preserved and visible to users. Additionally, when using native `<input type="color">`, it requires explicit `focus-visible` styles as the Tailwind preflight resets default browser outlines.
 **Action:** Always ensure that hidden inputs powering custom UI components use the `peer` pattern to pass their focus state to their visual counterparts, and ensure all native form inputs have explicit `focus-visible` styling applied.
+## 2024-05-15 - Radiogroup Roles for Custom Single-Choice Selectors
+**Learning:** Custom single-choice selectors must be wrapped in `role="radiogroup"` and their children must use `role="radio"` and `aria-checked` to correctly convey the active segment to screen readers.
+**Action:** Ensure all custom single-choice UI components are correctly labeled as radiogroups and their segments as radios.
