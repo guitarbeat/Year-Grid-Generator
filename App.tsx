@@ -151,20 +151,27 @@ const App: React.FC = () => {
   });
 
   // 3. Sync Config to URL & LocalStorage
+  // ⚡ Bolt: Debounce config synchronization
+  // Why: Prevents main thread blocking and browser history rate-limiting when frequently syncing state to the URL and localStorage (e.g., rapid slider drags)
+  // Impact: Improves UI responsiveness and reduces unnecessary operations by coalescing rapid state changes
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const encoded = encodeConfig(config);
-      
-      if (params.get('config') !== encoded) {
-        params.set('config', encoded);
-        window.history.replaceState(null, '', `?${params.toString()}`);
-      }
+    const handler = setTimeout(() => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = encodeConfig(config);
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    } catch (e) {
-      console.error('Error syncing state:', e);
-    }
+        if (params.get('config') !== encoded) {
+          params.set('config', encoded);
+          window.history.replaceState(null, '', `?${params.toString()}`);
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      } catch (e) {
+        console.error('Error syncing state:', e);
+      }
+    }, 300);
+
+    return () => clearTimeout(handler);
   }, [config]);
 
   const resetConfig = () => {
