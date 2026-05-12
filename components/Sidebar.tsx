@@ -150,6 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
               </ControlGroup>
               <ControlGroup label="Unit Precision">
                 <SegmentedControl 
+                  aria-label="Unit Precision"
                   options={[
                     { id: 'day', label: 'Day', icon: 'calendar_view_day' },
                     { id: 'week', label: 'Week', icon: 'date_range' },
@@ -315,11 +316,14 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
 
 
               <div>
-                <span className="text-[9px] text-gray-600 font-bold tracking-widest mb-3 block uppercase">Color Theme</span>
-                <div className="grid grid-cols-5 gap-2">
+                <span id="color-theme-label" className="text-[9px] text-gray-600 font-bold tracking-widest mb-3 block uppercase">Color Theme</span>
+                <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-labelledby="color-theme-label">
                   {THEMES.map(t => (
                     <button 
                       key={t.name}
+                      role="radio"
+                      aria-checked={JSON.stringify(config.colors) === JSON.stringify(t.colors)}
+                      aria-label={t.name}
                       onClick={() => applyTheme(t.colors)}
                       className={`
                         w-full aspect-square rounded-full border-2 transition-all relative overflow-hidden active:scale-95 shadow-lg
@@ -350,6 +354,7 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onDownload, isDown
                   return (
                     <div className="space-y-4">
                       <SegmentedControl
+                        aria-label="Cell Content"
                         cols={3}
                         options={[
                           { id: 'none', label: 'Empty', icon: 'visibility_off' },
