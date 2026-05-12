@@ -340,8 +340,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                   gap: `${gap}px`,
                 }}>
                   {seasonDays.map((d, i) => (
+                    // ⚡ Bolt: Removed layout prop from motion.div for performance in large lists
                     <motion.div
-                      layout
                       key={`${d.year}-${d.month}-${d.day}`}
                       onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${d.year}-${d.month}-${d.day}`); }}
                       initial={{ scale: 0 }}
@@ -379,7 +379,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       }}>
         {allDays.map((d, i) => (
           <motion.div
-            layout
             key={`${d.year}-${d.month}-${d.day}`}
             onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${d.year}-${d.month}-${d.day}`); }}
             initial={{ scale: 0 }}
@@ -458,7 +457,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                     <div style={{ display: 'flex', gap: `${gap}px` }}>
                       {m.weeksInMonth.map(w => (
                          <motion.div
-                          layout
                           key={w.weekNum}
                           onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${m.year}-${w.weekNum}`); }}
                           initial={{ scale: 0 }}
@@ -506,7 +504,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
               <div style={{ display: 'flex', gap: `${gap}px` }}>
                 {m.weeksInMonth.map(w => (
                   <motion.div
-                    layout
                     key={w.weekNum}
                     onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${m.year}-${w.weekNum}`); }}
                     initial={{ scale: 0 }}
@@ -555,7 +552,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       }}>
         {allWeeks.map(w => (
           <motion.div
-            layout
             key={w.identifier}
             onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${w.identifier}`); }}
             initial={{ scale: 0 }}
@@ -646,7 +642,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                       <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
                         {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{name}</span>}
                         <motion.div
-                          layout
                           onClick={(e) => { e.stopPropagation(); onCellClick?.(`month-${m.year}-${m.month}`); }}
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
@@ -703,7 +698,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
               {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{name}</span>}
               <motion.div
-                layout
                 onClick={(e) => { e.stopPropagation(); onCellClick?.(`month-${m.year}-${m.month}`); }}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -805,7 +799,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const renderMonthItem = (m: any) => {
     return (
       <motion.div 
-        layout
         key={`${m.year}-${m.month}`} 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -877,7 +870,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             const color = getDayColor(m.year, m.month, day);
             return (
               <motion.div
-                layout
                 key={`day-${day}`}
                 onClick={(e) => { e.stopPropagation(); onCellClick?.(`day-${m.year}-${m.month}-${day}`); }}
                 initial={{ scale: 0 }}
@@ -905,7 +897,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           {/* Week items (if granularity is week and mode is grid) */}
           {granularity === 'week' && m.weeksInMonth.map((w) => (
               <motion.div
-                layout
                 key={`week-${w.weekNum}`}
                 onClick={(e) => { e.stopPropagation(); onCellClick?.(`week-${m.year}-${w.weekNum}`); }}
                 initial={{ scale: 0 }}
