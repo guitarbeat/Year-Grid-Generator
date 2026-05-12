@@ -12,3 +12,6 @@
 ## 2025-03-05 - Never nest hooks in helper functions
 **Learning:** React rules dictate that hooks (like `useMemo`) must be called at the top-level of a function component or custom hook. Calling `useMemo` inside a nested helper function (like `renderTimeline` within `YearGrid`) will trigger fatal ESLint `react-hooks/rules-of-hooks` errors and result in a build failure or runtime crash.
 **Action:** When memoizing values created inside helper functions, hoist the logic and the `useMemo` call up to the main component's top level, ensuring they appear before the helper function that consumes them.
+## 2024-03-05 - Avoid layout animations for many elements
+**Learning:** `layout` from `framer-motion` adds significant overhead as Framer Motion needs to continuously measure layout changes for elements to animate them. For a component like `YearGrid` that renders 365+ cell elements (`motion.div`s), having `layout` enabled on each individual cell causes a severe bottleneck resulting in slow rendering when configurations change or layout shifts.
+**Action:** When working with grids or lists with hundreds of elements, disable the `layout` prop on the individual items. Instead, use simple scale/opacity animations (`initial`, `animate`, `exit`) which can be hardware accelerated and don't require expensive layout recalculations.
