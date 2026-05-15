@@ -151,20 +151,27 @@ const App: React.FC = () => {
   });
 
   // 3. Sync Config to URL & LocalStorage
+  // What: Debounce URL history and localStorage state synchronization.
+  // Why: Prevents main thread blocking from JSON.stringify/btoa and avoids browser rate-limiting on history API during rapid consecutive updates (e.g. dragging a slider).
+  // Impact: Improves 60fps rendering consistency by delaying heavy I/O operations until 300ms after user interactions settle.
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const encoded = encodeConfig(config);
-      
-      if (params.get('config') !== encoded) {
-        params.set('config', encoded);
-        window.history.replaceState(null, '', `?${params.toString()}`);
-      }
+    const syncTimeoutId = setTimeout(() => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = encodeConfig(config);
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    } catch (e) {
-      console.error('Error syncing state:', e);
-    }
+        if (params.get('config') !== encoded) {
+          params.set('config', encoded);
+          window.history.replaceState(null, '', `?${params.toString()}`);
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      } catch (e) {
+        console.error('Error syncing state:', e);
+      }
+    }, 300);
+
+    return () => clearTimeout(syncTimeoutId);
   }, [config]);
 
   const resetConfig = () => {

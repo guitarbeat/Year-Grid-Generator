@@ -12,3 +12,6 @@
 ## 2025-03-05 - Never nest hooks in helper functions
 **Learning:** React rules dictate that hooks (like `useMemo`) must be called at the top-level of a function component or custom hook. Calling `useMemo` inside a nested helper function (like `renderTimeline` within `YearGrid`) will trigger fatal ESLint `react-hooks/rules-of-hooks` errors and result in a build failure or runtime crash.
 **Action:** When memoizing values created inside helper functions, hoist the logic and the `useMemo` call up to the main component's top level, ensuring they appear before the helper function that consumes them.
+## 2024-05-15 - Debounce URL history and localStorage state synchronization
+**Learning:** Updating the URL via `window.history.replaceState` and writing to `localStorage` synchronously on every configuration state change causes main thread blocking (due to JSON stringification and encoding) and can hit browser rate-limiting during rapid user interactions (like dragging a slider).
+**Action:** Always wrap state synchronization to external APIs (URL/localStorage) in a debounced `setTimeout` (e.g., 300ms) with a cleanup function to clear pending timeouts on unmount or subsequent updates.
