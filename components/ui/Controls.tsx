@@ -52,9 +52,9 @@ export const Toggle: React.FC<{
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="sr-only peer"
+        className="sr-only"
       />
-      <div className="toggle-track peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:outline-none peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#111]">
+      <div className="toggle-track">
         <div className={`toggle-thumb ${checked ? 'translate-x-3 bg-accent' : 'translate-x-0 bg-[#333]'}`}></div>
       </div>
     </label>
@@ -73,7 +73,7 @@ export const SegmentedControl: React.FC<{
         key={opt.id}
         onClick={() => onChange(opt.id)}
         className={`
-          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none z-10
+          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden
           ${activeId === opt.id 
             ? 'bg-[#0a0a0a] text-accent font-bold' 
             : 'bg-[#050505] text-gray-600 hover:text-gray-400 hover:bg-[#080808]'}
@@ -83,7 +83,7 @@ export const SegmentedControl: React.FC<{
           <div className="absolute top-0 left-0 w-full h-[1px] bg-accent/50 shadow-[0_0_8px_rgba(234,88,12,0.8)]" />
         )}
         {opt.icon && (
-          <span className={`material-symbols-outlined !text-[18px] ${activeId === opt.id ? 'opacity-100' : 'opacity-40'}`} aria-hidden="true">{opt.icon}</span>
+          <span className={`material-symbols-outlined !text-[18px] ${activeId === opt.id ? 'opacity-100' : 'opacity-40'}`}>{opt.icon}</span>
         )}
         <span className="text-[9px] uppercase tracking-tighter">{opt.label}</span>
       </button>
@@ -104,8 +104,7 @@ export const ColorInput: React.FC<{
           type="color" 
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          aria-label={label}
-          className="w-4 h-4 rounded-none border-0 bg-transparent cursor-pointer focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none rounded-sm"
+          className="w-4 h-4 rounded-none border-0 bg-transparent cursor-pointer"
         />
       </div>
       <span className="flex-1 text-[10px] font-mono text-gray-500 select-all px-2 py-1.5">
@@ -139,8 +138,8 @@ export const Modal: React.FC<{
             {subtitle && <p className="text-[10px] text-gray-500 uppercase font-medium">{subtitle}</p>}
           </div>
         </div>
-        <button onClick={onClose} aria-label="Close modal" className="text-gray-500 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none rounded-sm">
-          <span className="material-symbols-outlined" aria-hidden="true">close</span>
+        <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+          <span className="material-symbols-outlined">close</span>
         </button>
       </div>
 
@@ -164,10 +163,8 @@ export const Button: React.FC<{
   label?: string;
   className?: string;
   disabled?: boolean;
-  'aria-label'?: string;
-  title?: string;
-}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, 'aria-label': ariaLabel, title }) => {
-  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none";
+}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled }) => {
+  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed";
   const variants = {
     primary: "btn-primary",
     secondary: "bg-[#0a0a0a] text-gray-500 hover:text-white border border-[#1a1a1a] hover:border-[#222] rounded-sm p-3 md:p-2 text-[10px] active:translate-y-[1px]",
@@ -176,8 +173,8 @@ export const Button: React.FC<{
   };
 
   return (
-    <button onClick={onClick} disabled={disabled} aria-label={ariaLabel} title={title} className={`${baseClasses} ${variants[variant]} ${className}`}>
-      {icon && <span className="material-symbols-outlined !text-[18px]" aria-hidden="true">{icon}</span>}
+    <button onClick={onClick} disabled={disabled} className={`${baseClasses} ${variants[variant]} ${className}`}>
+      {icon && <span className="material-symbols-outlined !text-[18px]">{icon}</span>}
       {label && <span className="truncate">{label}</span>}
     </button>
   );
@@ -188,15 +185,13 @@ export const IconButton: React.FC<{
   icon: string;
   className?: string;
   title?: string;
-  'aria-label'?: string;
-}> = ({ onClick, icon, className = '', title, 'aria-label': ariaLabel }) => (
+}> = ({ onClick, icon, className = '', title }) => (
   <button 
     onClick={onClick}
     title={title}
-    aria-label={ariaLabel}
-    className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${className}`}
+    className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 ${className}`}
   >
-    <span className="material-symbols-outlined" aria-hidden="true">{icon}</span>
+    <span className="material-symbols-outlined">{icon}</span>
   </button>
 );
 

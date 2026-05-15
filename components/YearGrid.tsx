@@ -70,23 +70,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const currentMonth = targetDate.getMonth();
   const currentDay = targetDate.getDate();
 
-  // ⚡ Bolt: Cache dimmed opacity hex string
-  // Impact: Prevents 365+ string allocations per render
-  const dimmedOpacityHex = useMemo(() => {
-    return Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
-  }, [config.dimPastDaysStrength]);
-
-  // ⚡ Bolt: Cache first day of month to avoid creating ~365 Date objects per render
-  // Impact: Reduces GC pauses during high-frequency renders (e.g. dragging sliders)
-  const firstDayCache = React.useRef<Record<string, number>>({});
-  const getFirstDayOfMonth = (year: number, month: number) => {
-    const key = `${year}-${month}`;
-    if (firstDayCache.current[key] === undefined) {
-      firstDayCache.current[key] = new Date(year, month, 1).getDay();
-    }
-    return firstDayCache.current[key];
-  };
-
   const getWeekNumber = (d: Date) => {
     const oneJan = new Date(d.getFullYear(), 0, 1);
     const numberOfDays = Math.floor((d.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
@@ -97,13 +80,9 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
   const getDimmedColor = (color: string) => {
     if (!dimPastDays) return color;
-    return `${color}${dimmedOpacityHex}`;
+    const opacity = Math.round((config.dimPastDaysStrength || 50) * 2.55).toString(16).padStart(2, '0');
+    return `${color}${opacity}`;
   };
-
-  // ⚡ Bolt: Precalculate absolute current dates (no useMemo overhead for trivial math)
-  // Impact: Eliminates redundant arithmetic 365+ times per render
-  const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
-  const absCurrentParams = currentYear * 12 + currentMonth;
 
   // Helper to get day color based on Scriptable logic
   const getDayColor = (year: number, month: number, day: number) => {
@@ -112,6 +91,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       return colors[config.overrides[id] as keyof typeof colors] || config.overrides[id];
     }
 
+    const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
     const absTarget = year * 10000 + month * 100 + day;
 
     const isPast = absTarget < absCurrent;
@@ -120,14 +100,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     if (isToday) return colors.today;
 
     // Weekend check
-    // ⚡ Bolt: Use mathematical day of week calculation instead of new Date()
-    // Impact: Eliminates ~365 Date object allocations per render
-    if (highlightWeekends) {
-      const firstDay = getFirstDayOfMonth(year, month);
-      const dayOfWeek = (firstDay + day - 1) % 7;
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
-      }
+    const d = new Date(year, month, day);
+    const dayOfWeek = d.getDay();
+    if (highlightWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
+      return isPast ? getDimmedColor(colors.weekend) : colors.weekend;
     }
 
     if (isPast) {
@@ -173,6 +149,35 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     return text;
   };
 
+  const renderLabelOverlay = (isActive: boolean, text: string, fallback: React.ReactNode) => {
+    if (showActiveLabel && isActive) {
+      const isLongFormat = ['monthDate', 'full', 'monthName', 'dayName'].includes(activeLabelFormat);
+      if (isLongFormat) {
+        return (
+          <div style={{
+            position: 'absolute',
+            whiteSpace: 'nowrap',
+            backgroundColor: colors.today,
+            color: colors.bg,
+            // Ensure padding scales well with dot size
+            padding: `${Math.max(2, dotSize * 0.1)}px ${Math.max(6, dotSize * 0.4)}px`,
+            borderRadius: `${Math.max(radius, 4)}px`,
+            zIndex: 10,
+            boxShadow: `0 4px 12px rgba(0,0,0,0.4)`,
+            fontSize: `${Math.max(10, fontSize * 0.9)}px`,
+            fontWeight: 800,
+            pointerEvents: 'none', // letting clicks pass to the cell
+            transform: 'translateY(-2px)' // slight pop
+          }}>
+            {text}
+          </div>
+        );
+      }
+      return text;
+    }
+    return fallback;
+  };
+
   const months = useMemo(() => {
     const result = [];
     const effectiveOffset = startFromJan ? -currentMonth + (monthOffset * 12) : monthOffset;
@@ -191,14 +196,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       const oneJan = new Date(year, 0, 1);
       
       for (let day = 1; day <= daysInMonth; day++) {
-        // ⚡ Bolt: Use mathematical day of week calculation instead of new Date()
-        // Impact: Eliminates Date object allocations in loop
-        const firstDay = getFirstDayOfMonth(year, month);
-        const dayOfWeek = (firstDay + day - 1) % 7;
-        if (dayOfWeek === (isMondayFirst ? 1 : 0) || day === 1) {
+        const d = new Date(year, month, day);
+        if (d.getDay() === (isMondayFirst ? 1 : 0) || day === 1) {
           // If it's a Monday (or Sunday if isMondayFirst is false) or the first of month, check if it starts a week here
           // For simplicity, we'll just check if the date falls in this month
-          const d = new Date(year, month, day);
           const weekNum = getWeekNumber(d);
           const isPast = year < currentYear || (year === currentYear && weekNum < currentWeekNumber);
           const isToday = year === currentYear && weekNum === currentWeekNumber;
@@ -254,19 +255,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
   };
 
-  // ⚡ Bolt: Memoize allDays to avoid recreating ~365 objects per render
-  // Impact: Prevents expensive GC pauses and object allocations on interactions
-  const allDays = useMemo(() => {
-    return months.flatMap(m =>
-      Array.from({ length: m.daysInMonth }).map((_, i) => ({
-        year: m.year,
-        month: m.month,
-        day: i + 1,
-        season: m.season
-      }))
-    );
-  }, [months]);
-
   const statsSection = useMemo(() => {
     if (!showStats) return null;
 
@@ -298,6 +286,15 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   }, [showStats, currentYear, targetDate, colors.stats, fontSize]);
 
   const renderTimeline = () => {
+    const allDays = months.flatMap(m => 
+      Array.from({ length: m.daysInMonth }).map((_, i) => ({
+        year: m.year,
+        month: m.month,
+        day: i + 1,
+        season: m.season
+      }))
+    );
+
     if (groupBy === 'season') {
       const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
       return (
@@ -360,7 +357,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                         position: 'relative'
                       }}
                     >
-                      {showActiveLabel ? ((d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : null) : (showDayNumbers ? d.day : null)}
+                      {renderLabelOverlay((d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay), getActiveCellText(d.year, d.month, d.day), showDayNumbers ? d.day : null)}
                     </motion.div>
                   ))}
                 </div>
@@ -398,7 +395,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
               position: 'relative'
             }}
           >
-            {showActiveLabel && (d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(d.year, d.month, d.day) : showDayNumbers ? d.day : null}
+            {renderLabelOverlay((d.year * 10000 + d.month * 100 + d.day) === (currentYear * 10000 + currentMonth * 100 + currentDay), getActiveCellText(d.year, d.month, d.day), showDayNumbers ? d.day : null)}
           </motion.div>
         ))}
       </div>
@@ -477,7 +474,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                             position: 'relative'
                           }}
                         >
-                          {showActiveLabel ? (m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : null) : (showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null))}
+                          {renderLabelOverlay(m.year === currentYear && w.weekNum === currentWeekNumber, getActiveCellText(m.year, m.month, undefined, w.weekNum), showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null))}
                         </motion.div>
                       ))}
                     </div>
@@ -494,10 +491,9 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     if (showMonthAxis) {
       return (
         <div style={{ 
-          display: 'flex', 
-          flexDirection: mode === 'rows' ? 'row' : 'column',
+          display: 'grid', 
+          gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, auto)`,
           gap: `${gap * 4}px`,
-          flexWrap: 'wrap',
           justifyContent: 'center'
         }}>
           {months.map(m => (
@@ -525,7 +521,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                       position: 'relative'
                     }}
                   >
-                    {showActiveLabel && m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : showWeekNumbers ? w.weekNum : null}
+                    {renderLabelOverlay(m.year === currentYear && w.weekNum === currentWeekNumber, getActiveCellText(m.year, m.month, undefined, w.weekNum), showWeekNumbers ? w.weekNum : null)}
                   </motion.div>
                 ))}
               </div>
@@ -574,7 +570,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
               position: 'relative'
             }}
           >
-            {showActiveLabel ? (parseInt(w.identifier.split('-')[0]) === currentYear && parseInt(w.identifier.split('-')[1]) === currentWeekNumber ? getActiveCellText(currentYear, currentMonth, undefined, currentWeekNumber) : null) : (showWeekNumbers ? w.weekNum : null)}
+            {renderLabelOverlay(parseInt(w.identifier.split('-')[0]) === currentYear && parseInt(w.identifier.split('-')[1]) === currentWeekNumber, getActiveCellText(currentYear, currentMonth, undefined, currentWeekNumber), showWeekNumbers ? w.weekNum : null)}
           </motion.div>
         ))}
       </div>
@@ -628,6 +624,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                 }}>
                   {seasonMonths.map(m => {
                     const name = m.name;
+                    const absCurrentParams = currentYear * 12 + currentMonth;
                     const absTargetParams = m.year * 12 + m.month;
                     const isPast = absTargetParams < absCurrentParams;
                     const isToday = absTargetParams === absCurrentParams;
@@ -664,7 +661,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                             position: 'relative'
                           }}
                         >
-                          {showActiveLabel ? (isToday ? getActiveCellText(m.year, m.month) : null) : (showMonthLabels ? name.toUpperCase().substring(0, 3) : null)}
+                          {renderLabelOverlay(isToday, getActiveCellText(m.year, m.month), showMonthLabels ? name.toUpperCase().substring(0, 3) : null)}
                         </motion.div>
                       </div>
                     );
@@ -685,6 +682,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       }}>
         {months.map((m, i) => {
           const name = m.name;
+          const absCurrentParams = currentYear * 12 + currentMonth;
           const absTargetParams = m.year * 12 + m.month;
           const isPast = absTargetParams < absCurrentParams;
           const isToday = absTargetParams === absCurrentParams;
@@ -721,7 +719,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                   position: 'relative'
                 }}
               >
-                {showActiveLabel ? (isToday ? getActiveCellText(m.year, m.month) : null) : (showMonthLabels ? name.toUpperCase().substring(0, 3) : null)}
+                {renderLabelOverlay(isToday, getActiveCellText(m.year, m.month), showMonthLabels ? name.toUpperCase().substring(0, 3) : null)}
               </motion.div>
             </div>
           );
@@ -774,7 +772,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
               )}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: mode === 'rows' || mode === 'columns' ? '1fr' : 
+                gridTemplateColumns: mode === 'rows' ? '1fr' : 
                                      `repeat(${monthsPerRow}, auto)`,
                 gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
                 width: '100%'
@@ -790,7 +788,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     return (
       <div style={{
         display: 'grid',
-        gridTemplateColumns: mode === 'rows' || mode === 'columns' ? '1fr' : 
+        gridTemplateColumns: mode === 'rows' ? '1fr' : 
                              `repeat(${monthsPerRow}, auto)`,
         gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
         width: '100%'
@@ -897,7 +895,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                   position: 'relative'
                 }}
               >
-                {showActiveLabel ? ((m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay) ? getActiveCellText(m.year, m.month, day) : null) : (showDayNumbers ? day : null)}
+                {renderLabelOverlay((m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay), getActiveCellText(m.year, m.month, day), showDayNumbers ? day : null)}
               </motion.div>
             );
           })}
@@ -924,7 +922,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
                   position: 'relative'
                 }}
               >
-                {showActiveLabel && m.year === currentYear && w.weekNum === currentWeekNumber ? getActiveCellText(m.year, m.month, undefined, w.weekNum) : showWeekNumbers ? w.weekNum : null}
+                {renderLabelOverlay(m.year === currentYear && w.weekNum === currentWeekNumber, getActiveCellText(m.year, m.month, undefined, w.weekNum), showWeekNumbers ? w.weekNum : null)}
               </motion.div>
           ))}
         </div>
@@ -973,7 +971,4 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   );
 };
 
-// ⚡ Bolt: Wrapped YearGrid in React.memo to prevent expensive re-renders
-// when the parent PreviewArea triggers high-frequency updates during panning/zooming.
-// Impact: Reduces re-renders by 100% during panning interactions.
-export default React.memo(YearGrid);
+export default YearGrid;
