@@ -29,6 +29,7 @@ export interface AppConfig {
   transparentBg: boolean;
   monthsToShow: number;
   monthsPerRow: number;
+  monthOffset?: number;
   showDayNumbers: boolean;
   showWeekNumbers: boolean;
   showMonthNumbers: boolean;
