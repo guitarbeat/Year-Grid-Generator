@@ -52,9 +52,9 @@ export const Toggle: React.FC<{
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
+        className="sr-only peer"
       />
-      <div className="toggle-track">
+      <div className="toggle-track peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:outline-none peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black">
         <div className={`toggle-thumb ${checked ? 'translate-x-3 bg-accent' : 'translate-x-0 bg-[#333]'}`}></div>
       </div>
     </label>
@@ -163,8 +163,10 @@ export const Button: React.FC<{
   label?: string;
   className?: string;
   disabled?: boolean;
-}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled }) => {
-  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+  'aria-label'?: string;
+  title?: string;
+}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, 'aria-label': ariaLabel, title }) => {
+  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none";
   const variants = {
     primary: "btn-primary",
     secondary: "bg-[#0a0a0a] text-gray-500 hover:text-white border border-[#1a1a1a] hover:border-[#222] rounded-sm p-3 md:p-2 text-[10px] active:translate-y-[1px]",
@@ -173,8 +175,14 @@ export const Button: React.FC<{
   };
 
   return (
-    <button onClick={onClick} disabled={disabled} className={`${baseClasses} ${variants[variant]} ${className}`}>
-      {icon && <span className="material-symbols-outlined !text-[18px]">{icon}</span>}
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${variants[variant]} ${className}`}
+      aria-label={ariaLabel || label || icon}
+      title={title || ariaLabel || label || icon}
+    >
+      {icon && <span className="material-symbols-outlined !text-[18px]" aria-hidden="true">{icon}</span>}
       {label && <span className="truncate">{label}</span>}
     </button>
   );
@@ -185,13 +193,15 @@ export const IconButton: React.FC<{
   icon: string;
   className?: string;
   title?: string;
-}> = ({ onClick, icon, className = '', title }) => (
+  'aria-label'?: string;
+}> = ({ onClick, icon, className = '', title, 'aria-label': ariaLabel }) => (
   <button 
     onClick={onClick}
-    title={title}
-    className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 ${className}`}
+    title={title || ariaLabel || icon}
+    aria-label={ariaLabel || title || icon}
+    className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${className}`}
   >
-    <span className="material-symbols-outlined">{icon}</span>
+    <span className="material-symbols-outlined" aria-hidden="true">{icon}</span>
   </button>
 );
 
