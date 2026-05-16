@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
 import PreviewArea from './components/PreviewArea';
 import YearGrid from './components/YearGrid';
@@ -220,38 +221,44 @@ const App: React.FC = () => {
   // 3. Render "Image View" (Standalone)
   if (viewMode === 'image') {
     return (
-      <div 
-        className="min-h-screen w-full flex items-center justify-center"
-        style={{ 
-          backgroundColor: config.transparentBg ? 'transparent' : config.colors.bg,
-          padding: '0px' // No padding for easier screenshot cropping
-        }}
-      >
-        <YearGrid 
-          config={config} 
-          className="shadow-none rounded-none !p-12" // Custom padding for the image itself
-        />
-      </div>
+      <>
+        <div 
+          className="min-h-screen w-full flex items-center justify-center"
+          style={{ 
+            backgroundColor: config.transparentBg ? 'transparent' : config.colors.bg,
+            padding: '0px' // No padding for easier screenshot cropping
+          }}
+        >
+          <YearGrid 
+            config={config} 
+            className="shadow-none rounded-none !p-12" // Custom padding for the image itself
+          />
+        </div>
+        <Analytics />
+      </>
     );
   }
 
   // 4. Render Standard Editor
   return (
-    <div className="h-screen flex bg-[#050505] text-white overflow-hidden relative">
-      <Sidebar 
-        config={config} 
-        setConfig={setConfig} 
-        onDownload={handleDownload}
-        isDownloading={isDownloading}
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        resetConfig={resetConfig}
-      />
-      
-      <div className="flex-1 flex flex-col min-w-0">
-        <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onCellClick={handleCellClick} />
+    <>
+      <div className="h-screen flex bg-[#050505] text-white overflow-hidden relative">
+        <Sidebar 
+          config={config} 
+          setConfig={setConfig} 
+          onDownload={handleDownload}
+          isDownloading={isDownloading}
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          resetConfig={resetConfig}
+        />
+        
+        <div className="flex-1 flex flex-col min-w-0">
+          <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onCellClick={handleCellClick} />
+        </div>
       </div>
-    </div>
+      <Analytics />
+    </>
   );
 };
 
