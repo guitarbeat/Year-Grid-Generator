@@ -93,9 +93,11 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
       <div className="absolute top-6 left-6 flex items-center gap-4 z-10 select-none">
         <button 
           onClick={onToggleSidebar}
-          className="md:hidden w-10 h-10 bg-[#161616] rounded flex items-center justify-center border border-[#222] text-accent pointer-events-auto shadow-xl transition-all active:scale-95"
+          aria-label="Toggle Sidebar Menu"
+          title="Toggle Sidebar Menu"
+          className="md:hidden w-10 h-10 bg-[#161616] rounded flex items-center justify-center border border-[#222] text-accent pointer-events-auto shadow-xl transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
         >
-          <span className="material-symbols-outlined">menu</span>
+          <span className="material-symbols-outlined" aria-hidden="true">menu</span>
         </button>
         <div className="flex flex-col gap-1 pointer-events-none opacity-40">
           <span className="text-[10px] font-mono uppercase tracking-[0.2em]">{config.mode} view</span>
@@ -108,6 +110,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
         <Button 
           variant="action"
           icon="remove"
+          aria-label="Zoom Out"
+          title="Zoom Out"
           onClick={() => handleZoom(-0.1)}
           className="shadow-2xl"
         />
@@ -115,11 +119,15 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
           label="Reset"
+          aria-label="Reset Zoom"
+          title="Reset Zoom to Fit"
           onClick={fitToScreen}
         />
         <Button 
           variant="action"
           icon="add"
+          aria-label="Zoom In"
+          title="Zoom In"
           onClick={() => handleZoom(0.1)}
           className="shadow-2xl"
         />
