@@ -181,7 +181,12 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCellClick = (id: string) => {
+  // ⚡ Bolt Optimization
+  // What: Wrap handleCellClick with useCallback
+  // Why: Prevents creating a new function instance on every App render,
+  //      allowing child components (like PreviewArea and YearGrid) to effectively use React.memo.
+  // Impact: Reduces unnecessary re-renders in the component tree during parent state updates.
+  const handleCellClick = React.useCallback((id: string) => {
     setConfig(prev => {
       const overrides = { ...(prev.overrides || {}) };
       
@@ -194,7 +199,11 @@ const App: React.FC = () => {
 
       return { ...prev, overrides };
     });
-  };
+  }, []);
+
+  const handleToggleSidebar = React.useCallback(() => {
+    setIsSidebarOpen(prev => !prev);
+  }, []);
 
   const handleDownload = async () => {
     if (!gridRef.current || typeof html2canvas === 'undefined') {
@@ -252,12 +261,12 @@ const App: React.FC = () => {
         onDownload={handleDownload}
         isDownloading={isDownloading}
         isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggle={handleToggleSidebar}
         resetConfig={resetConfig}
       />
       
       <div className="flex-1 flex flex-col min-w-0">
-        <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onCellClick={handleCellClick} />
+        <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={handleToggleSidebar} onCellClick={handleCellClick} />
       </div>
     </div>
   );

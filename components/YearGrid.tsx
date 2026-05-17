@@ -80,4 +80,4 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   );
 };
 
-export default YearGrid;
+export default React.memo(YearGrid);

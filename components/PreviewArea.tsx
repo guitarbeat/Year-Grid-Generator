@@ -147,4 +147,4 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
   );
 };
 
-export default PreviewArea;
+export default React.memo(PreviewArea);
