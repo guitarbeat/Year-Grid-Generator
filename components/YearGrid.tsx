@@ -80,4 +80,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   );
 };
 
-export default YearGrid;
+// ⚡ Bolt Optimization
+// What: Wrap YearGrid in React.memo()
+// Why: When the parent component (PreviewArea) updates its pan/zoom state during rapid dragging or zooming, it triggers a re-render. Without memoization, YearGrid (which can contain hundreds of cells) would unnecessarily re-render on every frame of the interaction.
+// Impact: Significantly reduces rendering latency and main thread blocking during panning/zooming, improving perceived framerate.
+export default React.memo(YearGrid);

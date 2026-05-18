@@ -181,7 +181,11 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCellClick = (id: string) => {
+  // ⚡ Bolt Optimization
+  // What: Wrap handleCellClick in React.useCallback
+  // Why: handleCellClick is passed down to YearGrid (which is now memoized) and eventually to individual cells. If the callback reference changes on every App render, it will break YearGrid's memoization, causing full tree re-renders during interactions.
+  // Impact: Ensures YearGrid.memo functions properly and avoids unnecessary re-renders when App state (like isSidebarOpen) updates.
+  const handleCellClick = React.useCallback((id: string) => {
     setConfig(prev => {
       const overrides = { ...(prev.overrides || {}) };
       
@@ -194,7 +198,7 @@ const App: React.FC = () => {
 
       return { ...prev, overrides };
     });
-  };
+  }, []);
 
   const handleDownload = async () => {
     if (!gridRef.current || typeof html2canvas === 'undefined') {
