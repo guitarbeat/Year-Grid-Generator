@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppConfig } from '../types';
 import YearGrid from './YearGrid';
 import { Button } from './ui/Controls';
@@ -75,6 +75,49 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
     setPosition({ x: 0, y: 0 });
   };
 
+  const handleZoomRef = useRef(handleZoom);
+  const fitToScreenRef = useRef(fitToScreen);
+
+  useEffect(() => {
+    handleZoomRef.current = handleZoom;
+    fitToScreenRef.current = fitToScreen;
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+        return;
+      }
+
+      // Don't intercept if modifier keys are pressed (let browser handle native zoom)
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+
+      switch (e.key) {
+        case '=':
+        case '+':
+        case 'NumpadAdd':
+          handleZoomRef.current(0.1);
+          break;
+        case '-':
+        case '_':
+        case 'NumpadSubtract':
+          handleZoomRef.current(-0.1);
+          break;
+        case '0':
+        case 'Numpad0':
+          fitToScreenRef.current();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <main 
       ref={mainRef}
@@ -111,7 +154,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           variant="action"
           icon="remove"
           aria-label="Zoom Out"
-          title="Zoom Out"
+          title="Zoom Out (-)"
           onClick={() => handleZoom(-0.1)}
           className="shadow-2xl"
         />
@@ -120,14 +163,14 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
           className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
           label="Reset"
           aria-label="Reset Zoom"
-          title="Reset Zoom to Fit"
+          title="Reset Zoom to Fit (0)"
           onClick={fitToScreen}
         />
         <Button 
           variant="action"
           icon="add"
           aria-label="Zoom In"
-          title="Zoom In"
+          title="Zoom In (+)"
           onClick={() => handleZoom(0.1)}
           className="shadow-2xl"
         />
