@@ -181,7 +181,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCellClick = (id: string) => {
+  const handleCellClick = React.useCallback((id: string) => {
     setConfig(prev => {
       const overrides = { ...(prev.overrides || {}) };
       
@@ -194,7 +194,7 @@ const App: React.FC = () => {
 
       return { ...prev, overrides };
     });
-  };
+  }, []);
 
   const handleDownload = async () => {
     if (!gridRef.current || typeof html2canvas === 'undefined') {

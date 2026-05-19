@@ -65,7 +65,6 @@ export const Cell: React.FC<CellProps> = ({
 
   return (
     <motion.div
-      layout
       onClick={(e) => { e.stopPropagation(); onCellClick?.(id); }}
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
