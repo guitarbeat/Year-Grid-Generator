@@ -66,14 +66,21 @@ export const SegmentedControl: React.FC<{
   activeId: string;
   onChange: (id: string) => void;
   cols?: number;
-}> = ({ options, activeId, onChange, cols = 3 }) => (
-  <div className={`grid grid-cols-${cols} gap-[1px] bg-[#1a1a1a] border border-[#1a1a1a]`}>
+  'aria-label'?: string;
+}> = ({ options, activeId, onChange, cols = 3, 'aria-label': ariaLabel }) => (
+  <div
+    className={`grid grid-cols-${cols} gap-[1px] bg-[#1a1a1a] border border-[#1a1a1a]`}
+    role="radiogroup"
+    aria-label={ariaLabel}
+  >
     {options.map((opt) => (
       <button
         key={opt.id}
+        role="radio"
+        aria-checked={activeId === opt.id}
         onClick={() => onChange(opt.id)}
         className={`
-          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden
+          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none focus-visible:z-10
           ${activeId === opt.id 
             ? 'bg-[#0a0a0a] text-accent font-bold' 
             : 'bg-[#050505] text-gray-600 hover:text-gray-400 hover:bg-[#080808]'}
