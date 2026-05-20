@@ -1,3 +1,7 @@
 ## 2024-03-08 - Accessible Icon Buttons & Toggles on Dark Backgrounds
 **Learning:** Icon-only elements (like standard `<button>` or custom UI `Button`/`IconButton` components) lack context for screen readers and need explicit `aria-label`s. Also, Tailwind's preflight removes default focus outlines. On dark backgrounds, a standard `focus-visible:outline` might not be visible enough, so an orange ring (`focus-visible:ring-2 focus-visible:ring-orange-500`) serves as a clear, consistent focus indicator. For hidden `<input>`s forming custom toggles, the `peer` and `peer-focus-visible` classes correctly route focus indicators from the hidden input to the custom visual track.
 **Action:** Always verify custom `Button`/`IconButton` components accept and pass down `aria-label` and `title` props. Explicitly add `aria-hidden="true"` to pure icon spans inside buttons. Ensure `peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500` is applied to custom check/toggle UI elements tied to visually hidden inputs.
+
+## 2024-03-21 - Custom Single-Choice Selectors Accessibility
+**Learning:** When using custom UI elements to act as single-choice selectors (like `SegmentedControl` or color theme grids), standard `button` semantics are insufficient for screen readers to understand the grouping and selection state.
+**Action:** Always wrap the container in `role="radiogroup"` (with `aria-label` or `aria-labelledby`) and give each constituent button `role="radio"` and `aria-checked={isActive}` to correctly convey the active segment.
