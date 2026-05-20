@@ -65,7 +65,7 @@ export const Cell: React.FC<CellProps> = ({
 
   return (
     <motion.div
-      layout
+      // ⚡ Bolt: Removed `layout` prop. Framer Motion layout animations on hundreds of elements cause severe layout measurement recalculation overhead.
       onClick={(e) => { e.stopPropagation(); onCellClick?.(id); }}
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}

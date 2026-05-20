@@ -181,7 +181,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCellClick = (id: string) => {
+  // ⚡ Bolt: Wrapped handleCellClick in useCallback to preserve YearGrid's React.memo performance
+  const handleCellClick = React.useCallback((id: string) => {
     setConfig(prev => {
       const overrides = { ...(prev.overrides || {}) };
       
@@ -194,7 +195,7 @@ const App: React.FC = () => {
 
       return { ...prev, overrides };
     });
-  };
+  }, []);
 
   const handleDownload = async () => {
     if (!gridRef.current || typeof html2canvas === 'undefined') {
