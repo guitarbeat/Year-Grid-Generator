@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getDayColor } from '../../utils/colorUtils';
-import { getWeekNumber } from '../../utils/dateUtils';
+import { getWeekNumber, groupMonthsBySeason } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
 
 export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick }) => {
@@ -12,6 +12,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     granularity,
     groupBy,
     showSeasonLabels,
+    seasonsSideBySide,
     showMonthAxis,
     showWeekdayAxis,
     showMonthNumbers,
@@ -22,12 +23,22 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     radius,
     monthsPerRow = 3,
     dotSize,
-    isMondayFirst
+    isMondayFirst,
+    blockAlignment = 'top',
+    labelRotation = 0
   } = config;
 
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const currentDay = currentDate.getDate();
+  const rotateStyle: React.CSSProperties = labelRotation ? {
+    transform: `rotate(${labelRotation}deg)`,
+    display: 'inline-block',
+    transformOrigin: 'center center',
+    width: 'max-content'
+  } : {};
+
+  const anchorDate = config.anchorTodayToRealTime ? new Date() : currentDate;
+  const currentYear = anchorDate.getFullYear();
+  const currentMonth = anchorDate.getMonth();
+  const currentDay = anchorDate.getDate();
 
   const dayHeaderLabels = isMondayFirst 
     ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] 
@@ -47,8 +58,10 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
         style={{ 
           display: 'flex', 
           flexDirection: mode === 'rows' ? 'row' : 'column', 
-          alignItems: mode === 'rows' ? 'center' : 'flex-start',
-          gap: `${gap * 2}px` 
+          alignItems: 'center',
+          gap: `${gap * 2}px`,
+          width: mode === 'rows' ? 'auto' : '100%',
+          justifyContent: 'center'
         }}
       >
         {showMonthAxis && (
@@ -59,8 +72,9 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
             minWidth: mode === 'rows' ? `${MONTH_LABEL_WIDTH}px` : 'auto',
             opacity: 0.8,
             letterSpacing: '-0.02em',
-            textAlign: mode === 'columns' ? 'center' : 'left',
-            width: mode === 'columns' ? '100%' : (mode === 'rows' ? `${MONTH_LABEL_WIDTH}px` : 'auto')
+            textAlign: mode === 'rows' ? 'left' : 'center',
+            width: mode === 'rows' ? `${MONTH_LABEL_WIDTH}px` : '100%',
+            ...rotateStyle
           }}>
             {showMonthNumbers ? `${m.month + 1}` : m.name}
           </div>
@@ -137,7 +151,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
               radius={radius}
               fontSize={fontSize}
               textColor={colors.bg}
-              isActive={m.year === currentYear && w.weekNum === getWeekNumber(currentDate)}
+              isActive={m.year === currentYear && w.weekNum === getWeekNumber(anchorDate)}
               activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
               fallbackText={null}
               config={config}
@@ -151,18 +165,23 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
   };
 
   if (groupBy === 'season') {
-    const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
-    const grouped = seasonsOrder.map(s => ({
-      season: s,
-      months: months.filter(m => m.season === s).sort((a, b) => {
-        const wA = (a.month + 1) % 12;
-        const wB = (b.month + 1) % 12;
-        return wA - wB;
-      })
-    })).filter(g => g.months.length > 0);
+    const grouped = groupMonthsBySeason(months);
+
+    const gridColsClass = mode === 'columns' 
+      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
+      : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 10}px`, width: '100%' }}>
+      <div 
+        className={seasonsSideBySide ? gridColsClass : undefined}
+        style={{ 
+          display: seasonsSideBySide ? 'grid' : 'flex', 
+          flexDirection: seasonsSideBySide ? undefined : 'column', 
+          gap: seasonsSideBySide ? `${gap * 6}px` : `${gap * 10}px`, 
+          width: '100%',
+          alignItems: seasonsSideBySide ? 'start' : (blockAlignment === 'top' ? 'start' : 'center')
+        }}
+      >
         {grouped.map(g => (
           <div 
             key={g.season} 
@@ -173,19 +192,21 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
               backgroundColor: `${colors.text}05`,
               padding: `${gap * 4}px`,
               borderRadius: `${radius * 2}px`,
-              border: `1px solid ${colors.text}08`
+              border: `1px solid ${colors.text}08`,
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             {showSeasonLabels && (
               <div style={{ 
-                fontSize: `${fontSize * 1.5}px`, 
+                fontSize: `${fontSize * 1.3}px`, 
                 fontWeight: 900, 
-                letterSpacing: '0.25em', 
-                opacity: 0.3,
+                letterSpacing: '0.2em', 
+                opacity: 0.35,
                 textAlign: 'center',
-                borderBottom: `1px solid ${colors.text}22`,
-                paddingBottom: `${gap * 2}px`,
-                marginBottom: `${gap * 2}px`,
+                borderBottom: `1px solid ${colors.text}15`,
+                paddingBottom: `${gap * 2.5}px`,
+                marginBottom: `${gap * 3}px`,
                 textTransform: 'uppercase'
               }}>
                 {g.season}
@@ -193,9 +214,11 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
             )}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, auto)`,
+              gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
               gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-              width: '100%'
+              width: '100%',
+              justifyItems: 'center',
+              alignItems: blockAlignment === 'top' ? 'start' : 'center'
             }}>
               {g.months.map(m => renderMonthItem(m))}
             </div>
@@ -208,9 +231,11 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, auto)`,
+      gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
       gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-      width: '100%'
+      width: '100%',
+      justifyItems: 'center',
+      alignItems: blockAlignment === 'top' ? 'start' : 'center'
     }}>
       <AnimatePresence mode="popLayout">
         {months.map((m) => renderMonthItem(m))}

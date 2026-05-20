@@ -11,9 +11,25 @@
   --color-accent: #ea580c;
   --color-accent-dim: #923407;
   --color-plate: #111111;
+  --color-background: #050505;
+  --color-foreground: #e5e5e5;
+  --color-muted: #1c1c1e;
+  --color-muted-foreground: #a3a3a3;
+  --color-primary: #ea580c;
+  --color-primary-foreground: #ffffff;
 }
 
 @layer base {
+  :root {
+    --background: #050505;
+    --foreground: #e5e5e5;
+    --muted: #1c1c1e;
+    --muted-foreground: #a3a3a3;
+    --border: #1a1a1a;
+    --primary: #ea580c;
+    --primary-foreground: #ffffff;
+  }
+
   body {
     @apply bg-[#050505] text-[#e5e5e5] font-sans overflow-hidden antialiased;
   }
@@ -86,5 +102,13 @@
 
   .toggle-checkbox input:checked + .toggle-track .toggle-thumb {
     @apply translate-x-3 bg-accent shadow-[0_0_8px_rgba(234,88,12,0.4)];
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateX(5px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
   }
 }

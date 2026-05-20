@@ -9,15 +9,36 @@ export const SidebarSection: React.FC<{
   label: string; 
   children: React.ReactNode; 
   className?: string;
-}> = ({ label, children, className = '' }) => (
-  <section className={`sidebar-section px-1 ${className}`}>
-    <div className="flex items-center gap-2 mb-4">
-      <div className="w-1 h-3 bg-accent/30" />
-      <span className="sidebar-label !mb-0">{label}</span>
-    </div>
-    {children}
-  </section>
-);
+  isCollapsible?: boolean;
+  defaultOpen?: boolean;
+}> = ({ label, children, className = '', isCollapsible = true, defaultOpen = true }) => {
+  const [isOpen, setIsOpen] = React.useState(defaultOpen);
+  const elementId = `sec-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+  return (
+    <section className={`sidebar-section px-1 ${className}`}>
+      <div 
+        id={elementId}
+        data-toc
+        data-toc-depth="3"
+        data-toc-title={label}
+        className={`flex items-center justify-between mb-4 ${isCollapsible ? 'cursor-pointer select-none group' : ''}`}
+        onClick={() => isCollapsible && setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-3 bg-accent/30" />
+          <span className={`sidebar-label !mb-0 transition-colors ${isCollapsible ? 'group-hover:text-white' : ''}`}>{label}</span>
+        </div>
+        {isCollapsible && (
+          <span className="material-symbols-outlined text-gray-600 group-hover:text-white transition-colors text-[16px]">
+            {isOpen ? 'expand_less' : 'expand_more'}
+          </span>
+        )}
+      </div>
+      {isOpen && children}
+    </section>
+  );
+};
 
 export const ControlGroup: React.FC<{ 
   label: string; 
@@ -52,9 +73,9 @@ export const Toggle: React.FC<{
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="sr-only peer"
+        className="sr-only"
       />
-      <div className="toggle-track peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:outline-none peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black">
+      <div className="toggle-track">
         <div className={`toggle-thumb ${checked ? 'translate-x-3 bg-accent' : 'translate-x-0 bg-[#333]'}`}></div>
       </div>
     </label>
@@ -163,10 +184,8 @@ export const Button: React.FC<{
   label?: string;
   className?: string;
   disabled?: boolean;
-  'aria-label'?: string;
-  title?: string;
-}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, 'aria-label': ariaLabel, title }) => {
-  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none";
+}> = ({ onClick, variant = 'primary', icon, label, className = '', disabled }) => {
+  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed";
   const variants = {
     primary: "btn-primary",
     secondary: "bg-[#0a0a0a] text-gray-500 hover:text-white border border-[#1a1a1a] hover:border-[#222] rounded-sm p-3 md:p-2 text-[10px] active:translate-y-[1px]",
@@ -175,14 +194,8 @@ export const Button: React.FC<{
   };
 
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseClasses} ${variants[variant]} ${className}`}
-      aria-label={ariaLabel || label || icon}
-      title={title || ariaLabel || label || icon}
-    >
-      {icon && <span className="material-symbols-outlined !text-[18px]" aria-hidden="true">{icon}</span>}
+    <button onClick={onClick} disabled={disabled} className={`${baseClasses} ${variants[variant]} ${className}`}>
+      {icon && <span className="material-symbols-outlined !text-[18px]">{icon}</span>}
       {label && <span className="truncate">{label}</span>}
     </button>
   );
@@ -193,15 +206,13 @@ export const IconButton: React.FC<{
   icon: string;
   className?: string;
   title?: string;
-  'aria-label'?: string;
-}> = ({ onClick, icon, className = '', title, 'aria-label': ariaLabel }) => (
+}> = ({ onClick, icon, className = '', title }) => (
   <button 
     onClick={onClick}
-    title={title || ariaLabel || icon}
-    aria-label={ariaLabel || title || icon}
-    className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${className}`}
+    title={title}
+    className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 ${className}`}
   >
-    <span className="material-symbols-outlined" aria-hidden="true">{icon}</span>
+    <span className="material-symbols-outlined">{icon}</span>
   </button>
 );
 

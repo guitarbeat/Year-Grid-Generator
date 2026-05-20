@@ -13,10 +13,12 @@ export const getDayColor = (
   config: AppConfig, 
   currentDate: Date
 ) => {
-  const { colors, highlightWeekends, dimPastDays, dimPastDaysStrength, overrides } = config;
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const currentDay = currentDate.getDate();
+  const { colors, highlightWeekends, dimPastDays, dimPastDaysStrength, overrides, anchorTodayToRealTime } = config;
+  
+  const anchorDate = anchorTodayToRealTime ? new Date() : currentDate;
+  const currentYear = anchorDate.getFullYear();
+  const currentMonth = anchorDate.getMonth();
+  const currentDay = anchorDate.getDate();
 
   const id = `day-${year}-${month}-${day}`;
   if (overrides[id]) {

@@ -2,13 +2,14 @@ import React from 'react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
 import { getActiveCellText } from '../../utils/formatUtils';
-import { getWeekNumber } from '../../utils/dateUtils';
+import { getWeekNumber, groupMonthsBySeason } from '../../utils/dateUtils';
 
 export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick }) => {
   const {
     mode,
     groupBy,
     showSeasonLabels,
+    seasonsSideBySide,
     showMonthAxis,
     showWeekNumbers,
     showMonthNumbers,
@@ -18,26 +19,41 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
     radius,
     itemsPerRow = 13,
     monthsPerRow = 3,
-    dotSize
+    dotSize,
+    blockAlignment = 'top',
+    labelRotation = 0
   } = config;
 
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const currentWeekNumber = getWeekNumber(currentDate);
+  const rotateStyle: React.CSSProperties = labelRotation ? {
+    transform: `rotate(${labelRotation}deg)`,
+    display: 'inline-block',
+    transformOrigin: 'center center',
+    width: 'max-content'
+  } : {};
+
+  const anchorDate = config.anchorTodayToRealTime ? new Date() : currentDate;
+  const currentYear = anchorDate.getFullYear();
+  const currentMonth = anchorDate.getMonth();
+  const currentWeekNumber = getWeekNumber(anchorDate);
 
   if (groupBy === 'season') {
-    const seasonsOrder = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
-    const grouped = seasonsOrder.map(s => ({
-      season: s,
-      months: months.filter(m => m.season === s).sort((a, b) => {
-        const wA = (a.month + 1) % 12;
-        const wB = (b.month + 1) % 12;
-        return wA - wB;
-      })
-    })).filter(g => g.months.length > 0);
+    const grouped = groupMonthsBySeason(months);
+
+    const gridColsClass = mode === 'columns' 
+      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
+      : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 8}px`, width: '100%' }}>
+      <div 
+        className={seasonsSideBySide ? gridColsClass : undefined}
+        style={{ 
+          display: seasonsSideBySide ? 'grid' : 'flex', 
+          flexDirection: seasonsSideBySide ? undefined : 'column', 
+          gap: seasonsSideBySide ? `${gap * 6}px` : `${gap * 10}px`, 
+          width: '100%',
+          alignItems: seasonsSideBySide ? 'start' : (blockAlignment === 'top' ? 'start' : 'center')
+        }}
+      >
         {grouped.map(g => (
           <div 
             key={g.season} 
@@ -48,16 +64,21 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
               backgroundColor: `${colors.text}05`,
               padding: `${gap * 4}px`,
               borderRadius: `${radius * 2}px`,
-              border: `1px solid ${colors.text}08`
+              border: `1px solid ${colors.text}08`,
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             {showSeasonLabels && (
               <div style={{ 
-                fontSize: `${fontSize * 1.5}px`, 
+                fontSize: `${fontSize * 1.3}px`, 
                 fontWeight: 900, 
-                opacity: 0.2, 
+                letterSpacing: '0.2em', 
+                opacity: 0.35,
                 textAlign: 'center',
-                letterSpacing: '0.2em',
+                borderBottom: `1px solid ${colors.text}15`,
+                paddingBottom: `${gap * 2.5}px`,
+                marginBottom: `${gap * 3}px`,
                 textTransform: 'uppercase'
               }}>
                 {g.season}
@@ -67,11 +88,12 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
               display: 'flex', 
               flexWrap: 'wrap', 
               gap: `${gap * 6}px`, 
-              justifyContent: 'center'
+              justifyContent: 'center',
+              alignItems: blockAlignment === 'top' ? 'start' : 'center'
             }}>
               {g.months.map(m => (
                  <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
-                  {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{m.name}</span>}
+                  {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</span>}
                   <div style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
                     {m.weeksInMonth.map(w => (
                        <Cell
@@ -91,7 +113,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
                       />
                     ))}
                   </div>
-                </div>
+                 </div>
               ))}
             </div>
           </div>
@@ -107,11 +129,12 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
         display: 'grid', 
         gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, auto)`,
         gap: `${gap * 4}px`,
-        justifyContent: 'center'
+        justifyContent: 'center',
+        alignItems: blockAlignment === 'top' ? 'start' : 'center'
       }}>
         {months.map(m => (
           <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
-            <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5 }}>{m.name}</span>
+            <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</span>
             <div style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
               {m.weeksInMonth.map(w => (
                  <Cell
@@ -146,7 +169,8 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
       display: 'grid',
       gridTemplateColumns: `repeat(${cols}, auto)`,
       gap: `${gap}px`,
-      justifyContent: 'center'
+      justifyContent: 'center',
+      alignItems: blockAlignment === 'top' ? 'start' : 'center'
     }}>
       {allWeeks.map((w, i) => (
         <Cell

@@ -3,9 +3,18 @@ import Sidebar from './components/Sidebar';
 import PreviewArea from './components/PreviewArea';
 import YearGrid from './components/YearGrid';
 import { AppConfig } from './types';
+import html2canvas from 'html2canvas';
+import { DynamicIslandTOC } from './components/ui/dynamic-island-toc';
+import { MotionConfig } from 'motion/react';
+import { QUOTES } from './utils/quotes';
 
-// Declare html2canvas for TS since it is loaded via CDN
-declare const html2canvas: any;
+// Augment Window interface directly here so we don't need ignore
+declare global {
+  interface Window {
+    __imageBase64?: string;
+    __imageBase64Error?: string;
+  }
+}
 
 const STORAGE_KEY = 'year-grid-config-v1';
 
@@ -52,7 +61,21 @@ const DEFAULT_CONFIG: AppConfig = {
   startFromJan: false,
   groupBy: 'none',
   showSeasonLabels: true,
+  seasonsSideBySide: false,
+  anchorTodayToRealTime: true,
+  blockAlignment: 'top',
   density: 'normal',
+  isLifeMode: false,
+  birthDate: '2000-01-01',
+  lifeExpectancy: 80,
+  lifeGranularity: 'week',
+  showLifeStats: true,
+  showQiQuotes: true,
+  quotesCategory: 'all',
+  selectedQuoteId: 'seneca-1',
+  customQuoteText: '',
+  showHeaderPlugin: false,
+  labelRotation: 0,
   customTitle: '',
   assetFormat: 'auto',
   resolutionScale: 2,
@@ -72,7 +95,18 @@ const encodeConfig = (config: AppConfig): string => {
 const decodeConfig = (str: string): Partial<AppConfig> | null => {
   try {
     if (!str) return null;
-    return JSON.parse(decodeURIComponent(atob(str)));
+    const trimmed = str.trim();
+    // Try to detect URL-encoded or raw JSON directly first
+    if (trimmed.startsWith('%7B') || trimmed.startsWith('{')) {
+      return JSON.parse(decodeURIComponent(trimmed));
+    }
+    // Otherwise, try base64 decoding
+    try {
+      return JSON.parse(decodeURIComponent(atob(trimmed)));
+    } catch {
+      // Fallback to plain decodeURIComponent if atob fails
+      return JSON.parse(decodeURIComponent(trimmed));
+    }
   } catch (e) {
     console.warn('Failed to decode config from URL', e);
     return null;
@@ -139,40 +173,88 @@ const App: React.FC = () => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
   
   // Initialize viewMode safely once
-  const [viewMode] = useState<'editor' | 'image'>(() => {
+  const [viewMode] = useState<'editor' | 'image' | 'export_base64'>(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      return params.get('view') === 'image' ? 'image' : 'editor';
+      const view = params.get('view');
+      return (view === 'image' || view === 'export_base64') ? view : 'editor';
     } catch {
       return 'editor';
     }
   });
 
-  // 3. Sync Config to URL & LocalStorage
+  // Export Base64 Hook
   useEffect(() => {
-    // ⚡ Bolt Optimization
-    // What: Debounce state synchronization to URL and localStorage by 300ms.
-    // Why: Rapid state updates (e.g. from sliders) cause frequent synchronous writes and window.history.replaceState calls, which blocks the main thread and can hit browser history rate limits.
-    // Impact: Smooths out rapid UI interactions and prevents unnecessary IO/history thrashing.
-    const timeoutId = setTimeout(() => {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const encoded = encodeConfig(config);
-
-        if (params.get('config') !== encoded) {
-          params.set('config', encoded);
-          window.history.replaceState(null, '', `?${params.toString()}`);
+    if (viewMode === 'export_base64') {
+      let isCancelled = false;
+      const capture = async () => {
+        // Wait up to 5 seconds for gridRef to become available
+        let attempts = 0;
+        while (!gridRef.current && attempts < 50) {
+          if (isCancelled) return;
+          await new Promise(r => setTimeout(r, 100));
+          attempts++;
         }
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-      } catch (e) {
-        console.error('Error syncing state:', e);
-      }
-    }, 300);
+        if (!gridRef.current) {
+          window.__imageBase64Error = "Grid reference element was never mounted.";
+          return;
+        }
 
-    return () => clearTimeout(timeoutId);
+        try {
+          // Fast settle delay so DOM elements are fully mounted (no transitions in export mode means zero lag)
+          await new Promise(r => setTimeout(r, 50));
+
+          // Capping scale at 1.2 is critical for iOS Extension / Scriptable RAM limits (Jetsam)
+          const scale = 1.2;
+
+          const canvasPromise = html2canvas(gridRef.current, {
+            backgroundColor: config.transparentBg ? null : config.colors.bg,
+            scale,
+            logging: false,
+            useCORS: false, // Turn off for base64 to avoid cross-origin font/stylesheet stalls
+          });
+
+          // Defensive 8-second timeout on the rendering promise to prevent hanging
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("html2canvas generation timed out after 8000ms")), 8000)
+          );
+
+          const canvas = await Promise.race([canvasPromise, timeoutPromise]);
+          
+          if (isCancelled) return;
+          window.__imageBase64 = canvas.toDataURL('image/png');
+        } catch (e: any) {
+          console.error("Auto-export failed", e);
+          window.__imageBase64Error = e?.message || e?.toString() || "Unknown rendering error";
+        }
+      };
+      
+      capture();
+      return () => {
+        isCancelled = true;
+      };
+    }
+  }, [viewMode, config]);
+
+  // 3. Sync Config to URL & LocalStorage
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const encoded = encodeConfig(config);
+      
+      if (params.get('config') !== encoded) {
+        params.set('config', encoded);
+        window.history.replaceState(null, '', `?${params.toString()}`);
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    } catch (e) {
+      console.error('Error syncing state:', e);
+    }
   }, [config]);
 
   const resetConfig = () => {
@@ -182,6 +264,25 @@ const App: React.FC = () => {
   };
 
   const handleCellClick = (id: string) => {
+    if (id === 'action:cycle-quote') {
+      setConfig(prev => {
+        const cat = prev.quotesCategory || 'all';
+        const filtered = cat !== 'all'
+          ? QUOTES.filter(q => q.category === cat)
+          : QUOTES;
+        if (filtered.length === 0) return prev;
+        const currentIndex = filtered.findIndex(q => q.id === prev.selectedQuoteId);
+        const nextIndex = (currentIndex + 1) % filtered.length;
+        const nextQuote = filtered[nextIndex] || filtered[0];
+        return {
+          ...prev,
+          selectedQuoteId: nextQuote?.id || 'seneca-1'
+        };
+      });
+      return;
+    }
+
+    setSelectedCellId(id);
     setConfig(prev => {
       const overrides = { ...(prev.overrides || {}) };
       
@@ -197,13 +298,16 @@ const App: React.FC = () => {
   };
 
   const handleDownload = async () => {
-    if (!gridRef.current || typeof html2canvas === 'undefined') {
-      alert('Image generation library not loaded yet. Please wait a moment.');
+    if (!gridRef.current) {
+      alert('Could not find grid element. Please try again.');
       return;
     }
 
     setIsDownloading(true);
     try {
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const canvas = await html2canvas(gridRef.current, {
@@ -226,40 +330,55 @@ const App: React.FC = () => {
   };
 
   // 3. Render "Image View" (Standalone)
-  if (viewMode === 'image') {
+  if (viewMode === 'image' || viewMode === 'export_base64') {
     return (
-      <div 
-        className="min-h-screen w-full flex items-center justify-center"
-        style={{ 
-          backgroundColor: config.transparentBg ? 'transparent' : config.colors.bg,
-          padding: '0px' // No padding for easier screenshot cropping
-        }}
-      >
-        <YearGrid 
-          config={config} 
-          className="shadow-none rounded-none !p-12" // Custom padding for the image itself
-        />
-      </div>
+      <MotionConfig reducedMotion="always" transition={{ duration: 0 }}>
+        <div 
+          className="min-h-screen w-full flex items-center justify-center"
+          style={{ 
+            backgroundColor: config.transparentBg ? 'transparent' : config.colors.bg,
+            padding: '0px', // No padding for easier screenshot cropping
+            minWidth: 'max-content'
+          }}
+        >
+          <YearGrid 
+            config={config} 
+            domRef={gridRef}
+            className="shadow-none rounded-none !p-12 flex-shrink-0" // Custom padding for the image itself
+          />
+        </div>
+      </MotionConfig>
     );
   }
 
   // 4. Render Standard Editor
   return (
-    <div className="h-screen flex bg-[#050505] text-white overflow-hidden relative">
-      <Sidebar 
-        config={config} 
-        setConfig={setConfig} 
-        onDownload={handleDownload}
-        isDownloading={isDownloading}
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        resetConfig={resetConfig}
-      />
-      
-      <div className="flex-1 flex flex-col min-w-0">
-        <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onCellClick={handleCellClick} />
+    <MotionConfig reducedMotion="user">
+      <div className="h-screen flex bg-[#050505] text-white overflow-hidden relative">
+        <Sidebar 
+          config={config} 
+          setConfig={setConfig} 
+          onDownload={handleDownload}
+          isDownloading={isDownloading}
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          resetConfig={resetConfig}
+        />
+        
+        <div className="flex-1 flex flex-col min-w-0">
+          <PreviewArea config={config} gridRef={gridRef} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onCellClick={handleCellClick} />
+        </div>
+
+        <DynamicIslandTOC 
+          config={config} 
+          setConfig={setConfig} 
+          onDownload={handleDownload} 
+          isDownloading={isDownloading}
+          selectedCellId={selectedCellId}
+          setSelectedCellId={setSelectedCellId}
+        />
       </div>
-    </div>
+    </MotionConfig>
   );
 };
 

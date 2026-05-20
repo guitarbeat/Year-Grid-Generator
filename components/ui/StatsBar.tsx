@@ -16,7 +16,20 @@ export const StatsBar: React.FC<StatsBarProps> = ({ config, targetDate, currentY
   const startOfYear = new Date(currentYear, 0, 1);
   const endOfYear = new Date(currentYear + 1, 0, 1);
   const totalDays = (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24);
-  const daysPassed = Math.ceil(Math.abs(targetDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+  
+  let effectiveDate = targetDate;
+  if (config.anchorTodayToRealTime) {
+    const realYear = new Date().getFullYear();
+    if (currentYear < realYear) {
+      effectiveDate = new Date(currentYear, 11, 31);
+    } else if (currentYear > realYear) {
+      effectiveDate = new Date(currentYear, 0, 1);
+    } else {
+      effectiveDate = new Date();
+    }
+  }
+
+  const daysPassed = Math.ceil(Math.abs(effectiveDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
   const percentPassed = Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
 
   return (

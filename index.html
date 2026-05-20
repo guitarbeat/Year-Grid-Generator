@@ -5,6 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Year Grid Generator</title>
     <link rel="stylesheet" href="/index.css">
+    <script>
+      // Background WKWebView completely suspends requestAnimationFrame in iOS, causing html2canvas to hang.
+      // We override requestAnimationFrame with a setTimeout fallback specifically for the background capture views.
+      if (window.location.search.indexOf('view=export_base64') !== -1 || window.location.search.indexOf('view=image') !== -1) {
+        window.requestAnimationFrame = function(callback) {
+          return setTimeout(function() {
+            callback(Date.now());
+          }, 16);
+        };
+        window.cancelAnimationFrame = function(id) {
+          clearTimeout(id);
+        };
+      }
+
+      window.onerror = function(message, source, lineno, colno, error) {
+        window.__imageBase64Error = "Global Error: " + message + " (at " + source + ":" + lineno + ":" + colno + ")" + (error && error.stack ? " Stack: " + error.stack : "");
+        return false;
+      };
+      window.onunhandledrejection = function(event) {
+        var reason = event.reason;
+        var msg = "Unhandled Rejection: ";
+        if (reason) {
+          msg += reason.message || reason.toString();
+          if (reason.stack) msg += " Stack: " + reason.stack;
+        } else {
+          msg += "Unknown reason";
+        }
+        window.__imageBase64Error = msg;
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -18,11 +18,20 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
     colors,
     radius,
     dotSize,
-    isMondayFirst
+    isMondayFirst,
+    labelRotation = 0
   } = config;
 
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
+  const rotateStyle: React.CSSProperties = labelRotation ? {
+    transform: `rotate(${labelRotation}deg)`,
+    display: 'inline-block',
+    transformOrigin: 'center center',
+    width: 'max-content'
+  } : {};
+
+  const anchorDate = config.anchorTodayToRealTime ? new Date() : currentDate;
+  const currentYear = anchorDate.getFullYear();
+  const currentMonth = anchorDate.getMonth();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 4}px` }}>
@@ -59,7 +68,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                       radius={radius}
                       fontSize={fontSize}
                       textColor={showDayNumbers ? color : colors.bg}
-                      isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDate.getDate())}
+                      isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + anchorDate.getDate())}
                       activeText={getActiveCellText(m.year, m.month, config, day)}
                       fallbackText={showDayNumbers ? day : null}
                       config={config}
@@ -78,7 +87,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                   radius={radius}
                   fontSize={fontSize}
                   textColor={colors.bg}
-                  isActive={m.year === currentYear && w.weekNum === getWeekNumber(currentDate)}
+                  isActive={m.year === currentYear && w.weekNum === getWeekNumber(anchorDate)}
                   activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
                   fallbackText={showWeekNumbers ? w.weekNum : null}
                   config={config}

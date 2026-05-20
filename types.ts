@@ -45,6 +45,21 @@ export interface AppConfig {
   startFromJan: boolean;
   groupBy: 'none' | 'day' | 'week' | 'month' | 'season';
   showSeasonLabels: boolean;
+  seasonsSideBySide: boolean;
+  anchorTodayToRealTime: boolean;
+  blockAlignment: 'top' | 'center';
+  // New Life Mode & Memento Mori features (from Ti-03/remainders)
+  isLifeMode?: boolean;
+  birthDate?: string;
+  lifeExpectancy?: number;
+  lifeGranularity?: 'week' | 'month';
+  showLifeStats?: boolean;
+  showQiQuotes?: boolean;
+  quotesCategory?: 'stoic' | 'intention' | 'time' | 'all';
+  selectedQuoteId?: string;
+  customQuoteText?: string;
+  showHeaderPlugin?: boolean;
+  labelRotation?: 0 | 45 | 90 | -45 | -90;
   // Visual refinement
   customTitle?: string;
   assetFormat: 'auto' | 'square' | 'ios-widget' | 'ios-wallpaper';
