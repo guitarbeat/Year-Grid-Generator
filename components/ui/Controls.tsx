@@ -73,9 +73,9 @@ export const Toggle: React.FC<{
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
+        className="sr-only peer"
       />
-      <div className="toggle-track">
+      <div className="toggle-track peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#111] peer-focus-visible:outline-none">
         <div className={`toggle-thumb ${checked ? 'translate-x-3 bg-accent' : 'translate-x-0 bg-[#333]'}`}></div>
       </div>
     </label>
@@ -87,14 +87,21 @@ export const SegmentedControl: React.FC<{
   activeId: string;
   onChange: (id: string) => void;
   cols?: number;
-}> = ({ options, activeId, onChange, cols = 3 }) => (
-  <div className={`grid grid-cols-${cols} gap-[1px] bg-[#1a1a1a] border border-[#1a1a1a]`}>
+  "aria-label"?: string;
+}> = ({ options, activeId, onChange, cols = 3, "aria-label": ariaLabel }) => (
+  <div
+    role="radiogroup"
+    aria-label={ariaLabel}
+    className={`grid grid-cols-${cols} gap-[1px] bg-[#1a1a1a] border border-[#1a1a1a]`}
+  >
     {options.map((opt) => (
       <button
         key={opt.id}
+        role="radio"
+        aria-checked={activeId === opt.id}
         onClick={() => onChange(opt.id)}
         className={`
-          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden
+          flex flex-col items-center justify-center gap-1.5 py-3 transition-all font-mono relative overflow-hidden focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none focus-visible:z-10
           ${activeId === opt.id 
             ? 'bg-[#0a0a0a] text-accent font-bold' 
             : 'bg-[#050505] text-gray-600 hover:text-gray-400 hover:bg-[#080808]'}
@@ -119,13 +126,14 @@ export const ColorInput: React.FC<{
 }> = ({ label, value, onChange }) => (
   <div className="flex flex-col gap-2">
     <label className="text-[9px] text-gray-600 uppercase font-mono font-bold tracking-widest">{label}</label>
-    <div className="flex items-center gap-0 bg-[#0a0a0a] border border-[#1a1a1a] rounded-sm overflow-hidden focus-within:border-accent/40 transition-colors">
+    <div className="flex items-center gap-0 bg-[#0a0a0a] border border-[#1a1a1a] rounded-sm overflow-hidden focus-within:border-accent/40 focus-within:ring-1 focus-within:ring-orange-500 transition-colors">
       <div className="p-1 px-1.5 bg-[#111] border-r border-[#1a1a1a]">
         <input 
           type="color" 
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-4 h-4 rounded-none border-0 bg-transparent cursor-pointer"
+          aria-label={`Choose ${label} color`}
+          className="w-4 h-4 rounded-none border-0 bg-transparent cursor-pointer focus-visible:outline-none"
         />
       </div>
       <span className="flex-1 text-[10px] font-mono text-gray-500 select-all px-2 py-1.5">
