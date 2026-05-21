@@ -180,4 +180,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   );
 };
 
-export default YearGrid;
+// ⚡ Bolt Optimization: Memoize YearGrid to prevent expensive re-renders
+// during high-frequency parent state updates (like dragging/panning in PreviewArea).
+export default React.memo(YearGrid);

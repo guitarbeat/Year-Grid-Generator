@@ -263,7 +263,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCellClick = (id: string) => {
+  // ⚡ Bolt Optimization: Memoize callback to prevent breaking child memoization
+  const handleCellClick = React.useCallback((id: string) => {
     if (id === 'action:cycle-quote') {
       setConfig(prev => {
         const cat = prev.quotesCategory || 'all';
@@ -295,7 +296,7 @@ const App: React.FC = () => {
 
       return { ...prev, overrides };
     });
-  };
+  }, []);
 
   const handleDownload = async () => {
     if (!gridRef.current) {

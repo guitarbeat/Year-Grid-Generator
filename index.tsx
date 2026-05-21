@@ -3,14 +3,8 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import '@khmyznikov/pwa-install';
 
-// Tell TypeScript about the custom element to avoid TS errors
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'pwa-install': any;
-    }
-  }
-}
+// TypeScript already knows about the custom element due to PWAInstallProps declaration in @khmyznikov/pwa-install/dist/types/index.d.ts
+// Removing the explicit 'any' declaration to prevent TS2717 "Subsequent property declarations must have the same type" error.
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
