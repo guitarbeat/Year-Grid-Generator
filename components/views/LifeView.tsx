@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
 import { getDimmedColor } from '../../utils/colorUtils';
@@ -112,10 +113,10 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
   const unitsRemaining = Math.max(0, totalUnits - elapsedUnits);
 
   return (
-    <div className="flex flex-col items-center w-full" style={{ gap: `${gap * 3}px` }}>
+    <motion.div layout className="flex flex-col items-center w-full" style={{ gap: `${gap * 3}px` }}>
       
       {/* Legend / Status bar inside the component */}
-      <div className="flex items-center gap-6 text-[10px] uppercase tracking-wider font-mono opacity-60 mb-2">
+      <motion.div layout className="flex items-center gap-6 text-[10px] uppercase tracking-wider font-mono opacity-60 mb-2">
         <div className="flex items-center gap-1.5">
           <div style={{ width: 8, height: 8, backgroundColor: colors.fill || colors.pastDay, borderRadius: radius }} />
           <span>Lived</span>
@@ -132,12 +133,12 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
           <div style={{ width: 8, height: 8, backgroundColor: colors.significant, borderRadius: radius }} />
           <span>Milestone (Click)</span>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Matrix Grid wrapper */}
-      <div className="flex flex-col gap-0.5 select-none" style={{ gap: `${gap}px` }}>
+      <motion.div layout className="flex flex-col gap-0.5 select-none" style={{ gap: `${gap}px` }}>
         {/* Top Header Row of column indices (optional labels, spaced out) */}
-        <div className="flex items-center font-mono opacity-40 text-[7px]" style={{ gap: `${gap}px` }}>
+        <motion.div layout className="flex items-center font-mono opacity-40 text-[7px]" style={{ gap: `${gap}px` }}>
           {/* Spacer for row numbering width */}
           <div className="w-8 text-right pr-2" />
           {Array.from({ length: unitsPerYear }).map((_, colIdx) => (
@@ -152,56 +153,62 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
               {colIdx + 1}
             </div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Year Rows */}
-        {rows.map((r) => {
-          // Highlight decade starts or label them clearly
-          const isDecadeStart = r.year % 10 === 0;
-          
-          return (
-            <div 
-              key={r.year} 
-              className="flex items-center" 
-              style={{ gap: `${gap}px` }}
-            >
-              {/* Row Label (Decades receive prominent typography, intermediate years are subtle or faded) */}
-              <div 
-                className="w-8 text-right pr-2 font-mono text-[8px] tracking-tighter" 
-                style={{ 
-                  opacity: isDecadeStart ? 0.7 : 0.25,
-                  fontWeight: isDecadeStart ? 'bold' : 'normal',
-                  color: isDecadeStart ? colors.text : undefined
-                }}
+        <AnimatePresence mode="popLayout">
+          {rows.map((r) => {
+            // Highlight decade starts or label them clearly
+            const isDecadeStart = r.year % 10 === 0;
+            
+            return (
+              <motion.div 
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                key={r.year} 
+                className="flex items-center" 
+                style={{ gap: `${gap}px` }}
               >
-                Y{r.year}
-              </div>
+                {/* Row Label (Decades receive prominent typography, intermediate years are subtle or faded) */}
+                <motion.div layout
+                  className="w-8 text-right pr-2 font-mono text-[8px] tracking-tighter" 
+                  style={{ 
+                    opacity: isDecadeStart ? 0.7 : 0.25,
+                    fontWeight: isDecadeStart ? 'bold' : 'normal',
+                    color: isDecadeStart ? colors.text : undefined
+                  }}
+                >
+                  Y{r.year}
+                </motion.div>
 
-              {/* Data Cells */}
-              {r.cells.map((cell) => (
-                <Cell
-                  key={cell.id}
-                  id={cell.id}
-                  color={cell.color}
-                  dotSize={dotSize}
-                  radius={radius}
-                  fontSize={fontSize}
-                  textColor={colors.bg}
-                  isActive={cell.isActive}
-                  activeText={cell.activeText}
-                  fallbackText=""
-                  config={config}
-                  onCellClick={onCellClick}
-                />
-              ))}
-            </div>
-          );
-        })}
-      </div>
+                {/* Data Cells */}
+                {r.cells.map((cell) => (
+                  <Cell
+                    key={cell.id}
+                    id={cell.id}
+                    color={cell.color}
+                    dotSize={dotSize}
+                    radius={radius}
+                    fontSize={fontSize}
+                    textColor={colors.bg}
+                    isActive={cell.isActive}
+                    activeText={cell.activeText}
+                    fallbackText=""
+                    config={config}
+                    onCellClick={onCellClick}
+                  />
+                ))}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Live progress and summary statistics */}
       {showLifeStats && (
-        <div 
+        <motion.div layout
           className="w-full text-center font-mono border-t border-white/5 pt-3 mt-2 flex flex-col gap-1"
           style={{ fontSize: `${fontSize * 0.9}px` }}
         >
@@ -222,8 +229,8 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
               }} 
             />
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
 import { getActiveCellText } from '../../utils/formatUtils';
@@ -44,7 +45,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
       : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
 
     return (
-      <div 
+      <motion.div layout
         className={seasonsSideBySide ? gridColsClass : undefined}
         style={{ 
           display: seasonsSideBySide ? 'grid' : 'flex', 
@@ -55,7 +56,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
         }}
       >
         {grouped.map(g => (
-          <div 
+          <motion.div layout
             key={g.season} 
             style={{ 
               display: 'flex', 
@@ -70,7 +71,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
             }}
           >
             {showSeasonLabels && (
-              <div style={{ 
+              <motion.div layout style={{ 
                 fontSize: `${fontSize * 1.3}px`, 
                 fontWeight: 900, 
                 letterSpacing: '0.2em', 
@@ -82,9 +83,9 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
                 textTransform: 'uppercase'
               }}>
                 {g.season}
-              </div>
+              </motion.div>
             )}
-            <div style={{ 
+            <motion.div layout style={{ 
               display: 'flex', 
               flexWrap: 'wrap', 
               gap: `${gap * 6}px`, 
@@ -92,9 +93,9 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
               alignItems: blockAlignment === 'top' ? 'start' : 'center'
             }}>
               {g.months.map(m => (
-                 <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
-                  {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</span>}
-                  <div style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
+                 <motion.div layout key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
+                  {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>}
+                  <motion.div layout style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
                     {m.weeksInMonth.map(w => (
                        <Cell
                         key={w.weekNum}
@@ -112,51 +113,60 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
                         isLarge
                       />
                     ))}
-                  </div>
-                 </div>
+                  </motion.div>
+                 </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     );
   }
 
   // If showMonthAxis is on, we'll use a grouped approach to show month labels
   if (showMonthAxis) {
     return (
-      <div style={{ 
+      <motion.div layout style={{ 
         display: 'grid', 
         gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, auto)`,
         gap: `${gap * 4}px`,
         justifyContent: 'center',
         alignItems: blockAlignment === 'top' ? 'start' : 'center'
       }}>
-        {months.map(m => (
-          <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
-            <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</span>
-            <div style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
-              {m.weeksInMonth.map(w => (
-                 <Cell
-                  key={w.weekNum}
-                  id={`week-${m.year}-${w.weekNum}`}
-                  color={w.color}
-                  dotSize={dotSize}
-                  radius={radius}
-                  fontSize={fontSize}
-                  textColor={colors.bg}
-                  isActive={m.year === currentYear && w.weekNum === currentWeekNumber}
-                  activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
-                  fallbackText={showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null)}
-                  config={config}
-                  onCellClick={onCellClick}
-                  isLarge
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+        <AnimatePresence mode="popLayout">
+          {months.map(m => (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              key={`${m.year}-${m.month}`} 
+              style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}
+             >
+              <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>
+              <motion.div layout style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
+                {m.weeksInMonth.map(w => (
+                   <Cell
+                    key={w.weekNum}
+                    id={`week-${m.year}-${w.weekNum}`}
+                    color={w.color}
+                    dotSize={dotSize}
+                    radius={radius}
+                    fontSize={fontSize}
+                    textColor={colors.bg}
+                    isActive={m.year === currentYear && w.weekNum === currentWeekNumber}
+                    activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
+                    fallbackText={showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null)}
+                    config={config}
+                    onCellClick={onCellClick}
+                    isLarge
+                  />
+                ))}
+              </motion.div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
     );
   }
 
@@ -165,30 +175,33 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
   const cols = mode === 'columns' ? 1 : mode === 'rows' ? 52 : itemsPerRow;
 
   return (
-    <div style={{
+    <motion.div layout style={{
       display: 'grid',
       gridTemplateColumns: `repeat(${cols}, auto)`,
       gap: `${gap}px`,
       justifyContent: 'center',
       alignItems: blockAlignment === 'top' ? 'start' : 'center'
     }}>
-      {allWeeks.map((w, i) => (
-        <Cell
-          key={`${w.identifier}-${i}`}
-          id={`week-${w.year}-${w.weekNum}`}
-          color={w.color}
-          dotSize={dotSize}
-          radius={radius}
-          fontSize={fontSize}
-          textColor={colors.bg}
-          isActive={w.year === currentYear && w.weekNum === currentWeekNumber}
-          activeText={getActiveCellText(currentYear, currentMonth, config, undefined, currentWeekNumber)}
-          fallbackText={showWeekNumbers ? w.weekNum : null}
-          config={config}
-          onCellClick={onCellClick}
-          isLarge
-        />
-      ))}
-    </div>
+      <AnimatePresence mode="popLayout">
+        {allWeeks.map((w, i) => (
+          <motion.div layout key={`${w.identifier}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <Cell
+              id={`week-${w.year}-${w.weekNum}`}
+              color={w.color}
+              dotSize={dotSize}
+              radius={radius}
+              fontSize={fontSize}
+              textColor={colors.bg}
+              isActive={w.year === currentYear && w.weekNum === currentWeekNumber}
+              activeText={getActiveCellText(currentYear, currentMonth, config, undefined, currentWeekNumber)}
+              fallbackText={showWeekNumbers ? w.weekNum : null}
+              config={config}
+              onCellClick={onCellClick}
+              isLarge
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </motion.div>
   );
 };

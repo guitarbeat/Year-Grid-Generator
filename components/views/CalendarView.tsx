@@ -172,7 +172,8 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
       : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
 
     return (
-      <div 
+      <motion.div 
+        layout
         className={seasonsSideBySide ? gridColsClass : undefined}
         style={{ 
           display: seasonsSideBySide ? 'grid' : 'flex', 
@@ -183,7 +184,8 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
         }}
       >
         {grouped.map(g => (
-          <div 
+          <motion.div 
+            layout
             key={g.season} 
             style={{ 
               display: 'flex', 
@@ -198,7 +200,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
             }}
           >
             {showSeasonLabels && (
-              <div style={{ 
+              <motion.div layout style={{ 
                 fontSize: `${fontSize * 1.3}px`, 
                 fontWeight: 900, 
                 letterSpacing: '0.2em', 
@@ -210,9 +212,9 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
                 textTransform: 'uppercase'
               }}>
                 {g.season}
-              </div>
+              </motion.div>
             )}
-            <div style={{
+            <motion.div layout style={{
               display: 'grid',
               gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
               gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
@@ -220,16 +222,18 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
               justifyItems: 'center',
               alignItems: blockAlignment === 'top' ? 'start' : 'center'
             }}>
-              {g.months.map(m => renderMonthItem(m))}
-            </div>
-          </div>
+              <AnimatePresence mode="popLayout">
+                {g.months.map(m => renderMonthItem(m))}
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div style={{
+    <motion.div layout style={{
       display: 'grid',
       gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
       gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
@@ -240,6 +244,6 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
       <AnimatePresence mode="popLayout">
         {months.map((m) => renderMonthItem(m))}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { groupMonthsBySeason } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
@@ -57,7 +58,7 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
       : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
 
     return (
-      <div 
+      <motion.div layout
         className={seasonsSideBySide ? gridColsClass : undefined}
         style={{ 
           display: seasonsSideBySide ? 'grid' : 'flex', 
@@ -68,7 +69,7 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
         }}
       >
         {grouped.map(g => (
-          <div 
+          <motion.div layout
             key={g.season} 
             style={{ 
               display: 'flex', 
@@ -83,7 +84,7 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
             }}
           >
             {showSeasonLabels && (
-              <div style={{ 
+              <motion.div layout style={{ 
                 fontSize: `${fontSize * 1.3}px`, 
                 fontWeight: 900, 
                 letterSpacing: '0.2em', 
@@ -95,9 +96,9 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
                 textTransform: 'uppercase'
               }}>
                 {g.season}
-              </div>
+              </motion.div>
             )}
-            <div style={{ 
+            <motion.div layout style={{ 
               display: 'grid', 
               gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${g.months.length}, auto)`,
               gap: `${gap * 4}px`, 
@@ -110,8 +111,8 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
                 const color = getMonthColor(m.year, m.month, isToday, isPast);
 
                 return (
-                  <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
-                    {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</span>}
+                  <motion.div layout key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
+                    {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>}
                     <Cell
                       id={`month-${m.year}-${m.month}`}
                       color={color}
@@ -126,50 +127,58 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
                       onCellClick={onCellClick}
                       isLarge
                     />
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div style={{
+    <motion.div layout style={{
       display: 'grid',
       gridTemplateColumns: `repeat(${cols}, auto)`,
       gap: mode === 'grid' ? `${gap * 3}px` : `${gap * 2}px`,
       justifyContent: 'center',
       alignItems: blockAlignment === 'top' ? 'start' : 'center'
     }}>
-      {months.map(m => {
-        const isPast = m.year < currentYear || (m.year === currentYear && m.month < currentMonth);
-        const isToday = m.year === currentYear && m.month === currentMonth;
-        const color = getMonthColor(m.year, m.month, isToday, isPast);
+      <AnimatePresence mode="popLayout">
+        {months.map(m => {
+          const isPast = m.year < currentYear || (m.year === currentYear && m.month < currentMonth);
+          const isToday = m.year === currentYear && m.month === currentMonth;
+          const color = getMonthColor(m.year, m.month, isToday, isPast);
 
-        return (
-          <div key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
-            {showMonthAxis && <span style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</span>}
-            <Cell
-              id={`month-${m.year}-${m.month}`}
-              color={color}
-              // In Cell, isLarge uses dotSize * 1.5. To get dotSize * 2.5, pass custom dotSize
-              dotSize={(dotSize * 2.5) / 1.5} 
-              radius={radius}
-              fontSize={fontSize * 1.3}
-              textColor={colors.bg}
-              isActive={isToday}
-              activeText={getActiveCellText(m.year, m.month, config)}
-              fallbackText={showMonthLabels ? m.name.toUpperCase().substring(0, 3) : null}
-              config={config}
-              onCellClick={onCellClick}
-              isLarge
-            />
-          </div>
-        );
-      })}
-    </div>
+          return (
+            <motion.div layout
+              key={`${m.year}-${m.month}`}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}
+             >
+              {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>}
+              <Cell
+                id={`month-${m.year}-${m.month}`}
+                color={color}
+                // In Cell, isLarge uses dotSize * 1.5. To get dotSize * 2.5, pass custom dotSize
+                dotSize={(dotSize * 2.5) / 1.5} 
+                radius={radius}
+                fontSize={fontSize * 1.3}
+                textColor={colors.bg}
+                isActive={isToday}
+                activeText={getActiveCellText(m.year, m.month, config)}
+                fallbackText={showMonthLabels ? m.name.toUpperCase().substring(0, 3) : null}
+                config={config}
+                onCellClick={onCellClick}
+                isLarge
+              />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </motion.div>
   );
 };

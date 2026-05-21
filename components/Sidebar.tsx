@@ -54,12 +54,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               data-toc 
               data-toc-depth="2" 
               data-toc-title={`WORKSPACE: ${activeTab.toUpperCase()}`}
-              className="text-sm font-bold tracking-[0.2em] uppercase text-white flex items-center gap-2"
+              className="text-2xl font-black tracking-[0.25em] uppercase text-white flex items-center gap-3 drop-shadow-md"
             >
-              <span className="material-symbols-outlined text-accent !text-[20px]">
-                calendar_apps
+              <span className="material-symbols-outlined text-[#ea580c] !text-[32px]">
+                hourglass_empty
               </span>
-              Grid Gen
+              MEMENTO
             </h1>
           </div>
 

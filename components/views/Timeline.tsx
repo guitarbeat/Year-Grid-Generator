@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
 import { getActiveCellText } from '../../utils/formatUtils';
@@ -34,72 +34,81 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
   const currentMonth = anchorDate.getMonth();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 4}px` }}>
-      {months.map(m => {
-        const hasWeekdayAxis = granularity === 'day' && showWeekdayAxis;
-        return (
-          <div key={`${m.year}-${m.month}`} style={{ display: 'flex', gap: `${gap * 2}px`, alignItems: 'center' }}>
-            {showMonthAxis && (
-              <div style={{ minWidth: `${fontSize * 5}px`, fontSize: `${fontSize}px`, fontWeight: 'bold', color: colors.text, opacity: 0.8 }}>
-                {m.name}
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: `${gap}px` }}>
-              {granularity === 'day' && m.startOffset > 0 && Array.from({ length: m.startOffset }).map((_, i) => (
-                <div key={`empty-${i}`} style={{ width: dotSize, height: dotSize }} />
-              ))}
-              
-              {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
-                const day = i + 1;
-                const dateObj = new Date(m.year, m.month, day);
-                const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
-                const color = getDayColor(m.year, m.month, day, config, currentDate);
-                return (
-                  <div key={`day-${day}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                    {hasWeekdayAxis && (
-                      <span style={{ fontSize: `${fontSize * 0.7}px`, opacity: 0.5, fontWeight: 'bold', fontFamily: 'JetBrains Mono, monospace' }}>
-                        {dayName}
-                      </span>
-                    )}
-                    <Cell
-                      id={`day-${m.year}-${m.month}-${day}`}
-                      color={showDayNumbers ? 'transparent' : color}
-                      dotSize={dotSize}
-                      radius={radius}
-                      fontSize={fontSize}
-                      textColor={showDayNumbers ? color : colors.bg}
-                      isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + anchorDate.getDate())}
-                      activeText={getActiveCellText(m.year, m.month, config, day)}
-                      fallbackText={showDayNumbers ? day : null}
-                      config={config}
-                      onCellClick={onCellClick}
-                    />
-                  </div>
-                );
-              })}
+    <motion.div layout style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 4}px` }}>
+      <AnimatePresence mode="popLayout">
+        {months.map(m => {
+          const hasWeekdayAxis = granularity === 'day' && showWeekdayAxis;
+          return (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              key={`${m.year}-${m.month}`} 
+              style={{ display: 'flex', gap: `${gap * 2}px`, alignItems: 'center' }}
+            >
+              {showMonthAxis && (
+                <motion.div layout style={{ minWidth: `${fontSize * 5}px`, fontSize: `${fontSize}px`, fontWeight: 'bold', color: colors.text, opacity: 0.8 }}>
+                  {m.name}
+                </motion.div>
+              )}
+              <motion.div layout style={{ display: 'flex', gap: `${gap}px` }}>
+                {granularity === 'day' && m.startOffset > 0 && Array.from({ length: m.startOffset }).map((_, i) => (
+                  <motion.div layout key={`empty-${i}`} style={{ width: dotSize, height: dotSize }} />
+                ))}
+                
+                {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const dateObj = new Date(m.year, m.month, day);
+                  const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
+                  const color = getDayColor(m.year, m.month, day, config, currentDate);
+                  return (
+                    <motion.div layout key={`day-${day}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                      {hasWeekdayAxis && (
+                        <motion.span layout style={{ fontSize: `${fontSize * 0.7}px`, opacity: 0.5, fontWeight: 'bold', fontFamily: 'JetBrains Mono, monospace' }}>
+                          {dayName}
+                        </motion.span>
+                      )}
+                      <Cell
+                        id={`day-${m.year}-${m.month}-${day}`}
+                        color={showDayNumbers ? 'transparent' : color}
+                        dotSize={dotSize}
+                        radius={radius}
+                        fontSize={fontSize}
+                        textColor={showDayNumbers ? color : colors.bg}
+                        isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + anchorDate.getDate())}
+                        activeText={getActiveCellText(m.year, m.month, config, day)}
+                        fallbackText={showDayNumbers ? day : null}
+                        config={config}
+                        onCellClick={onCellClick}
+                      />
+                    </motion.div>
+                  );
+                })}
 
-              {granularity === 'week' && m.weeksInMonth.map((w: any) => (
-                <Cell
-                  key={`week-${w.weekNum}`}
-                  id={`week-${m.year}-${w.weekNum}`}
-                  color={w.color}
-                  dotSize={dotSize}
-                  radius={radius}
-                  fontSize={fontSize}
-                  textColor={colors.bg}
-                  isActive={m.year === currentYear && w.weekNum === getWeekNumber(anchorDate)}
-                  activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
-                  fallbackText={showWeekNumbers ? w.weekNum : null}
-                  config={config}
-                  onCellClick={onCellClick}
-                  isLarge
-                />
-              ))}
+                {granularity === 'week' && m.weeksInMonth.map((w: any) => (
+                  <Cell
+                    key={`week-${w.weekNum}`}
+                    id={`week-${m.year}-${w.weekNum}`}
+                    color={w.color}
+                    dotSize={dotSize}
+                    radius={radius}
+                    fontSize={fontSize}
+                    textColor={colors.bg}
+                    isActive={m.year === currentYear && w.weekNum === getWeekNumber(anchorDate)}
+                    activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
+                    fallbackText={showWeekNumbers ? w.weekNum : null}
+                    config={config}
+                    onCellClick={onCellClick}
+                    isLarge
+                  />
+                ))}
 
-            </div>
-          </div>
-        );
-      })}
-    </div>
+              </motion.div>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </motion.div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'motion/react';
 import { AppConfig } from '../types';
 import { useGridData } from '../hooks/useGridData';
 import { CalendarView } from './views/CalendarView';
@@ -71,10 +72,14 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   };
 
   return (
-    <div 
+    <motion.div 
+      layout
       ref={domRef}
       className={`relative select-none shadow-2xl flex flex-col items-center ${className || ''}`}
       style={containerStyle}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
     >
       {/* 1. Header Plugin (Memento Mori / Theme Title) */}
       {config.showHeaderPlugin && (
@@ -171,7 +176,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           </span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

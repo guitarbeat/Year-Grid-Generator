@@ -117,11 +117,15 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
       >
         <button 
           onClick={onToggleSidebar}
-          className="md:hidden w-10 h-10 bg-[#161616] rounded flex items-center justify-center border border-[#222] text-accent pointer-events-auto shadow-xl transition-all active:scale-95"
+          className="md:hidden w-10 h-10 bg-[#161616] rounded flex items-center justify-center border border-[#222] text-[#ea580c] pointer-events-auto shadow-xl transition-all active:scale-95"
         >
           <span className="material-symbols-outlined">menu</span>
         </button>
-        <div className="flex flex-col gap-1 pointer-events-none opacity-40">
+        <div className="flex flex-col gap-1 pointer-events-none md:hidden">
+          <span className="text-[14px] font-black tracking-[0.2em] text-white">MEMENTO</span>
+          <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#ea580c]">{config.mode} view</span>
+        </div>
+        <div className="hidden md:flex flex-col gap-1 pointer-events-none opacity-40">
           <span className="text-[10px] font-mono uppercase tracking-[0.2em]">{config.mode} view</span>
           <span className="text-[8px] font-mono uppercase tracking-[0.2em]">{Math.round(zoom * 100)}% zoom</span>
         </div>

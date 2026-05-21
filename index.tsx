@@ -1,6 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import '@khmyznikov/pwa-install';
+
+// Tell TypeScript about the custom element to avoid TS errors
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'pwa-install': any;
+    }
+  }
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

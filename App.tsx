@@ -355,6 +355,12 @@ const App: React.FC = () => {
   return (
     <MotionConfig reducedMotion="user">
       <div className="h-screen flex bg-[#050505] text-white overflow-hidden relative">
+        <pwa-install
+          manifest-url="/manifest.json"
+          name="MEMENTO"
+          description="A minimalist temporal visualizer and memento mori generator."
+          icon="/icon.svg"
+        ></pwa-install>
         <Sidebar 
           config={config} 
           setConfig={setConfig} 
