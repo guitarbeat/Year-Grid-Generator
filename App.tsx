@@ -713,6 +713,25 @@ const App: React.FC = () => {
     );
   }
 
+  // Auto-trigger download if requested
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('triggerDownload') === 'true') {
+      const waitAndDownload = async () => {
+        // Wait for gridRef to be populated
+        let attempts = 0;
+        while(!gridRef.current && attempts < 50) {
+          await new Promise(r => setTimeout(r, 100));
+          attempts++;
+        }
+        if (gridRef.current) {
+          await handleDownload();
+        }
+      };
+      waitAndDownload();
+    }
+  }, []);
+
   // 4. Render Standard Editor
   return (
     <MotionConfig reducedMotion="user">

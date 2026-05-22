@@ -30,6 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [shareText, setShareText] = useState("SHARE LINK");
+  const [downloadLinkText, setDownloadLinkText] = useState("COPY DL LINK");
 
   const fallbackCopy = (text: string) => {
     try {
@@ -43,37 +44,83 @@ const Sidebar: React.FC<SidebarProps> = ({
       textArea.select();
       const successful = document.execCommand('copy');
       document.body.removeChild(textArea);
-      if (successful) {
-        setShareText("COPIED!");
-      } else {
-        setShareText("TRY MANUAL COPY");
-      }
+      return successful;
     } catch (err) {
       console.error('Fallback copy failed', err);
-      setShareText("TRY MANUAL COPY");
+      return false;
     }
-    setTimeout(() => setShareText("SHARE LINK"), 1800);
   };
 
   const handleShare = () => {
     try {
-      const url = window.location.href;
+      const url = new URL(window.location.href);
+      url.searchParams.set("date", "today");
+      const finalUrl = url.toString();
+      
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url)
+        navigator.clipboard.writeText(finalUrl)
           .then(() => {
             setShareText("COPIED!");
             setTimeout(() => setShareText("SHARE LINK"), 1500);
           })
           .catch((err) => {
             console.error("Clipboard API failed: ", err);
-            fallbackCopy(url);
+            if (fallbackCopy(finalUrl)) {
+              setShareText("COPIED!");
+              setTimeout(() => setShareText("SHARE LINK"), 1500);
+            } else {
+              setShareText("TRY MANUAL COPY");
+              setTimeout(() => setShareText("SHARE LINK"), 1800);
+            }
           });
       } else {
-        fallbackCopy(url);
+        if (fallbackCopy(finalUrl)) {
+          setShareText("COPIED!");
+        } else {
+          setShareText("TRY MANUAL COPY");
+        }
+        setTimeout(() => setShareText("SHARE LINK"), 1800);
       }
     } catch {
       setShareText("ERROR");
       setTimeout(() => setShareText("SHARE LINK"), 1500);
+    }
+  };
+
+  const handleCopyDownloadLink = () => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("date", "today");
+      url.searchParams.set("triggerDownload", "true");
+      const finalUrl = url.toString();
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(finalUrl)
+          .then(() => {
+            setDownloadLinkText("COPIED!");
+            setTimeout(() => setDownloadLinkText("COPY DL LINK"), 1500);
+          })
+          .catch((err) => {
+            console.error("Clipboard API failed: ", err);
+            if (fallbackCopy(finalUrl)) {
+              setDownloadLinkText("COPIED!");
+              setTimeout(() => setDownloadLinkText("COPY DL LINK"), 1500);
+            } else {
+              setDownloadLinkText("TRY MANUAL COPY");
+              setTimeout(() => setDownloadLinkText("COPY DL LINK"), 1800);
+            }
+          });
+      } else {
+        if (fallbackCopy(finalUrl)) {
+          setDownloadLinkText("COPIED!");
+        } else {
+          setDownloadLinkText("TRY MANUAL COPY");
+        }
+        setTimeout(() => setDownloadLinkText("COPY DL LINK"), 1800);
+      }
+    } catch {
+      setDownloadLinkText("ERROR");
+      setTimeout(() => setDownloadLinkText("COPY DL LINK"), 1500);
     }
   };
 
@@ -188,21 +235,30 @@ const Sidebar: React.FC<SidebarProps> = ({
               disabled={isDownloading}
               className="w-full h-11"
             />
-            <div className="flex gap-2 w-full">
+            <div className="grid grid-cols-2 gap-2 w-full">
               <Button
                 variant="secondary"
                 icon="share"
                 label={shareText}
                 onClick={handleShare}
-                className="flex-1 h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-800"
+                className="h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-800"
               />
               <Button
                 variant="secondary"
-                icon="restart_alt"
-                label="RESET"
-                onClick={resetConfig}
-                className="flex-1 h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-805"
+                icon="download"
+                label={downloadLinkText}
+                onClick={handleCopyDownloadLink}
+                className="h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-800"
               />
+              <div className="col-span-2">
+                <Button
+                  variant="secondary"
+                  icon="restart_alt"
+                  label="RESET"
+                  onClick={resetConfig}
+                  className="w-full h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-805"
+                />
+              </div>
             </div>
           </div>
         </div>
