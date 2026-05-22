@@ -67,9 +67,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Close Button Mobile */}
             <button
               onClick={onToggle}
+              aria-label="Close settings menu"
+              title="Close settings menu"
               className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
           </div>
         </div>
@@ -117,9 +119,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                  title="Clear search"
                   className="text-gray-500 hover:text-gray-300 transition-colors flex items-center"
                 >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">close</span>
                 </button>
               )}
             </div>
