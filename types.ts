@@ -67,6 +67,10 @@ export interface AppConfig {
   assetFormat: 'auto' | 'square' | 'ios-widget' | 'ios-wallpaper';
   density: 'compact' | 'normal' | 'spacious';
   resolutionScale: 1 | 2 | 3 | 4;
+  backdropType?: 'solid' | 'ambient-spotlight' | 'cosmic-mesh' | 'industrial-border' | 'editorial-float';
+  cardRadius?: number;
+  innerPadding?: 'compact' | 'normal' | 'relaxed';
+  gridFrameStyle?: 'none' | 'minimal' | 'cyber' | 'glass' | 'brutalist';
   overrides: Record<string, string>;
 }
 

@@ -31,7 +31,7 @@ const itemVariants = {
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getWeekNumber, groupMonthsBySeason } from '../../utils/dateUtils';
 
-export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick }) => {
+export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
   const {
     mode,
     groupBy,
@@ -137,6 +137,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
                         config={config}
                         onCellClick={onCellClick}
                         isLarge
+                        isDownloading={isDownloading}
                       />
                     ))}
                   </motion.div>
@@ -190,6 +191,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
                     config={config}
                     onCellClick={onCellClick}
                     isLarge
+                    isDownloading={isDownloading}
                   />
                 ))}
               </motion.div>
@@ -238,6 +240,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
               config={config}
               onCellClick={onCellClick}
               isLarge
+              isDownloading={isDownloading}
             />
           </motion.div>
         ))}

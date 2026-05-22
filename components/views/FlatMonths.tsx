@@ -32,7 +32,7 @@ const itemVariants = {
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getDimmedColor } from '../../utils/colorUtils';
 
-export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick }) => {
+export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
   const {
     mode,
     groupBy,
@@ -163,6 +163,7 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
                       config={config}
                       onCellClick={onCellClick}
                       isLarge
+                      isDownloading={isDownloading}
                     />
                   </motion.div>
                 );
@@ -216,6 +217,7 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
                 config={config}
                 onCellClick={onCellClick}
                 isLarge
+                isDownloading={isDownloading}
               />
             </motion.div>
           );

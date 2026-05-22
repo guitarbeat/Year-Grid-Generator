@@ -7,4 +7,5 @@ export interface ViewProps {
   months: any[];
   currentDate: Date;
   onCellClick?: (id: string) => void;
+  isDownloading?: boolean;
 }

@@ -669,7 +669,8 @@ const App: React.FC = () => {
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Wait for React state, Framer MotionConfig, and transitions to settle
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       const canvas = await html2canvas(gridRef.current, {
         backgroundColor: config.transparentBg ? null : config.colors.bg,
@@ -742,6 +743,7 @@ const App: React.FC = () => {
             canRedo={canRedo}
             onUndo={handleUndo}
             onRedo={handleRedo}
+            isDownloading={isDownloading}
           />
         </div>
 

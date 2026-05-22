@@ -32,7 +32,7 @@ const itemVariants = {
   }
 };
 
-export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick }) => {
+export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
   const {
     mode,
     granularity,
@@ -163,6 +163,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
                 fallbackText={showDayNumbers ? day : null}
                 config={config}
                 onCellClick={onCellClick}
+                isDownloading={isDownloading}
               />
             );
           })}
@@ -183,6 +184,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
               config={config}
               onCellClick={onCellClick}
               isLarge
+              isDownloading={isDownloading}
             />
           ))}
         </div>

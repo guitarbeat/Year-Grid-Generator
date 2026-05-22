@@ -31,7 +31,7 @@ import { getActiveCellText } from '../../utils/formatUtils';
 import { getDayColor } from '../../utils/colorUtils';
 import { getWeekNumber } from '../../utils/dateUtils';
 
-export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick }) => {
+export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
   const {
     granularity,
     showMonthAxis,
@@ -111,6 +111,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                         fallbackText={showDayNumbers ? day : null}
                         config={config}
                         onCellClick={onCellClick}
+                        isDownloading={isDownloading}
                       />
                     </motion.div>
                   );
@@ -131,6 +132,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                     config={config}
                     onCellClick={onCellClick}
                     isLarge
+                    isDownloading={isDownloading}
                   />
                 ))}
 

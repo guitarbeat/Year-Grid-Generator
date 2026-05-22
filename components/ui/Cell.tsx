@@ -15,6 +15,7 @@ interface CellProps {
   config: AppConfig;
   onCellClick?: (id: string) => void;
   isLarge?: boolean; // For weeks
+  isDownloading?: boolean;
 }
 
 export const Cell: React.FC<CellProps> = ({
@@ -29,7 +30,8 @@ export const Cell: React.FC<CellProps> = ({
   fallbackText,
   config,
   onCellClick,
-  isLarge = false
+  isLarge = false,
+  isDownloading = false
 }) => {
   const { showActiveLabel, activeLabelFormat, colors } = config;
   const size = isLarge ? dotSize * 1.5 : dotSize;
@@ -121,18 +123,18 @@ export const Cell: React.FC<CellProps> = ({
 
   return (
     <motion.div
-      layout
+      layout={!isDownloading}
       onClick={(e) => { e.stopPropagation(); onCellClick?.(id); }}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
+      initial={isDownloading ? false : { scale: 0 }}
+      animate={isDownloading ? false : { scale: 1 }}
       title={getCellTooltipText(id, activeText, config)}
-      whileHover={{ 
+      whileHover={isDownloading ? undefined : { 
         scale: 1.25, 
         filter: "brightness(1.15)", 
         zIndex: 5,
         transition: { type: "spring", stiffness: 450, damping: 15 }
       }}
-      whileTap={{ scale: 0.88 }}
+      whileTap={isDownloading ? undefined : { scale: 0.88 }}
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -152,12 +154,9 @@ export const Cell: React.FC<CellProps> = ({
       }}
     >
       <span style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: 'inline-block',
         width: '100%',
-        height: '100%',
-        lineHeight: 1,
+        lineHeight: `${size}px`,
         textAlign: 'center',
         fontVariantNumeric: 'tabular-nums'
       }}>

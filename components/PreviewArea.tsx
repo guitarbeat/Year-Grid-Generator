@@ -12,6 +12,7 @@ interface PreviewAreaProps {
   canRedo?: boolean;
   onUndo?: () => void;
   onRedo?: () => void;
+  isDownloading?: boolean;
 }
 
 const PreviewArea: React.FC<PreviewAreaProps> = ({ 
@@ -22,7 +23,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   canUndo = false,
   canRedo = false,
   onUndo = () => {},
-  onRedo = () => {}
+  onRedo = () => {},
+  isDownloading = false
 }) => {
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -205,7 +207,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
         }}
       >
-        <YearGrid config={config} domRef={gridRef} onCellClick={onCellClick} />
+        <YearGrid config={config} domRef={gridRef} onCellClick={onCellClick} isDownloading={isDownloading} />
       </div>
     </main>
   );
