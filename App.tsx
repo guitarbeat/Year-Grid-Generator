@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import PreviewArea from './components/PreviewArea';
 import YearGrid from './components/YearGrid';
-import { AppConfig } from './types';
+import { AppConfig, AppColors } from './types';
 import html2canvas from 'html2canvas';
 import { DynamicIslandTOC } from './components/ui/dynamic-island-toc';
 import { MotionConfig } from 'motion/react';
@@ -85,12 +85,187 @@ const DEFAULT_CONFIG: AppConfig = {
 };
 
 // --- URL Helpers ---
+const KEY_MAP: Record<string, string> = {
+  date: 'a',
+  mode: 'b',
+  granularity: 'c',
+  itemsPerRow: 'd',
+  isMondayFirst: 'e',
+  showYearLabel: 'f',
+  dotSize: 'g',
+  gap: 'h',
+  radius: 'i',
+  fontSize: 'j',
+  linkFontDotSize: 'k',
+  fontFamily: 'l',
+  colors: 'm',
+  transparentBg: 'n',
+  monthsToShow: 'o',
+  monthsPerRow: 'p',
+  monthOffset: 'q',
+  showDayNumbers: 'r',
+  keepCellShapeWithNumbers: 's',
+  showSideDayAxis: 't',
+  showWeekNumbers: 'u',
+  showMonthNumbers: 'v',
+  showMonthLabels: 'w',
+  showMonthAxis: 'x',
+  showWeekdayAxis: 'y',
+  highlightWeekends: 'z',
+  dimPastDays: 'A',
+  dimPastDaysStrength: 'B',
+  showStats: 'C',
+  showActiveLabel: 'D',
+  activeLabelFormat: 'E',
+  startFromJan: 'F',
+  groupBy: 'G',
+  showSeasonLabels: 'H',
+  seasonsSideBySide: 'I',
+  anchorTodayToRealTime: 'J',
+  blockAlignment: 'K',
+  isLifeMode: 'L',
+  birthDate: 'M',
+  lifeExpectancy: 'N',
+  lifeGranularity: 'O',
+  showLifeStats: 'P',
+  showQiQuotes: 'Q',
+  quotesCategory: 'R',
+  selectedQuoteId: 'S',
+  customQuoteText: 'T',
+  showHeaderPlugin: 'U',
+  labelRotation: 'V',
+  customTitle: 'W',
+  assetFormat: 'X',
+  density: 'Y',
+  resolutionScale: 'Z',
+  overrides: '_',
+};
+
+const COLOR_MAP: Record<string, string> = {
+  bg: 'bg',
+  text: 'tx',
+  empty: 'em',
+  fill: 'fi',
+  pastDay: 'pd',
+  futureDay: 'fd',
+  today: 'to',
+  significant: 'sg',
+  weekend: 'wk',
+  stats: 'st',
+};
+
+// Create reverse maps for decoding
+const REV_KEY_MAP: Record<string, keyof AppConfig> = {};
+for (const [k, v] of Object.entries(KEY_MAP)) {
+  REV_KEY_MAP[v] = k as keyof AppConfig;
+}
+
+const REV_COLOR_MAP: Record<string, keyof AppColors> = {};
+for (const [k, v] of Object.entries(COLOR_MAP)) {
+  REV_COLOR_MAP[v] = k as keyof AppColors;
+}
+
+const serializeDiff = (diff: Partial<AppConfig>): any => {
+  const result: any = {};
+  for (const k of Object.keys(diff) as Array<keyof AppConfig>) {
+    const shortKey = KEY_MAP[k] || k;
+    if (k === 'colors' && diff.colors) {
+      const colorObj: any = {};
+      const colorsRef = diff.colors as any;
+      for (const ck of Object.keys(colorsRef)) {
+        const shortColKey = COLOR_MAP[ck] || ck;
+        let val = colorsRef[ck];
+        if (typeof val === 'string' && val.startsWith('#')) {
+          val = val.substring(1);
+        }
+        colorObj[shortColKey] = val;
+      }
+      result[shortKey] = colorObj;
+    } else if (k === 'overrides' && diff.overrides) {
+      const keys = Object.keys(diff.overrides);
+      result[shortKey] = keys.map(id => id.startsWith('day-') ? id.slice(4) : id);
+    } else {
+      result[shortKey] = diff[k];
+    }
+  }
+  return result;
+};
+
+const deserializeDiff = (compressed: any): Partial<AppConfig> => {
+  const result: any = {};
+  for (const k of Object.keys(compressed)) {
+    const longKey = REV_KEY_MAP[k] || k;
+    if (longKey === 'colors') {
+      const colorObj: any = {};
+      const compressedColors = compressed[k] || {};
+      for (const ck of Object.keys(compressedColors)) {
+        const longColKey = REV_COLOR_MAP[ck] || ck;
+        let val = compressedColors[ck];
+        if (typeof val === 'string' && /^[0-9A-Fa-f]{3,8}$/.test(val)) {
+          val = '#' + val;
+        }
+        colorObj[longColKey] = val;
+      }
+      result[longKey] = colorObj;
+    } else if (longKey === 'overrides') {
+      const arr = compressed[k];
+      const overridesObj: Record<string, string> = {};
+      if (Array.isArray(arr)) {
+        for (const rawId of arr) {
+          const id = (rawId.split('-').length >= 3 && !rawId.startsWith('day-')) ? `day-${rawId}` : rawId;
+          overridesObj[id] = 'significant';
+        }
+      }
+      result[longKey] = overridesObj;
+    } else {
+      result[longKey] = compressed[k];
+    }
+  }
+  return result;
+};
+
+const getDiffConfig = (config: AppConfig): Partial<AppConfig> => {
+  const diff: any = {};
+  for (const key of Object.keys(config) as Array<keyof AppConfig>) {
+    if (key === 'colors') {
+      const colorDiff: any = {};
+      const currentColors = config.colors || {};
+      const defaultColors = DEFAULT_CONFIG.colors || {};
+      for (const ck of Object.keys(currentColors) as Array<keyof typeof currentColors>) {
+        if (currentColors[ck] !== defaultColors[ck]) {
+          colorDiff[ck] = currentColors[ck];
+        }
+      }
+      if (Object.keys(colorDiff).length > 0) {
+        diff.colors = colorDiff;
+      }
+    } else if (key === 'overrides') {
+      const currentOverrides = config.overrides || {};
+      const defaultOverrides = DEFAULT_CONFIG.overrides || {};
+      if (JSON.stringify(currentOverrides) !== JSON.stringify(defaultOverrides)) {
+        diff.overrides = currentOverrides;
+      }
+    } else {
+      if (config[key] !== DEFAULT_CONFIG[key]) {
+        diff[key] = config[key];
+      }
+    }
+  }
+  return diff;
+};
+
 const encodeConfig = (config: AppConfig): string => {
   try {
-    return btoa(encodeURIComponent(JSON.stringify(config)));
+    const diff = getDiffConfig(config);
+    const compressed = serializeDiff(diff);
+    return btoa(unescape(encodeURIComponent(JSON.stringify(compressed))));
   } catch (e) {
     console.warn('Failed to encode config', e);
-    return '';
+    try {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+    } catch {
+      return '';
+    }
   }
 };
 
@@ -98,17 +273,28 @@ const decodeConfig = (str: string): Partial<AppConfig> | null => {
   try {
     if (!str) return null;
     const trimmed = str.trim();
-    // Try to detect URL-encoded or raw JSON directly first
+    let rawParsed: any = null;
+    
     if (trimmed.startsWith('%7B') || trimmed.startsWith('{')) {
-      return JSON.parse(decodeURIComponent(trimmed));
+      rawParsed = JSON.parse(decodeURIComponent(trimmed));
+    } else {
+      try {
+        rawParsed = JSON.parse(decodeURIComponent(escape(atob(trimmed))));
+      } catch {
+        try {
+          rawParsed = JSON.parse(decodeURIComponent(atob(trimmed)));
+        } catch {
+          rawParsed = JSON.parse(decodeURIComponent(trimmed));
+        }
+      }
     }
-    // Otherwise, try base64 decoding
-    try {
-      return JSON.parse(decodeURIComponent(atob(trimmed)));
-    } catch {
-      // Fallback to plain decodeURIComponent if atob fails
-      return JSON.parse(decodeURIComponent(trimmed));
+    
+    // Check if it's the new compressed format
+    const hasShortKeys = Object.keys(rawParsed).some(k => k.length <= 2);
+    if (hasShortKeys) {
+      return deserializeDiff(rawParsed);
     }
+    return rawParsed;
   } catch (e) {
     console.warn('Failed to decode config from URL', e);
     return null;

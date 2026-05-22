@@ -29,6 +29,53 @@ const Sidebar: React.FC<SidebarProps> = ({
     "config",
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [shareText, setShareText] = useState("SHARE LINK");
+
+  const fallbackCopy = (text: string) => {
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (successful) {
+        setShareText("COPIED!");
+      } else {
+        setShareText("TRY MANUAL COPY");
+      }
+    } catch (err) {
+      console.error('Fallback copy failed', err);
+      setShareText("TRY MANUAL COPY");
+    }
+    setTimeout(() => setShareText("SHARE LINK"), 1800);
+  };
+
+  const handleShare = () => {
+    try {
+      const url = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url)
+          .then(() => {
+            setShareText("COPIED!");
+            setTimeout(() => setShareText("SHARE LINK"), 1500);
+          })
+          .catch((err) => {
+            console.error("Clipboard API failed: ", err);
+            fallbackCopy(url);
+          });
+      } else {
+        fallbackCopy(url);
+      }
+    } catch {
+      setShareText("ERROR");
+      setTimeout(() => setShareText("SHARE LINK"), 1500);
+    }
+  };
 
   return (
     <>
@@ -141,13 +188,22 @@ const Sidebar: React.FC<SidebarProps> = ({
               disabled={isDownloading}
               className="w-full h-11"
             />
-            <Button
-              variant="secondary"
-              icon="restart_alt"
-              label="RESET"
-              onClick={resetConfig}
-              className="w-full h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-805"
-            />
+            <div className="flex gap-2 w-full">
+              <Button
+                variant="secondary"
+                icon="share"
+                label={shareText}
+                onClick={handleShare}
+                className="flex-1 h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-800"
+              />
+              <Button
+                variant="secondary"
+                icon="restart_alt"
+                label="RESET"
+                onClick={resetConfig}
+                className="flex-1 h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-805"
+              />
+            </div>
           </div>
         </div>
       </aside>
