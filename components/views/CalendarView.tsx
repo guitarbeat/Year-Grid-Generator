@@ -6,6 +6,32 @@ import { getDayColor } from '../../utils/colorUtils';
 import { getWeekNumber, groupMonthsBySeason } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.03,
+      delayChildren: 0.02
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.97 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 350, damping: 25 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95, 
+    transition: { duration: 0.15 } 
+  }
+};
+
 export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick }) => {
   const {
     mode,
@@ -52,9 +78,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
       <motion.div 
         layout
         key={`${m.year}-${m.month}`} 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9 }}
+        variants={itemVariants}
         style={{ 
           display: 'flex', 
           flexDirection: mode === 'rows' ? 'row' : 'column', 
@@ -214,14 +238,20 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
                 {g.season}
               </motion.div>
             )}
-            <motion.div layout style={{
-              display: 'grid',
-              gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
-              gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-              width: '100%',
-              justifyItems: 'center',
-              alignItems: blockAlignment === 'top' ? 'start' : 'center'
-            }}>
+            <motion.div 
+              layout 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
+                gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+                width: '100%',
+                justifyItems: 'center',
+                alignItems: blockAlignment === 'top' ? 'start' : 'center'
+              }}
+            >
               <AnimatePresence mode="popLayout">
                 {g.months.map(m => renderMonthItem(m))}
               </AnimatePresence>
@@ -233,14 +263,20 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
   }
 
   return (
-    <motion.div layout style={{
-      display: 'grid',
-      gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
-      gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-      width: '100%',
-      justifyItems: 'center',
-      alignItems: blockAlignment === 'top' ? 'start' : 'center'
-    }}>
+    <motion.div 
+      layout 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
+        gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+        width: '100%',
+        justifyItems: 'center',
+        alignItems: blockAlignment === 'top' ? 'start' : 'center'
+      }}
+    >
       <AnimatePresence mode="popLayout">
         {months.map((m) => renderMonthItem(m))}
       </AnimatePresence>

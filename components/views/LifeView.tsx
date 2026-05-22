@@ -2,6 +2,31 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.005,
+      delayChildren: 0.02
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { type: "spring" as const, stiffness: 450, damping: 30 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.97, 
+    transition: { duration: 0.1 } 
+  }
+};
 import { getDimmedColor } from '../../utils/colorUtils';
 
 export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick }) => {
@@ -136,7 +161,14 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
       </motion.div>
 
       {/* Main Matrix Grid wrapper */}
-      <motion.div layout className="flex flex-col gap-0.5 select-none" style={{ gap: `${gap}px` }}>
+      <motion.div 
+        layout 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-col gap-0.5 select-none" 
+        style={{ gap: `${gap}px` }}
+      >
         {/* Top Header Row of column indices (optional labels, spaced out) */}
         <motion.div layout className="flex items-center font-mono opacity-40 text-[7px]" style={{ gap: `${gap}px` }}>
           {/* Spacer for row numbering width */}
@@ -164,9 +196,7 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
             return (
               <motion.div 
                 layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                variants={itemVariants}
                 key={r.year} 
                 className="flex items-center" 
                 style={{ gap: `${gap}px` }}

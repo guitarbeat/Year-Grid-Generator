@@ -33,7 +33,7 @@ export const StatsBar: React.FC<StatsBarProps> = ({ config, targetDate, currentY
   const percentPassed = Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
 
   return (
-    <div className="w-full space-y-3 pt-4 border-t border-white/5">
+    <div className="w-full space-y-4 pt-4 border-t border-white/5">
       <div className="flex justify-between items-end gap-10">
         <div className="flex flex-col items-start">
           <span style={{ fontSize: `${fontSize * 0.8}px`, opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
@@ -51,6 +51,32 @@ export const StatsBar: React.FC<StatsBarProps> = ({ config, targetDate, currentY
           transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
           style={{ height: '100%', background: colors.stats }}
         />
+      </div>
+
+      {/* Aesthetic Legend Block */}
+      <div className="flex flex-wrap items-center justify-center sm:justify-between gap-x-4 gap-y-2 text-[9px] uppercase tracking-wider font-mono opacity-60 pt-2 select-none text-zinc-400">
+        <div className="flex items-center gap-1.5">
+          <div style={{ width: 8, height: 8, backgroundColor: colors.pastDay, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
+          <span>Lived</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="animate-pulse" style={{ width: 8, height: 8, backgroundColor: colors.today, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
+          <span>Today</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div style={{ width: 8, height: 8, backgroundColor: colors.futureDay, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
+          <span>Future</span>
+        </div>
+        {config.highlightWeekends && (
+          <div className="flex items-center gap-1.5">
+            <div style={{ width: 8, height: 8, backgroundColor: colors.weekend, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
+            <span>Weekend</span>
+          </div>
+        )}
+        <div className="flex items-center gap-1.5">
+          <div style={{ width: 8, height: 8, backgroundColor: colors.significant, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
+          <span>Milestone</span>
+        </div>
       </div>
     </div>
   );

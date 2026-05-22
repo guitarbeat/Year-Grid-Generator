@@ -8,9 +8,22 @@ interface PreviewAreaProps {
   gridRef: React.RefObject<HTMLDivElement>;
   onToggleSidebar?: () => void;
   onCellClick?: (id: string) => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
-const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSidebar, onCellClick }) => {
+const PreviewArea: React.FC<PreviewAreaProps> = ({ 
+  config, 
+  gridRef, 
+  onToggleSidebar, 
+  onCellClick,
+  canUndo = false,
+  canRedo = false,
+  onUndo = () => {},
+  onRedo = () => {}
+}) => {
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -113,50 +126,81 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ config, gridRef, onToggleSide
         data-toc 
         data-toc-depth="2" 
         data-toc-title={`PREVIEW: ${config.mode.toUpperCase()}`}
-        className="absolute top-6 left-6 flex items-center gap-4 z-10 select-none"
+        className="absolute top-6 left-6 flex items-center gap-4 z-10 select-none animate-fade-in"
       >
         <button 
           onClick={onToggleSidebar}
-          className="md:hidden w-10 h-10 bg-[#161616] rounded flex items-center justify-center border border-[#222] text-[#ea580c] pointer-events-auto shadow-xl transition-all active:scale-95"
+          className="md:hidden w-10 h-10 bg-[#0c0c0f]/80 backdrop-blur-md rounded-xl flex items-center justify-center border border-zinc-805 text-[#ea580c] pointer-events-auto shadow-xl transition-all active:scale-95 duration-150"
         >
           <span className="material-symbols-outlined">menu</span>
         </button>
-        <div className="flex flex-col gap-1 pointer-events-none md:hidden">
-          <span className="text-[14px] font-black tracking-[0.2em] text-white">MEMENTO</span>
-          <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#ea580c]">{config.mode} view</span>
+        <div className="flex flex-col gap-0.5 pointer-events-none md:hidden text-left">
+          <span className="text-[13px] font-extrabold tracking-[0.2em] text-white">MEMENTO</span>
+          <span className="text-[7.5px] font-mono uppercase tracking-[0.2em] text-[#ea580c]">{config.mode} view</span>
         </div>
-        <div className="hidden md:flex flex-col gap-1 pointer-events-none opacity-40">
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em]">{config.mode} view</span>
-          <span className="text-[8px] font-mono uppercase tracking-[0.2em]">{Math.round(zoom * 100)}% zoom</span>
+        <div className="hidden md:flex flex-col gap-0.5 pointer-events-none opacity-40 text-left select-none">
+          <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-300">{config.mode} view</span>
+          <span className="text-[7.5px] font-mono uppercase tracking-[0.2em] text-zinc-400 tabular-nums">{Math.round(zoom * 100)}% zoom</span>
         </div>
       </div>
 
-      {/* Zoom Controls */}
-      <div className="absolute bottom-6 right-6 flex gap-2 md:gap-1.5 z-10 select-none" onMouseDown={e => e.stopPropagation()}>
+      {/* Undo/Redo History HUD Controls */}
+      <div 
+        className="absolute top-6 right-6 flex items-center gap-1 p-1 bg-[#09090b]/80 backdrop-blur-md border border-zinc-800/60 rounded-xl z-20 select-none shadow-[0_12px_40px_-8px_rgba(0,0,0,0.85)] animate-fade-in"
+        onMouseDown={e => e.stopPropagation()}
+      >
+        <Button 
+          variant="action"
+          icon="undo"
+          onClick={onUndo}
+          disabled={!canUndo}
+          title="Undo change (Ctrl+Z)"
+          className="!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none disabled:!opacity-20 text-zinc-400 hover:text-white"
+        />
+        <div className="w-[1px] h-4 bg-zinc-800/80" />
+        <Button 
+          variant="action"
+          icon="redo"
+          onClick={onRedo}
+          disabled={!canRedo}
+          title="Redo change (Ctrl+Y / Ctrl+Shift+Z)"
+          className="!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none disabled:!opacity-20 text-zinc-400 hover:text-white"
+        />
+      </div>
+
+      {/* Zoom Controls HUD Deck */}
+      <div 
+        className="absolute bottom-6 right-6 flex items-center gap-1 p-1 bg-[#09090b]/80 backdrop-blur-md border border-zinc-800/60 rounded-xl z-10 select-none shadow-[0_12px_40px_-8px_rgba(0,0,0,0.85)]" 
+        onMouseDown={e => e.stopPropagation()}
+      >
         <Button 
           variant="action"
           icon="remove"
           onClick={() => handleZoom(-0.1)}
-          className="shadow-2xl"
+          className="!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none text-zinc-400"
         />
+        <div className="w-[1px] h-4 bg-zinc-800/80" />
         <Button 
           variant="action"
-          className="w-auto px-6 md:px-4 text-[11px] md:text-[10px] shadow-2xl"
-          label="Reset"
+          className="w-auto !h-9 px-4 text-[10px] !bg-transparent hover:!bg-white/5 !border-0 !shadow-none text-zinc-300 hover:text-white"
+          label="Fit View"
           onClick={fitToScreen}
         />
+        <div className="w-[1px] h-4 bg-zinc-800/80" />
         <Button 
           variant="action"
           icon="add"
           onClick={() => handleZoom(0.1)}
-          className="shadow-2xl"
+          className="!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none text-zinc-400"
         />
       </div>
 
       {/* Render Content */}
       <div 
         ref={containerRef}
-        className="transition-transform duration-300 ease-out origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer"
+        className={`origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer ${
+          isPanning ? '' : 'transition-transform duration-300 ease-out'
+        }`}
         style={{ 
           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
         }}

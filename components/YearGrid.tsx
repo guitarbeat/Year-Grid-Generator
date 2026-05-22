@@ -81,6 +81,33 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
+      {/* Background Watermark Year Label */}
+      {config.showYearLabel && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+          zIndex: 0,
+          overflow: 'hidden',
+          userSelect: 'none'
+        }}>
+          <span style={{
+            fontSize: `${config.fontSize * 18}px`,
+            fontWeight: 900,
+            fontFamily: 'monospace',
+            opacity: 0.024,
+            letterSpacing: '-0.05em',
+            color: config.colors.text,
+            lineHeight: 1
+          }}>
+            {currentYear}
+          </span>
+        </div>
+      )}
+
       {/* 1. Header Plugin (Memento Mori / Theme Title) */}
       {config.showHeaderPlugin && (
         <div style={{
@@ -98,7 +125,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             textTransform: 'uppercase',
             letterSpacing: '0.22em',
             color: config.colors.text
-          }}>
+          }} className="text-balance">
             MEMENTO MORI
           </h1>
           <span style={{
@@ -107,7 +134,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             letterSpacing: '0.12em',
             fontFamily: 'monospace',
             textTransform: 'uppercase'
-          }}>
+          }} className="text-balance">
             Remember you must die • Live with intention
           </span>
         </div>
@@ -120,7 +147,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
           letterSpacing: '-0.02em',
           marginBottom: `${config.gap * 2}px`,
           alignSelf: 'flex-start'
-        }}>
+        }} className="text-balance">
           {config.customTitle}
         </h2>
       )}
@@ -152,7 +179,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             width: '100%',
             boxSizing: 'border-box'
           }}
-          className="hover:bg-white/[0.02] active:scale-[0.99]"
+          className="hover:bg-white/[0.02] active:scale-[0.99] group"
         >
           <p style={{ 
             fontSize: `${config.fontSize * 1.1}px`, 
@@ -161,7 +188,7 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
             color: config.colors.text,
             opacity: 0.8,
             marginBottom: `${config.gap * 1.5}px`
-          }}>
+          }} className="text-pretty">
             "{activeQuote.text}"
           </p>
           <span style={{ 

@@ -63,12 +63,60 @@ export const Cell: React.FC<CellProps> = ({
     return fallbackText;
   };
 
+  const getCellTooltipText = (id: string, activeText: string, config: AppConfig) => {
+    if (id.startsWith('life-')) {
+      return activeText;
+    }
+    
+    const parts = id.split('-');
+    if (parts[0] === 'day') {
+      const year = parseInt(parts[1]);
+      const month = parseInt(parts[2]);
+      const day = parseInt(parts[3]);
+      const d = new Date(year, month, day);
+      if (!isNaN(d.getTime())) {
+        const fullDate = d.toLocaleDateString('default', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const overrideValue = config.overrides[id];
+        if (overrideValue) {
+          return `${fullDate} • Category: ${overrideValue.toUpperCase()}`;
+        }
+        return fullDate;
+      }
+    } else if (parts[0] === 'week') {
+      const year = parseInt(parts[1]);
+      const weekNum = parseInt(parts[2]);
+      const d = new Date(year, 0, 1 + (weekNum - 1) * 7);
+      const monthName = d.toLocaleDateString('default', { month: 'long' });
+      const overrideValue = config.overrides[id];
+      const base = `Week ${weekNum}, ${year} (${monthName})`;
+      return overrideValue ? `${base} • Category: ${overrideValue.toUpperCase()}` : base;
+    } else if (parts[0] === 'month') {
+      const year = parseInt(parts[1]);
+      const month = parseInt(parts[2]);
+      const d = new Date(year, month, 1);
+      if (!isNaN(d.getTime())) {
+        const monthYear = d.toLocaleDateString('default', { year: 'numeric', month: 'long' });
+        const overrideValue = config.overrides[id];
+        return overrideValue ? `${monthYear} • Category: ${overrideValue.toUpperCase()}` : monthYear;
+      }
+    }
+    return activeText || undefined;
+  };
+
   return (
     <motion.div
       layout
       onClick={(e) => { e.stopPropagation(); onCellClick?.(id); }}
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
+      title={getCellTooltipText(id, activeText, config)}
+      whileHover={{ 
+        scale: 1.25, 
+        filter: "brightness(1.15)", 
+        zIndex: 5,
+        transition: { type: "spring", stiffness: 450, damping: 15 }
+      }}
+      whileTap={{ scale: 0.88 }}
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -80,7 +128,8 @@ export const Cell: React.FC<CellProps> = ({
         fontSize: `${innerFontSize}px`,
         color: textColor,
         fontWeight: isLarge ? 900 : 700,
-        position: 'relative'
+        position: 'relative',
+        cursor: onCellClick ? 'pointer' : 'default'
       }}
     >
       {renderLabelOverlay()}

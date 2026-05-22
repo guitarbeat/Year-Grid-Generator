@@ -2,6 +2,31 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.02
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: { 
+    opacity: 1, 
+    x: 0, 
+    transition: { type: "spring" as const, stiffness: 350, damping: 25 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95, 
+    transition: { duration: 0.15 } 
+  }
+};
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getDayColor } from '../../utils/colorUtils';
 import { getWeekNumber } from '../../utils/dateUtils';
@@ -34,16 +59,20 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
   const currentMonth = anchorDate.getMonth();
 
   return (
-    <motion.div layout style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 4}px` }}>
+    <motion.div 
+      layout 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 4}px` }}
+    >
       <AnimatePresence mode="popLayout">
         {months.map(m => {
           const hasWeekdayAxis = granularity === 'day' && showWeekdayAxis;
           return (
             <motion.div 
               layout
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              variants={itemVariants}
               key={`${m.year}-${m.month}`} 
               style={{ display: 'flex', gap: `${gap * 2}px`, alignItems: 'center' }}
             >

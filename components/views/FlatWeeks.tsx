@@ -2,6 +2,32 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.02,
+      delayChildren: 0.02
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 350, damping: 25 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95, 
+    transition: { duration: 0.15 } 
+  }
+};
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getWeekNumber, groupMonthsBySeason } from '../../utils/dateUtils';
 
@@ -126,20 +152,24 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
   // If showMonthAxis is on, we'll use a grouped approach to show month labels
   if (showMonthAxis) {
     return (
-      <motion.div layout style={{ 
-        display: 'grid', 
-        gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, auto)`,
-        gap: `${gap * 4}px`,
-        justifyContent: 'center',
-        alignItems: blockAlignment === 'top' ? 'start' : 'center'
-      }}>
+      <motion.div 
+        layout 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, auto)`,
+          gap: `${gap * 4}px`,
+          justifyContent: 'center',
+          alignItems: blockAlignment === 'top' ? 'start' : 'center'
+        }}
+      >
         <AnimatePresence mode="popLayout">
           {months.map(m => (
             <motion.div 
               layout
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
+              variants={itemVariants}
               key={`${m.year}-${m.month}`} 
               style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}
              >
@@ -175,16 +205,26 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
   const cols = mode === 'columns' ? 1 : mode === 'rows' ? 52 : itemsPerRow;
 
   return (
-    <motion.div layout style={{
-      display: 'grid',
-      gridTemplateColumns: `repeat(${cols}, auto)`,
-      gap: `${gap}px`,
-      justifyContent: 'center',
-      alignItems: blockAlignment === 'top' ? 'start' : 'center'
-    }}>
+    <motion.div 
+      layout 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, auto)`,
+        gap: `${gap}px`,
+        justifyContent: 'center',
+        alignItems: blockAlignment === 'top' ? 'start' : 'center'
+      }}
+    >
       <AnimatePresence mode="popLayout">
         {allWeeks.map((w, i) => (
-          <motion.div layout key={`${w.identifier}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div 
+            layout 
+            key={`${w.identifier}-${i}`} 
+            variants={itemVariants}
+          >
             <Cell
               id={`week-${w.year}-${w.weekNum}`}
               color={w.color}

@@ -42,21 +42,21 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <aside
         className={`
-        fixed md:relative inset-y-0 left-0 w-80 flex-shrink-0 bg-surface border-r border-border flex flex-col h-full z-40 transition-transform duration-300 shadow-2xl overflow-hidden
+        fixed md:relative inset-y-0 left-0 w-80 flex-shrink-0 bg-[#0c0c0f]/98 border-r border-zinc-800/60 flex flex-col h-full z-40 transition-transform duration-300 shadow-2xl overflow-hidden
         ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}
       >
         {/* Header */}
-        <div className="p-6 border-b border-border flex justify-between items-center bg-surface">
+        <div className="p-5 pb-4 border-b border-zinc-800/50 flex justify-between items-center bg-[#0d0d11]">
           <div className="flex items-center gap-2">
             <h1 
               id="sidebar-panel-header" 
               data-toc 
               data-toc-depth="2" 
               data-toc-title={`WORKSPACE: ${activeTab.toUpperCase()}`}
-              className="text-2xl font-black tracking-[0.25em] uppercase text-white flex items-center gap-3 drop-shadow-md"
+              className="text-xl font-extrabold tracking-[0.2em] uppercase text-white flex items-center gap-2 drop-shadow-md select-none font-sans"
             >
-              <span className="material-symbols-outlined text-[#ea580c] !text-[32px]">
+              <span className="material-symbols-outlined text-[#ea580c] !text-[28px] animate-pulse">
                 hourglass_empty
               </span>
               MEMENTO
@@ -67,17 +67,17 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Close Button Mobile */}
             <button
               onClick={onToggle}
-              className="md:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white"
+              className="md:hidden w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
         </div>
 
         {/* Controls - UNIFIED */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-[#07070a]/90">
           {/* Premium Tab Navigation Slider */}
-          <div className="p-2 border-b border-border/40 bg-[#08080a] sticky top-0 z-20 flex gap-1">
+          <div className="p-2 border-b border-zinc-800/40 bg-[#0a0a0c] sticky top-0 z-20 flex gap-1">
             {(["config", "style", "layout"] as const).map((tab) => {
               const label = tab === "config" ? "Setup" : tab === "style" ? "Aesthetics" : "Overlays";
               const isSelected = activeTab === tab;
@@ -86,14 +86,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                   key={tab}
                   id={`tab-btn-${tab}`}
                   onClick={() => setActiveTab(tab)}
-                  className={`relative flex-1 py-2 text-[9px] font-mono tracking-widest uppercase transition-colors z-10 font-bold ${
-                    isSelected ? "text-[#ea580c]" : "text-gray-500 hover:text-gray-300"
+                  className={`relative flex-1 py-1.5 text-[9px] font-mono tracking-widest uppercase transition-colors z-10 font-bold ${
+                    isSelected ? "text-[#ea580c]" : "text-zinc-500 hover:text-zinc-200"
                   }`}
                 >
                   {isSelected && (
                     <motion.div
                       layoutId="sidebarActiveTabIndicator"
-                      className="absolute inset-0 bg-[#ea580c]/10 border border-[#ea580c]/25 rounded-md -z-10 shadow-[0_2px_10px_-4px_rgba(234,88,12,0.15)]"
+                      className="absolute inset-0 bg-[#ea580c]/8 border border-[#ea580c]/15 rounded-md -z-10 shadow-[0_2px_10px_-4px_rgba(234,88,12,0.15)]"
                       transition={{ type: "spring", stiffness: 350, damping: 28 }}
                     />
                   )}
@@ -104,35 +104,35 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Quick Find Options Filter */}
-          <div className="px-4 py-2 bg-[#0a0a0c] border-b border-border/40">
-            <div className="relative flex items-center border border-border bg-[#050507] rounded-md px-2 focus-within:border-accent/50 transition-all">
-              <span className="material-symbols-outlined text-[16px] text-gray-500 shrink-0 select-none">search</span>
+          <div className="px-4 py-2 bg-[#09090c] border-b border-[#181820]/45">
+            <div className="relative flex items-center border border-zinc-800/80 bg-[#050508]/60 rounded-lg px-2.5 focus-within:border-accent/50 transition-all shadow-inner">
+              <span className="material-symbols-outlined text-[15px] text-zinc-500 shrink-0 select-none">search</span>
               <input
                 type="text"
                 placeholder="FIND SETTING..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white placeholder-gray-600 outline-none"
+                className="w-full bg-transparent px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white placeholder-zinc-700 outline-none"
               />
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery("")}
-                  className="text-gray-500 hover:text-gray-300 transition-colors flex items-center"
+                  className="text-zinc-500 hover:text-zinc-350 transition-colors flex items-center"
                 >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
+                  <span className="material-symbols-outlined text-[15px]">close</span>
                 </button>
               )}
             </div>
           </div>
 
-          <div className="flex-1 px-4 divide-y divide-border/40 pb-20">
+          <div className="flex-1 px-4 divide-y divide-zinc-800/30 pb-20">
             {activeTab === "config" && <SetupTab config={config} setConfig={setConfig} searchQuery={searchQuery} />}
             {activeTab === "style" && <AestheticsTab config={config} setConfig={setConfig} searchQuery={searchQuery} />}
             {activeTab === "layout" && <OverlaysTab config={config} setConfig={setConfig} searchQuery={searchQuery} />}
           </div>
 
           {/* Persistent Footer */}
-          <div className="p-4 bg-[#0a0a0a] border-t border-border flex flex-col gap-2 sticky bottom-0">
+          <div className="p-4 bg-[#09090c]/98 border-t border-zinc-800/60 flex flex-col gap-1.5 sticky bottom-0 z-10 shadow-lg">
             <Button
               variant="primary"
               icon="download"
@@ -146,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               icon="restart_alt"
               label="RESET"
               onClick={resetConfig}
-              className="w-full h-8 text-[10px]"
+              className="w-full h-8 text-[9px] font-mono font-medium !py-1 flex items-center justify-center border-dashed border-zinc-805"
             />
           </div>
         </div>

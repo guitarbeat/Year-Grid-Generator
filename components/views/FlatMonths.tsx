@@ -3,6 +3,32 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { groupMonthsBySeason } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.03
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 350, damping: 25 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95, 
+    transition: { duration: 0.15 } 
+  }
+};
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getDimmedColor } from '../../utils/colorUtils';
 
@@ -98,20 +124,31 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
                 {g.season}
               </motion.div>
             )}
-            <motion.div layout style={{ 
-              display: 'grid', 
-              gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${g.months.length}, auto)`,
-              gap: `${gap * 4}px`, 
-              justifyContent: 'center',
-              alignItems: blockAlignment === 'top' ? 'start' : 'center'
-            }}>
+            <motion.div 
+              layout 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${g.months.length}, auto)`,
+                gap: `${gap * 4}px`, 
+                justifyContent: 'center',
+                alignItems: blockAlignment === 'top' ? 'start' : 'center'
+              }}
+            >
               {g.months.map(m => {
                 const isPast = m.year < currentYear || (m.year === currentYear && m.month < currentMonth);
                 const isToday = m.year === currentYear && m.month === currentMonth;
                 const color = getMonthColor(m.year, m.month, isToday, isPast);
 
                 return (
-                  <motion.div layout key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
+                  <motion.div 
+                    layout 
+                    key={`${m.year}-${m.month}`} 
+                    variants={itemVariants}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}
+                  >
                     {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>}
                     <Cell
                       id={`month-${m.year}-${m.month}`}
@@ -138,13 +175,19 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
   }
 
   return (
-    <motion.div layout style={{
-      display: 'grid',
-      gridTemplateColumns: `repeat(${cols}, auto)`,
-      gap: mode === 'grid' ? `${gap * 3}px` : `${gap * 2}px`,
-      justifyContent: 'center',
-      alignItems: blockAlignment === 'top' ? 'start' : 'center'
-    }}>
+    <motion.div 
+      layout 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, auto)`,
+        gap: mode === 'grid' ? `${gap * 3}px` : `${gap * 2}px`,
+        justifyContent: 'center',
+        alignItems: blockAlignment === 'top' ? 'start' : 'center'
+      }}
+    >
       <AnimatePresence mode="popLayout">
         {months.map(m => {
           const isPast = m.year < currentYear || (m.year === currentYear && m.month < currentMonth);
@@ -152,11 +195,10 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
           const color = getMonthColor(m.year, m.month, isToday, isPast);
 
           return (
-            <motion.div layout
+            <motion.div 
+              layout
               key={`${m.year}-${m.month}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
+              variants={itemVariants}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}
              >
               {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>}
