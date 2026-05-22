@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, MotionConfig } from 'motion/react';
 import { AppConfig } from '../types';
 import { useGridData } from '../hooks/useGridData';
@@ -22,8 +22,8 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const targetDate = useMemo(() => {
     const d = new Date(config.date);
     if (isNaN(d.getTime())) return new Date();
-    const [y, m, day] = config.date.split('-').map(Number);
-    return new Date(y, m - 1, day);
+    const parts = config.date.split('-').map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
   }, [config.date]);
 
   const months = useGridData(targetDate, config);

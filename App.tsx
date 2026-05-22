@@ -716,7 +716,7 @@ const App: React.FC = () => {
   // 4. Render Standard Editor
   return (
     <MotionConfig reducedMotion="user">
-      <div className="h-screen flex bg-[#050505] text-white overflow-hidden relative">
+      <div className="h-screen h-[100dvh] flex bg-[#050505] text-white overflow-hidden relative">
         <pwa-install
           manifest-url="/manifest.json"
           name="MEMENTO"

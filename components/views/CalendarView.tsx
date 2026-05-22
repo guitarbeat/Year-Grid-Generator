@@ -258,9 +258,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
   if (groupBy === 'season') {
     const grouped = groupMonthsBySeason(months);
 
-    const gridColsClass = mode === 'columns' 
-      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
-      : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
+    const gridColsClass = 'grid grid-cols-4';
 
     const renderOuterSideAxis = showSideDayAxis && mode === 'columns' && seasonsSideBySide;
     const renderInnerSideAxis = showSideDayAxis && mode === 'columns' && !seasonsSideBySide;
