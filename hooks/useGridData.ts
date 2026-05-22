@@ -37,7 +37,8 @@ export const useGridData = (targetDate: Date, config: AppConfig): MonthData[] =>
     const currentWeekNumber = getWeekNumber(targetDate);
     
     const result: MonthData[] = [];
-    const effectiveOffset = startFromJan ? -currentMonth + (monthOffset * 12) : monthOffset;
+    const seasonShift = config.groupBy === 'season' ? -1 : 0;
+    const effectiveOffset = (startFromJan ? -currentMonth + (monthOffset * 12) : monthOffset) + seasonShift;
     
     for (let i = effectiveOffset; i < effectiveOffset + monthsToShow; i++) {
       let targetMonthIndex = currentMonth + i;
@@ -94,6 +95,7 @@ export const useGridData = (targetDate: Date, config: AppConfig): MonthData[] =>
     colors, 
     dimPastDays, 
     dimPastDaysStrength, 
-    overrides
+    overrides,
+    config.groupBy
   ]);
 };

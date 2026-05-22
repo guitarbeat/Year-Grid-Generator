@@ -43,6 +43,8 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     showWeekdayAxis,
     showMonthNumbers,
     showDayNumbers,
+    keepCellShapeWithNumbers,
+    showSideDayAxis,
     gap,
     fontSize,
     colors,
@@ -151,11 +153,11 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
               <Cell
                 key={`day-${day}`}
                 id={`day-${m.year}-${m.month}-${day}`}
-                color={showDayNumbers ? 'transparent' : color}
+                color={showDayNumbers && !keepCellShapeWithNumbers ? 'transparent' : color}
                 dotSize={dotSize}
                 radius={radius}
                 fontSize={fontSize}
-                textColor={showDayNumbers ? color : colors.bg}
+                textColor={showDayNumbers && !keepCellShapeWithNumbers ? color : colors.bg}
                 isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay)}
                 activeText={getActiveCellText(m.year, m.month, config, day)}
                 fallbackText={showDayNumbers ? day : null}
@@ -187,6 +189,69 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
       </motion.div>
     );
   };
+  
+  const renderSideDayAxisColumn = (isHidden = false) => {
+    return (
+      <div 
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: `${gap * 2}px`,
+          userSelect: 'none',
+          visibility: isHidden ? 'hidden' : 'visible'
+        }}
+      >
+        {showMonthAxis && (
+          <div style={{ 
+            fontSize: `${fontSize * 1.1}px`, 
+            fontWeight: 700, 
+            opacity: 0,
+            pointerEvents: 'none',
+            userSelect: 'none'
+          }}>
+            1
+          </div>
+        )}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: `${gap}px`
+        }}>
+          {Array.from({ length: 31 }).map((_, i) => {
+            const dayNum = i + 1;
+            return (
+              <div
+                key={`side-day-${dayNum}`}
+                style={{
+                  width: `${fontSize * 2.5}px`,
+                  height: `${dotSize}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: `${fontSize * 0.9}px`,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontWeight: 'bold',
+                  opacity: 0.45,
+                  color: colors.text
+                }}
+              >
+                {dayNum}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const chunkedMonths = React.useMemo(() => {
+    const chunks = [];
+    for (let i = 0; i < months.length; i += monthsPerRow) {
+      chunks.push(months.slice(i, i + monthsPerRow));
+    }
+    return chunks;
+  }, [months, monthsPerRow]);
 
   if (groupBy === 'season') {
     const grouped = groupMonthsBySeason(months);
@@ -195,91 +260,174 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
       ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
       : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
 
+    const renderOuterSideAxis = showSideDayAxis && mode === 'columns' && seasonsSideBySide;
+    const renderInnerSideAxis = showSideDayAxis && mode === 'columns' && !seasonsSideBySide;
+
     return (
-      <motion.div 
-        layout
-        className={seasonsSideBySide ? gridColsClass : undefined}
-        style={{ 
-          display: seasonsSideBySide ? 'grid' : 'flex', 
-          flexDirection: seasonsSideBySide ? undefined : 'column', 
-          gap: seasonsSideBySide ? `${gap * 6}px` : `${gap * 10}px`, 
-          width: '100%',
-          alignItems: seasonsSideBySide ? 'start' : (blockAlignment === 'top' ? 'start' : 'center')
-        }}
-      >
-        {grouped.map(g => (
-          <motion.div 
-            layout
-            key={g.season} 
-            style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: `${gap * 4}px`,
-              backgroundColor: `${colors.text}05`,
-              padding: `${gap * 4}px`,
-              borderRadius: `${radius * 2}px`,
-              border: `1px solid ${colors.text}08`,
-              width: '100%',
-              boxSizing: 'border-box'
-            }}
-          >
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'start',
+        gap: `${gap * 4}px`,
+        width: '100%',
+        justifyContent: 'center'
+      }}>
+        {renderOuterSideAxis && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            paddingTop: `${gap * 4 + 1}px`,
+            paddingBottom: `${gap * 4 + 1}px`,
+            boxSizing: 'border-box'
+          }}>
             {showSeasonLabels && (
-              <motion.div layout style={{ 
-                fontSize: `${fontSize * 1.3}px`, 
-                fontWeight: 900, 
-                letterSpacing: '0.2em', 
-                opacity: 0.35,
-                textAlign: 'center',
-                borderBottom: `1px solid ${colors.text}15`,
+              <div style={{
+                fontSize: `${fontSize * 1.3}px`,
+                fontWeight: 900,
+                opacity: 0,
+                pointerEvents: 'none',
+                userSelect: 'none',
                 paddingBottom: `${gap * 2.5}px`,
                 marginBottom: `${gap * 3}px`,
+                borderBottom: `1.5px solid transparent`,
                 textTransform: 'uppercase'
               }}>
-                {g.season}
-              </motion.div>
+                SPACER
+              </div>
             )}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: `${gap * 4}px`
+            }}>
+              {renderSideDayAxisColumn(false)}
+            </div>
+          </div>
+        )}
+
+        <motion.div 
+          layout
+          className={seasonsSideBySide ? gridColsClass : undefined}
+          style={{ 
+            display: seasonsSideBySide ? 'grid' : 'flex', 
+            flexDirection: seasonsSideBySide ? undefined : 'column', 
+            gap: seasonsSideBySide ? `${gap * 6}px` : `${gap * 10}px`, 
+            flex: 1,
+            alignItems: seasonsSideBySide ? 'start' : (blockAlignment === 'top' ? 'start' : 'center'),
+            width: '100%'
+          }}
+        >
+          {grouped.map((g, idx) => (
             <motion.div 
-              layout 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
-                gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+              layout
+              key={g.season} 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: `${gap * 4}px`,
+                backgroundColor: `${colors.text}05`,
+                padding: `${gap * 4}px`,
+                borderRadius: `${radius * 2}px`,
+                border: `1px solid ${colors.text}08`,
                 width: '100%',
-                justifyItems: 'center',
-                alignItems: blockAlignment === 'top' ? 'start' : 'center'
+                boxSizing: 'border-box'
               }}
             >
-              <AnimatePresence mode="popLayout">
-                {g.months.map(m => renderMonthItem(m))}
-              </AnimatePresence>
+              {showSeasonLabels && (
+                <motion.div layout style={{ 
+                  fontSize: `${fontSize * 1.3}px`, 
+                  fontWeight: 900, 
+                  letterSpacing: '0.2em', 
+                  opacity: 0.35,
+                  textAlign: 'center',
+                  borderBottom: `1px solid ${colors.text}15`,
+                  paddingBottom: `${gap * 2.5}px`,
+                  marginBottom: `${gap * 3}px`,
+                  textTransform: 'uppercase'
+                }}>
+                  {g.season}
+                </motion.div>
+              )}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: blockAlignment === 'top' ? 'start' : 'center',
+                gap: `${gap * 4}px`,
+                justifyContent: 'center',
+                width: '100%'
+              }}>
+                {renderInnerSideAxis && renderSideDayAxisColumn(false)}
+                <motion.div 
+                  layout 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: mode === 'rows' 
+                      ? '1fr' 
+                      : (mode === 'columns' ? `repeat(${monthsPerRow}, ${dotSize}px)` : `repeat(${monthsPerRow}, 1fr)`),
+                    gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+                    flex: mode === 'columns' ? 'none' : 1,
+                    justifyItems: 'center',
+                    alignItems: blockAlignment === 'top' ? 'start' : 'center'
+                  }}
+                >
+                  <AnimatePresence mode="popLayout">
+                    {g.months.map(m => renderMonthItem(m))}
+                  </AnimatePresence>
+                </motion.div>
+              </div>
             </motion.div>
-          </motion.div>
-        ))}
-      </motion.div>
+          ))}
+        </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div 
-      layout 
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${monthsPerRow}, 1fr)`,
-        gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-        width: '100%',
-        justifyItems: 'center',
-        alignItems: blockAlignment === 'top' ? 'start' : 'center'
-      }}
-    >
-      <AnimatePresence mode="popLayout">
-        {months.map((m) => renderMonthItem(m))}
-      </AnimatePresence>
-    </motion.div>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 10}px`,
+      width: '100%',
+      alignItems: blockAlignment === 'top' ? 'start' : 'center'
+    }}>
+      {chunkedMonths.map((chunk, rowIdx) => (
+        <div 
+          key={`row-${rowIdx}`}
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: blockAlignment === 'top' ? 'start' : 'center',
+            gap: `${gap * 4}px`,
+            justifyContent: 'center',
+            width: '100%',
+          }}
+        >
+          {showSideDayAxis && mode === 'columns' && renderSideDayAxisColumn()}
+          <motion.div 
+            layout 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: mode === 'rows' 
+                ? '1fr' 
+                : (mode === 'columns' ? `repeat(${monthsPerRow}, ${dotSize}px)` : `repeat(${monthsPerRow}, 1fr)`),
+              gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+              flex: mode === 'columns' ? 'none' : 1,
+              justifyItems: 'center',
+              alignItems: blockAlignment === 'top' ? 'start' : 'center'
+            }}
+          >
+            <AnimatePresence mode="popLayout">
+              {chunk.map((m) => renderMonthItem(m))}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      ))}
+    </div>
   );
 };

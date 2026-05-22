@@ -31,6 +31,8 @@ export interface AppConfig {
   monthsPerRow: number;
   monthOffset?: number;
   showDayNumbers: boolean;
+  keepCellShapeWithNumbers: boolean;
+  showSideDayAxis?: boolean;
   showWeekNumbers: boolean;
   showMonthNumbers: boolean;
   showMonthLabels: boolean;

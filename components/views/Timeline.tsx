@@ -37,6 +37,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
     showMonthAxis,
     showWeekdayAxis,
     showDayNumbers,
+    keepCellShapeWithNumbers,
     showWeekNumbers,
     gap,
     fontSize,
@@ -100,11 +101,11 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                       )}
                       <Cell
                         id={`day-${m.year}-${m.month}-${day}`}
-                        color={showDayNumbers ? 'transparent' : color}
+                        color={showDayNumbers && !keepCellShapeWithNumbers ? 'transparent' : color}
                         dotSize={dotSize}
                         radius={radius}
                         fontSize={fontSize}
-                        textColor={showDayNumbers ? color : colors.bg}
+                        textColor={showDayNumbers && !keepCellShapeWithNumbers ? color : colors.bg}
                         isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + anchorDate.getDate())}
                         activeText={getActiveCellText(m.year, m.month, config, day)}
                         fallbackText={showDayNumbers ? day : null}

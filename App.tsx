@@ -47,6 +47,8 @@ const DEFAULT_CONFIG: AppConfig = {
   monthsToShow: 12,
   monthsPerRow: 3,
   showDayNumbers: false,
+  keepCellShapeWithNumbers: false,
+  showSideDayAxis: false,
   showWeekNumbers: true,
   showMonthNumbers: false,
   showMonthLabels: true,

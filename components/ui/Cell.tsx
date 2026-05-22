@@ -103,6 +103,22 @@ export const Cell: React.FC<CellProps> = ({
     return activeText || undefined;
   };
 
+  const parts = id.split('-');
+  const isDay = parts[0] === 'day';
+  let isWeekend = false;
+  if (isDay && parts.length >= 4) {
+    const year = parseInt(parts[1], 10);
+    const month = parseInt(parts[2], 10);
+    const day = parseInt(parts[3], 10);
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) {
+      const dayOfWeek = d.getDay();
+      isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    }
+  }
+
+  const dimWeekend = isWeekend && config.highlightWeekends && !isActive;
+
   return (
     <motion.div
       layout
@@ -129,10 +145,24 @@ export const Cell: React.FC<CellProps> = ({
         color: textColor,
         fontWeight: isLarge ? 900 : 700,
         position: 'relative',
-        cursor: onCellClick ? 'pointer' : 'default'
+        cursor: onCellClick ? 'pointer' : 'default',
+        lineHeight: 1,
+        fontVariantNumeric: 'tabular-nums',
+        opacity: dimWeekend ? 0.6 : 1
       }}
     >
-      {renderLabelOverlay()}
+      <span style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+        lineHeight: 1,
+        textAlign: 'center',
+        fontVariantNumeric: 'tabular-nums'
+      }}>
+        {renderLabelOverlay()}
+      </span>
     </motion.div>
   );
 };

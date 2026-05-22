@@ -86,7 +86,21 @@ export const OverlaysTab: React.FC<Props> = ({ config, setConfig, searchQuery = 
               )}
             </div>
 
-            {config.granularity === "day" && <Toggle id="chk-daynumbers" label="Print Day Numbers on Cells" checked={config.showDayNumbers} onChange={(v) => updateConfig("showDayNumbers", v)} />}
+            {config.granularity === "day" && (
+              <div className="bg-[#141414] p-3 rounded-lg border border-border/40 space-y-2">
+                <Toggle id="chk-daynumbers" label="Print Day Numbers on Cells" checked={config.showDayNumbers} onChange={(v) => updateConfig("showDayNumbers", v)} />
+                {config.showDayNumbers && (
+                  <div className="pl-4 border-l border-border/40 ml-2 space-y-1">
+                    <Toggle id="chk-keep-cell-shape" label="Keep Cell Background Shape" checked={config.keepCellShapeWithNumbers} onChange={(v) => updateConfig("keepCellShapeWithNumbers", v)} />
+                  </div>
+                )}
+              </div>
+            )}
+            {config.granularity === "day" && config.mode === "columns" && (
+              <div className="bg-[#141414] p-3 rounded-lg border border-border/40">
+                <Toggle id="chk-sidedayaxis" label="Show Side Day Axis (1-31)" checked={config.showSideDayAxis} onChange={(v) => updateConfig("showSideDayAxis", v)} />
+              </div>
+            )}
             {config.granularity !== "month" && <Toggle id="chk-weeknumbers" label="Print Week Numbers on Cells" checked={config.showWeekNumbers} onChange={(v) => updateConfig("showWeekNumbers", v)} />}
             {config.granularity === "month" && (
               <>
