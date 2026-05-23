@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Architecture Review - Memento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <style>
+        .diagram-container {
+            font-family: ui-sans-serif, system-ui, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-zinc-50 text-zinc-900 p-8 font-sans max-w-5xl mx-auto">
+    <header class="mb-10 border-b border-zinc-200 pb-6">
+        <h1 class="text-4xl font-bold tracking-tight mb-2">Codebase Architecture Review</h1>
+        <p class="text-zinc-500 text-lg">Surfacing architectural friction and deepening opportunities.</p>
+    </header>
+
+    <!-- Candidate 1 -->
+    <section class="bg-white p-6 rounded-xl shadow-sm border border-zinc-200 mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-semibold tracking-tight">1. Extricate Spatial Layout from Semantic Renderers</h2>
+            <span class="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full tracking-wide">Strong</span>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Files</h3>
+            <code class="text-sm bg-zinc-100 px-2 py-1 rounded">components/views/CalendarView.tsx</code>
+            <code class="text-sm bg-zinc-100 px-2 py-1 rounded">components/YearGrid.tsx</code>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Problem</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                The view modules (e.g., <code>CalendarView</code>) are highly <strong>shallow</strong>. Their interface is essentially taking the massive <code>AppConfig</code> object and calculating vast amounts of styling internally. They intertwine the <em>spatial layout</em> logic (conditional tracking for rows vs. columns vs. chunks, grouping by seasons) directly with the <em>cell rendering</em> rules (granularity switching, date identification). Deletion test: deleting <code>CalendarView</code> doesn't concentrate complexity; it scatters 25 inline layout checks straight back up to the caller.
+            </p>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Solution</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                Create a proper <strong>seam</strong> separating the <code>LayoutStrategy</code> (which purely handles row/column wrappings, grouping, and chunking) from the <code>ChronologyRenderer</code> (which purely iterates over logical time and paints <code>Cell</code> components). The parent <code>YearGrid</code> will bridge them, providing multiple discrete <strong>adapters</strong> (e.g. <code>ChunkedLayout</code>, <code>SeasonGridLayout</code>) fulfilling the unified interface.
+            </p>
+        </div>
+        
+        <div class="mb-6">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Benefits</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                High <strong>locality</strong> for layout logic. Instead of scattered <code>width = mode === 'rows' ? x : y</code> conditions across 400 lines, layout behavior lives cohesively inside a single strategy adapter. Adding new layouts offers deep <strong>leverage</strong> because you only need to write a tiny grid coordinator vs duplicating month iteration hooks. You can unit test seasonal block grouping purely mathematically.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 bg-zinc-50 p-6 rounded-lg border border-zinc-100 diagram-container">
+            <div>
+                <h4 class="text-center font-bold mb-3 text-zinc-600 uppercase text-xs tracking-wider">Before (Shallow & Entangled)</h4>
+                <div class="mermaid">
+                    flowchart TD
+                        A[YearGrid] --> B[CalendarView]
+                        B -->|Reads massive AppConfig| C[Inline Layout Hooks]
+                        B -->|Intermixed| D[Iteration & Cells]
+                        C -.- D
+                </div>
+            </div>
+            <div>
+                <h4 class="text-center font-bold mb-3 text-zinc-600 uppercase text-xs tracking-wider">After (Deep & Seamed)</h4>
+                <div class="mermaid">
+                    flowchart TD
+                        A[YearGrid] --> L[[LayoutStrategy Seam]]
+                        A --> R[[Renderer Seam]]
+                        L --> L1[ChunkedLayout]
+                        L --> L2[SeasonGridLayout]
+                        R --> R1[CalendarRenderer]
+                        L1 -.->|Positions| R1
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Candidate 2 -->
+    <section class="bg-white p-6 rounded-xl shadow-sm border border-zinc-200 mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-semibold tracking-tight">2. Shatter AppConfig into Domain Contexts</h2>
+            <span class="px-3 py-1 bg-amber-100 text-amber-800 text-sm font-medium rounded-full tracking-wide">Worth exploring</span>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Files</h3>
+            <code class="text-sm bg-zinc-100 px-2 py-1 rounded">types.ts</code>
+            <code class="text-sm bg-zinc-100 px-2 py-1 rounded">hooks/useGridData.ts</code>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Problem</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                <code>AppConfig</code> acts as a God struct harboring nearly 50 completely unrelated properties (from visual border radii to life expectancy computations). Because it has no domain boundaries, dependencies seep universally. For example, <code>useGridData</code>—which should purely compute chronological <strong>modules</strong>—breaks boundaries entirely by parsing explicit layout overrides and CSS <code>colors</code>. The interface passes sheer mass rather than strict behavioral rules.
+            </p>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Solution</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                Shatter the monolith to create discrete domain <strong>interfaces</strong> (e.g., <code>ChronologyModel</code>, <code>VisualThemeModel</code>, <code>GridDimensionsModel</code>). Remove all awareness of visual properties (like <code>colors</code>) out of <code>useGridData</code>, leaving it as a pure date calculator that yields isolated data. Introduce a specialized <code>ThemeAdapter</code> on the UI level that applies colors contextually mapped from the chronology dates.
+            </p>
+        </div>
+        
+        <div class="mb-6">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Benefits</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                Rebuilding these models creates massive <strong>locality</strong>—style changes don't force chronological logic updates. A caller gains enormous <strong>leverage</strong> when invoking the timeline domain, gaining pristine blocks of logical time without dragging along visual payload sizes and HTML string parsing. The chronological engine instantly becomes 100% unit-testable directly.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 bg-zinc-50 p-6 rounded-lg border border-zinc-100 diagram-container">
+            <div>
+                <h4 class="text-center font-bold mb-3 text-zinc-600 uppercase text-xs tracking-wider">Before (Universal Coupling)</h4>
+                <div class="mermaid">
+                    graph LR
+                        A(AppConfig) --> B[useGridData]
+                        A --> C[Views]
+                        A --> D[Sidebar]
+                        B -.->|Applies Colors| C
+                </div>
+            </div>
+            <div>
+                <h4 class="text-center font-bold mb-3 text-zinc-600 uppercase text-xs tracking-wider">After (Domain Isolation)</h4>
+                <div class="mermaid">
+                    graph LR
+                        C[Chronology] --> D[useGridData]
+                        T[Visual Theme] --> V[ThemeAdapter]
+                        D --> V
+                        V --> Views
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Candidate 3 -->
+    <section class="bg-white p-6 rounded-xl shadow-sm border border-zinc-200 mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-semibold tracking-tight">3. Interactive Intent Seam (Sidebar Decoupling)</h2>
+            <span class="px-3 py-1 bg-zinc-100 text-zinc-800 text-sm font-medium rounded-full tracking-wide">Speculative</span>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Files</h3>
+            <code class="text-sm bg-zinc-100 px-2 py-1 rounded">components/sidebar/SetupTab.tsx</code>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Problem</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                The sidebar interface dictates complex cascading rule changes inline inside individual component <code>.onClick()</code> arrays. State overrides (e.g. "when hitting 'Group by Season', immediately set 'monthsPerRow' to 3 and 'startFromJan' to true") live inside raw buttons. There is no state management boundary or <strong>adapter</strong>. Consequently, logic is totally distributed and deeply brittle.
+            </p>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Solution</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                Interpose an <code>IntentEngine</code> <strong>seam</strong> (using a localized state wrapper/reducer system with explicitly defined verbs like "PRESET_12_WEEK_APPLIED"). Instead of directly manipulating 8 loose fields, React dispatches a unified semantic instruction across the <strong>interface</strong>.
+            </p>
+        </div>
+        
+        <div class="mb-0">
+            <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Benefits</h3>
+            <p class="text-zinc-700 leading-relaxed">
+                Concentrates heavy configuration inter-dependency logic strictly into one isolated, predictable spot (High <strong>locality</strong>). Tests can purely dispatch commands without ever needing to emulate rendering sidebars.
+            </p>
+        </div>
+    </section>
+
+    <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-xl shadow-sm mt-12 mb-8">
+        <h2 class="text-xl font-bold text-indigo-900 mb-3 uppercase tracking-wide text-sm">Top Recommendation</h2>
+        <p class="text-indigo-800 leading-relaxed font-medium">
+            <strong>Candidate 1 (Extricate Spatial Layout from Semantic Renderers)</strong> is the clearest win. Currently, any attempt to adapt layout algorithms requires heavily polluting pure view loops with nested logic expressions. Splitting it gives profound <strong>leverage</strong> to compose a multitude of custom calendars out of unified grids, fundamentally changing how fast layouts can scale up moving forward. 
+        </p>
+    </div>
+
+</body>
+</html>

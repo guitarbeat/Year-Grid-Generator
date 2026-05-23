@@ -132,7 +132,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       >
         <button 
           onClick={onToggleSidebar}
-          className="md:hidden w-10 h-10 bg-[#0c0c0f]/80 backdrop-blur-md rounded-xl flex items-center justify-center border border-zinc-805 text-[#ea580c] pointer-events-auto shadow-xl transition-all active:scale-95 duration-150"
+          className="md:hidden w-10 h-10 bg-[#0c0c0f]/80 backdrop-blur-md rounded-xl flex items-center justify-center border border-zinc-805 text-accent pointer-events-auto shadow-xl transition-[scale,border-color,background-color,color] active:scale-[0.96] duration-150"
         >
           <span className="material-symbols-outlined">menu</span>
         </button>

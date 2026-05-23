@@ -51,7 +51,7 @@ export const ControlGroup: React.FC<{
     <div className="flex justify-between items-center group">
       <label className="text-[10px] text-zinc-500 uppercase font-mono font-bold tracking-widest group-hover:text-zinc-350 transition-colors">{label}</label>
       {value !== undefined && (
-        <span className="text-[9px] font-mono text-accent bg-accent/5 px-2 py-0.5 border border-accent/15 rounded-md font-bold tracking-wider">{value}</span>
+        <span className="tabular-nums text-[9px] font-mono text-accent bg-accent/5 px-2 py-0.5 border border-accent/15 rounded-md font-bold tracking-wider">{value}</span>
       )}
     </div>
     <div className="relative">
@@ -76,8 +76,8 @@ export const Toggle: React.FC<{
         onChange={(e) => onChange(e.target.checked)}
         className="sr-only"
       />
-      <div className="toggle-track relative w-8 h-4.5 bg-[#121214] rounded-full transition-all duration-200 border border-zinc-800/80">
-        <div className={`toggle-thumb absolute top-[2px] left-[2px] w-3.5 h-3.5 rounded-full transition-all duration-200 ease-out ${checked ? 'translate-x-[11px] bg-accent shadow-[0_0_10px_rgba(234,88,12,0.4)]' : 'bg-zinc-600'}`}></div>
+      <div className="toggle-track relative w-8 h-4.5 bg-[#121214] rounded-full transition-[background-color,border-color] duration-200 border border-zinc-800/80">
+        <div className={`toggle-thumb absolute top-[2px] left-[2px] w-3.5 h-3.5 rounded-full transition-[transform,background-color,box-shadow] duration-200 ease-out ${checked ? 'translate-x-[11px] bg-accent shadow-[0_0_10px_rgba(234,88,12,0.4)]' : 'bg-zinc-600'}`}></div>
       </div>
     </label>
   </div>
@@ -103,7 +103,7 @@ export const SegmentedControl: React.FC<{
             key={opt.id}
             onClick={() => onChange(opt.id)}
             className={`
-              flex-1 relative flex flex-col items-center justify-center gap-0.5 py-1 text-[9px] font-mono uppercase tracking-wider transition-all duration-200 z-10 font-bold min-h-[36px] cursor-pointer rounded-lg
+              flex-1 relative flex flex-col items-center justify-center gap-0.5 py-1 text-[9px] font-mono uppercase tracking-wider transition-colors duration-200 z-10 font-bold min-h-[36px] cursor-pointer rounded-lg
               ${isActive ? 'text-accent' : 'text-zinc-500 hover:text-zinc-200'}
             `}
           >
@@ -201,12 +201,12 @@ export const Button: React.FC<{
   disabled?: boolean;
   title?: string;
 }> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, title }) => {
-  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed select-none";
+  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-[border-color,background-color,color,scale,opacity] disabled:opacity-40 disabled:cursor-not-allowed select-none";
   const variants = {
-    primary: "btn-primary !rounded-lg",
-    secondary: "bg-[#0b0b0d] hover:bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-lg p-3 md:p-2 text-[10px] active:scale-[0.98] duration-150 transition-all",
-    ghost: "text-zinc-400 hover:text-white text-[10px] font-mono hover:bg-zinc-900/40 p-2 rounded-lg duration-150",
-    action: "w-10 h-10 bg-[#09090b]/80 backdrop-blur-md rounded-lg hover:bg-zinc-900 text-accent border border-zinc-800 hover:border-zinc-700 active:scale-95 duration-150 shadow-[0_4px_16px_rgba(0,0,0,0.4)]",
+    primary: "btn-primary !rounded-lg active:scale-[0.96]",
+    secondary: "bg-[#0b0b0d] hover:bg-zinc-900 text-zinc-300 hover:text-white shadow-[var(--shadow-border)] hover:shadow-[var(--shadow-border-hover)] rounded-lg p-3 md:p-2 text-[10px] active:scale-[0.96] duration-150 transition-[box-shadow,background-color,color,scale]",
+    ghost: "text-zinc-400 hover:text-white text-[10px] font-mono hover:bg-zinc-900/40 p-2 rounded-lg duration-150 active:scale-[0.96] transition-[background-color,color,scale]",
+    action: "w-10 h-10 bg-[#09090b]/80 backdrop-blur-md rounded-lg hover:bg-zinc-900 text-accent shadow-[var(--shadow-border)] hover:shadow-[var(--shadow-border-hover)] active:scale-[0.96] duration-150 transition-[box-shadow,background-color,scale,opacity]",
   };
 
   return (
@@ -226,7 +226,7 @@ export const IconButton: React.FC<{
   <button 
     onClick={onClick}
     title={title}
-    className={`w-10 h-10 flex items-center justify-center transition-all active:scale-95 ${className}`}
+    className={`w-10 h-10 flex items-center justify-center transition-[transform,opacity,background-color,color,border-color] active:scale-[0.96] ${className}`}
   >
     <span className="material-symbols-outlined">{icon}</span>
   </button>

@@ -1,21 +1,11 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { ViewProps } from './types';
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getDayColor } from '../../utils/colorUtils';
-import { getWeekNumber, groupMonthsBySeason } from '../../utils/dateUtils';
+import { getWeekNumber } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.03,
-      delayChildren: 0.02
-    }
-  }
-};
+import { getLayoutStrategyRenderer } from './layouts/factory';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12, scale: 0.97 },
@@ -37,22 +27,17 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     mode,
     granularity,
     groupBy,
-    showSeasonLabels,
-    seasonsSideBySide,
     showMonthAxis,
     showWeekdayAxis,
     showMonthNumbers,
     showDayNumbers,
     keepCellShapeWithNumbers,
-    showSideDayAxis,
     gap,
     fontSize,
     colors,
     radius,
-    monthsPerRow = 3,
     dotSize,
     isMondayFirst,
-    blockAlignment = 'top',
     labelRotation = 0
   } = config;
 
@@ -168,7 +153,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
             );
           })}
 
-          {/* Week items (if granularity is week and mode is grid/rows/columns) */}
+          {/* Week items */}
           {granularity === 'week' && m.weeksInMonth.map((w: any) => (
             <Cell
               key={`week-${w.weekNum}`}
@@ -192,7 +177,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     );
   };
   
-  const renderSideDayAxisColumn = (isHidden = false) => {
+  const renderSideDayAxisColumn = () => {
     return (
       <div 
         style={{
@@ -200,8 +185,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
           flexDirection: 'column',
           alignItems: 'center',
           gap: `${gap * 2}px`,
-          userSelect: 'none',
-          visibility: isHidden ? 'hidden' : 'visible'
+          userSelect: 'none'
         }}
       >
         {showMonthAxis && (
@@ -247,187 +231,14 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     );
   };
 
-  const chunkedMonths = React.useMemo(() => {
-    const chunks = [];
-    for (let i = 0; i < months.length; i += monthsPerRow) {
-      chunks.push(months.slice(i, i + monthsPerRow));
-    }
-    return chunks;
-  }, [months, monthsPerRow]);
-
-  if (groupBy === 'season') {
-    const grouped = groupMonthsBySeason(months);
-
-    const gridColsClass = 'grid grid-cols-4';
-
-    const renderOuterSideAxis = showSideDayAxis && mode === 'columns' && seasonsSideBySide;
-    const renderInnerSideAxis = showSideDayAxis && mode === 'columns' && !seasonsSideBySide;
-
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'start',
-        gap: `${gap * 4}px`,
-        width: '100%',
-        justifyContent: 'center'
-      }}>
-        {renderOuterSideAxis && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            paddingTop: `${gap * 4 + 1}px`,
-            paddingBottom: `${gap * 4 + 1}px`,
-            boxSizing: 'border-box'
-          }}>
-            {showSeasonLabels && (
-              <div style={{
-                fontSize: `${fontSize * 1.3}px`,
-                fontWeight: 900,
-                opacity: 0,
-                pointerEvents: 'none',
-                userSelect: 'none',
-                paddingBottom: `${gap * 2.5}px`,
-                marginBottom: `${gap * 3}px`,
-                borderBottom: `1.5px solid transparent`,
-                textTransform: 'uppercase'
-              }}>
-                SPACER
-              </div>
-            )}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: `${gap * 4}px`
-            }}>
-              {renderSideDayAxisColumn(false)}
-            </div>
-          </div>
-        )}
-
-        <motion.div 
-          layout
-          className={seasonsSideBySide ? gridColsClass : undefined}
-          style={{ 
-            display: seasonsSideBySide ? 'grid' : 'flex', 
-            flexDirection: seasonsSideBySide ? undefined : 'column', 
-            gap: seasonsSideBySide ? `${gap * 6}px` : `${gap * 10}px`, 
-            flex: 1,
-            alignItems: seasonsSideBySide ? 'start' : (blockAlignment === 'top' ? 'start' : 'center'),
-            width: '100%'
-          }}
-        >
-          {grouped.map((g, idx) => (
-            <motion.div 
-              layout
-              key={g.season} 
-              style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: `${gap * 4}px`,
-                backgroundColor: `${colors.text}05`,
-                padding: `${gap * 4}px`,
-                borderRadius: `${radius * 2}px`,
-                border: `1px solid ${colors.text}08`,
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            >
-              {showSeasonLabels && (
-                <motion.div layout style={{ 
-                  fontSize: `${fontSize * 1.3}px`, 
-                  fontWeight: 900, 
-                  letterSpacing: '0.2em', 
-                  opacity: 0.35,
-                  textAlign: 'center',
-                  borderBottom: `1px solid ${colors.text}15`,
-                  paddingBottom: `${gap * 2.5}px`,
-                  marginBottom: `${gap * 3}px`,
-                  textTransform: 'uppercase'
-                }}>
-                  {g.season}
-                </motion.div>
-              )}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: blockAlignment === 'top' ? 'start' : 'center',
-                gap: `${gap * 4}px`,
-                justifyContent: 'center',
-                width: '100%'
-              }}>
-                {renderInnerSideAxis && renderSideDayAxisColumn(false)}
-                <motion.div 
-                  layout 
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: mode === 'rows' 
-                      ? '1fr' 
-                      : (mode === 'columns' ? `repeat(${monthsPerRow}, ${dotSize}px)` : `repeat(${monthsPerRow}, 1fr)`),
-                    gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-                    flex: mode === 'columns' ? 'none' : 1,
-                    justifyItems: 'center',
-                    alignItems: blockAlignment === 'top' ? 'start' : 'center'
-                  }}
-                >
-                  <AnimatePresence mode="popLayout">
-                    {g.months.map(m => renderMonthItem(m))}
-                  </AnimatePresence>
-                </motion.div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    );
-  }
+  const LayoutRenderer = getLayoutStrategyRenderer(groupBy);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 10}px`,
-      width: '100%',
-      alignItems: blockAlignment === 'top' ? 'start' : 'center'
-    }}>
-      {chunkedMonths.map((chunk, rowIdx) => (
-        <div 
-          key={`row-${rowIdx}`}
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: blockAlignment === 'top' ? 'start' : 'center',
-            gap: `${gap * 4}px`,
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          {showSideDayAxis && mode === 'columns' && renderSideDayAxisColumn()}
-          <motion.div 
-            layout 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: mode === 'rows' 
-                ? '1fr' 
-                : (mode === 'columns' ? `repeat(${monthsPerRow}, ${dotSize}px)` : `repeat(${monthsPerRow}, 1fr)`),
-              gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
-              flex: mode === 'columns' ? 'none' : 1,
-              justifyItems: 'center',
-              alignItems: blockAlignment === 'top' ? 'start' : 'center'
-            }}
-          >
-            <AnimatePresence mode="popLayout">
-              {chunk.map((m) => renderMonthItem(m))}
-            </AnimatePresence>
-          </motion.div>
-        </div>
-      ))}
-    </div>
+    <LayoutRenderer 
+      config={config} 
+      months={months} 
+      renderMonth={renderMonthItem} 
+      renderSideAxis={renderSideDayAxisColumn} 
+    />
   );
 };
