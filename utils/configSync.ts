@@ -95,13 +95,13 @@ for (const [k, v] of Object.entries(KEY_MAP)) REV_KEY_MAP[v] = k as keyof AppCon
 const REV_COLOR_MAP: Record<string, keyof AppColors> = {};
 for (const [k, v] of Object.entries(COLOR_MAP)) REV_COLOR_MAP[v] = k as keyof AppColors;
 
-export const serializeDiff = (diff: Partial<AppConfig>): any => {
-  const result: any = {};
+export const serializeDiff = (diff: Partial<AppConfig>): Record<string, unknown> => {
+  const result: Record<string, unknown> = {};
   for (const k of Object.keys(diff) as Array<keyof AppConfig>) {
     const shortKey = KEY_MAP[k] || k;
     if (k === 'colors' && diff.colors) {
-      const colorObj: any = {};
-      const colorsRef = diff.colors as any;
+      const colorObj: Record<string, string> = {};
+      const colorsRef = diff.colors as unknown as Record<string, string>;
       for (const ck of Object.keys(colorsRef)) {
         const shortColKey = COLOR_MAP[ck] || ck;
         let val = colorsRef[ck];
@@ -119,13 +119,13 @@ export const serializeDiff = (diff: Partial<AppConfig>): any => {
   return result;
 };
 
-export const deserializeDiff = (compressed: any): Partial<AppConfig> => {
-  const result: any = {};
+export const deserializeDiff = (compressed: Record<string, unknown>): Partial<AppConfig> => {
+  const result: Record<string, unknown> = {};
   for (const k of Object.keys(compressed)) {
     const longKey = REV_KEY_MAP[k] || k;
     if (longKey === 'colors') {
-      const colorObj: any = {};
-      const compressedColors = compressed[k] || {};
+      const colorObj: Record<string, string> = {};
+      const compressedColors = (compressed[k] || {}) as Record<string, string>;
       for (const ck of Object.keys(compressedColors)) {
         const longColKey = REV_COLOR_MAP[ck] || ck;
         let val = compressedColors[ck];
@@ -134,7 +134,7 @@ export const deserializeDiff = (compressed: any): Partial<AppConfig> => {
       }
       result[longKey] = colorObj;
     } else if (longKey === 'overrides') {
-      const arr = compressed[k];
+      const arr = compressed[k] as string[];
       const overridesObj: Record<string, string> = {};
       if (Array.isArray(arr)) {
         for (const rawId of arr) {
@@ -151,10 +151,10 @@ export const deserializeDiff = (compressed: any): Partial<AppConfig> => {
 };
 
 export const getDiffConfig = (config: AppConfig): Partial<AppConfig> => {
-  const diff: any = {};
+  const diff: Record<string, unknown> = {};
   for (const key of Object.keys(config) as Array<keyof AppConfig>) {
     if (key === 'colors') {
-      const colorDiff: any = {};
+      const colorDiff: Record<string, string> = {};
       const currentColors = config.colors || {};
       const defaultColors = DEFAULT_CONFIG.colors || {};
       for (const ck of Object.keys(currentColors) as Array<keyof typeof currentColors>) {
@@ -193,7 +193,7 @@ export const decodeConfig = (str: string): Partial<AppConfig> | null => {
   try {
     if (!str) return null;
     const trimmed = str.trim();
-    let rawParsed: any = null;
+    let rawParsed: Record<string, unknown> | null = null;
     if (trimmed.startsWith('%7B') || trimmed.startsWith('{')) {
       rawParsed = JSON.parse(decodeURIComponent(trimmed));
     } else {
@@ -218,8 +218,8 @@ export const decodeConfig = (str: string): Partial<AppConfig> | null => {
 
 export const migrateConfig = (config: Partial<AppConfig>): AppConfig => {
   const migrated = { ...config };
-  if (migrated.mode === ('horizontal' as any)) migrated.mode = 'grid';
-  if (migrated.mode === ('vertical' as any)) migrated.mode = 'rows';
+  if ((migrated.mode as string) === 'horizontal') migrated.mode = 'grid';
+  if ((migrated.mode as string) === 'vertical') migrated.mode = 'rows';
   return {
     ...DEFAULT_CONFIG,
     ...migrated,

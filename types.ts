@@ -14,7 +14,7 @@ export interface AppColors {
 
 export interface AppConfig {
   date: string; // YYYY-MM-DD
-  mode: 'grid' | 'rows' | 'columns' | 'timeline';
+  mode: 'grid' | 'rows' | 'columns' | 'timeline' | 'spiral';
   granularity: 'day' | 'week' | 'month';
   itemsPerRow: number;
   isMondayFirst: boolean;

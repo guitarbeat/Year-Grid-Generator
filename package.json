@@ -13,6 +13,7 @@
     "@khmyznikov/pwa-install": "^0.6.3",
     "@tailwindcss/vite": "^4.2.2",
     "clsx": "^2.1.1",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "lucide-react": "^1.8.0",
     "motion": "^12.38.0",

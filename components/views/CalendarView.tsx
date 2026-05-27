@@ -6,6 +6,7 @@ import { getDayColor } from '../../utils/colorUtils';
 import { getWeekNumber } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
 import { getLayoutStrategyRenderer } from './layouts/factory';
+import { MonthData } from '../../hooks/useGridData';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12, scale: 0.97 },
@@ -60,7 +61,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
   const DAY_LABEL_HEIGHT = Math.ceil(fontSize * 1.8);
   const MONTH_LABEL_WIDTH = Math.ceil(fontSize * 5.5);
 
-  const renderMonthItem = (m: any) => {
+  const renderMonthItem = (m: MonthData) => {
     return (
       <motion.div 
         layout
@@ -154,7 +155,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
           })}
 
           {/* Week items */}
-          {granularity === 'week' && m.weeksInMonth.map((w: any) => (
+          {granularity === 'week' && m.weeksInMonth.map(w => (
             <Cell
               key={`week-${w.weekNum}`}
               id={`week-${m.year}-${w.weekNum}`}

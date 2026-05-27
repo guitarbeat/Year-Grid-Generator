@@ -76,7 +76,7 @@ interface Props {
   searchQuery?: string;
 }
 
-export const AestheticsTab: React.FC<Props> = ({ config, setConfig, searchQuery = "" }) => {
+export const StyleTab: React.FC<Props> = ({ config, setConfig, searchQuery = "" }) => {
   const updateConfig = <K extends keyof AppConfig>(key: K, value: AppConfig[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
@@ -132,7 +132,7 @@ export const AestheticsTab: React.FC<Props> = ({ config, setConfig, searchQuery 
   const hasTypographyMatch = matches("Typography", ["font size", "link", "family", "inter", "terminal", "serif", "typography"]);
 
   return (
-    <div className="animate-fade-in space-y-2">
+    <div className="space-y-2">
       {hasThemeMatch && (
         <SidebarSection 
           key={searchQuery ? "open-theme" : "closed-theme"}

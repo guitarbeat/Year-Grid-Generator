@@ -27,6 +27,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   isDownloading = false
 }) => {
   const [zoom, setZoom] = useState(1);
+  const [is3D, setIs3D] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   
@@ -34,6 +35,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const startPos = useRef({ x: 0, y: 0 });
+  
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
@@ -45,6 +48,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
     if (!isPanning) return;
     e.preventDefault();
     setPosition({
@@ -122,6 +126,12 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
         backgroundSize: '24px 24px'
       }}
     >
+      <div 
+        className="absolute inset-0 pointer-events-none transition-opacity duration-500 ease-out z-[0]"
+        style={{
+          background: `radial-gradient(1200px circle at ${mousePos.x}px ${mousePos.y}px, rgba(234, 88, 12, 0.08), transparent 40%)`
+        }}
+      />
       {/* HUD Info */}
       <div 
         id="layout-hud-heading"
@@ -195,16 +205,26 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
           onClick={() => handleZoom(0.1)}
           className="!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none text-zinc-400"
         />
+        <div className="w-[1px] h-4 bg-zinc-800/80" />
+        <Button 
+          variant="action"
+          icon="view_in_ar"
+          onClick={() => setIs3D(!is3D)}
+          className={`!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none ${is3D ? 'text-accent' : 'text-zinc-400'}`}
+          title="Toggle 3D Perspective"
+        />
       </div>
 
       {/* Render Content */}
       <div 
         ref={containerRef}
         className={`origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer ${
-          isPanning ? '' : 'transition-transform duration-300 ease-out'
+          isPanning ? '' : 'transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]'
         }`}
         style={{ 
-          transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+          transform: `translate(${position.x}px, ${position.y}px) scale(${zoom}) ${is3D ? 'rotateX(55deg) rotateZ(-40deg) translateY(-100px) scale3d(1.2, 1.2, 1.2)' : ''}`,
+          transformStyle: 'preserve-3d',
+          perspective: '1200px'
         }}
       >
         <YearGrid config={config} domRef={gridRef} onCellClick={onCellClick} isDownloading={isDownloading} />

@@ -103,7 +103,7 @@ export const SegmentedControl: React.FC<{
             key={opt.id}
             onClick={() => onChange(opt.id)}
             className={`
-              flex-1 relative flex flex-col items-center justify-center gap-0.5 py-1 text-[9px] font-mono uppercase tracking-wider transition-colors duration-200 z-10 font-bold min-h-[36px] cursor-pointer rounded-lg
+              flex-1 relative flex flex-col items-center justify-center gap-0.5 py-1 text-[9px] font-mono uppercase tracking-wider transition-[color,scale] duration-200 active:scale-[0.96] z-10 font-bold min-h-[40px] cursor-pointer rounded-lg
               ${isActive ? 'text-accent' : 'text-zinc-500 hover:text-zinc-200'}
             `}
           >
@@ -203,7 +203,7 @@ export const Button: React.FC<{
 }> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, title }) => {
   const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-[border-color,background-color,color,scale,opacity] disabled:opacity-40 disabled:cursor-not-allowed select-none";
   const variants = {
-    primary: "btn-primary !rounded-lg active:scale-[0.96]",
+    primary: "btn-primary !rounded-lg active:scale-[0.96] " + (icon && label ? "pl-4 pr-3.5" : "px-4"),
     secondary: "bg-[#0b0b0d] hover:bg-zinc-900 text-zinc-300 hover:text-white shadow-[var(--shadow-border)] hover:shadow-[var(--shadow-border-hover)] rounded-lg p-3 md:p-2 text-[10px] active:scale-[0.96] duration-150 transition-[box-shadow,background-color,color,scale]",
     ghost: "text-zinc-400 hover:text-white text-[10px] font-mono hover:bg-zinc-900/40 p-2 rounded-lg duration-150 active:scale-[0.96] transition-[background-color,color,scale]",
     action: "w-10 h-10 bg-[#09090b]/80 backdrop-blur-md rounded-lg hover:bg-zinc-900 text-accent shadow-[var(--shadow-border)] hover:shadow-[var(--shadow-border-hover)] active:scale-[0.96] duration-150 transition-[box-shadow,background-color,scale,opacity]",

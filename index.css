@@ -32,6 +32,16 @@
     --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    /* Balance text wrapping for headings */
+    text-wrap: balance;
+  }
+
+  p {
+    /* Pretty text wrapping for paragraphs (prevent orphans) */
+    text-wrap: pretty;
+  }
+
   body {
     @apply bg-[#050505] text-[#e5e5e5] font-sans overflow-hidden;
     -webkit-font-smoothing: antialiased;
@@ -65,11 +75,11 @@
   }
 
   .input-text {
-    @apply w-full bg-[#08080a] border border-zinc-800/80 rounded-lg px-3 py-2 text-xs text-zinc-100 font-mono focus:border-accent/55 focus:ring-4 focus:ring-accent/10 outline-none transition-[border-color,box-shadow] placeholder:text-zinc-600 shadow-inner;
+    @apply w-full bg-[#08080a] border border-zinc-800/80 rounded-lg px-3 py-2 min-h-[40px] text-xs text-zinc-100 font-mono focus:border-accent/55 focus:ring-4 focus:ring-accent/10 outline-none transition-[border-color,box-shadow] placeholder:text-zinc-600 shadow-inner;
   }
 
   .btn-primary {
-    @apply text-[10px] bg-accent text-white px-4 py-2.5 rounded-lg font-mono font-semibold hover:bg-accent/90 active:scale-[0.96] transition-[scale,background-color] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest shadow-[0_4px_16px_rgba(234,88,12,0.2)];
+    @apply text-[10px] bg-accent text-white py-2.5 rounded-lg font-mono font-semibold hover:bg-accent/90 active:scale-[0.96] transition-[scale,background-color] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest shadow-[0_4px_16px_rgba(234,88,12,0.2)];
   }
 
   .material-symbols-outlined {
@@ -109,11 +119,26 @@
     @apply translate-x-3 bg-accent shadow-[0_0_8px_rgba(234,88,12,0.5)];
   }
 
+  .toggle-checkbox {
+    position: relative;
+  }
+
+  .toggle-checkbox::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+  }
+
   @keyframes fade-in {
-    from { opacity: 0; transform: translateX(5px); }
-    to { opacity: 1; transform: translateX(0); }
+    from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
   }
   .animate-fade-in {
-    animation: fade-in 0.3s ease-out forwards;
+    opacity: 0;
+    animation: fade-in 400ms ease-out forwards;
   }
 }

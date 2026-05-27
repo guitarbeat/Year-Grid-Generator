@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutProps } from './types';
+import { LayoutProps } from '../types';
 import { GenericLayout } from './GenericLayout';
 import { SeasonGridLayout } from './SeasonGridLayout';
 

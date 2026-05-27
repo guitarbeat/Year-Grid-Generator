@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { AppConfig, AppColors } from "../types";
 import { Button } from "./ui/Controls";
-import { SetupTab } from "./sidebar/SetupTab";
-import { AestheticsTab } from "./sidebar/AestheticsTab";
-import { OverlaysTab } from "./sidebar/OverlaysTab";
+import { ArchitectureTab } from "./sidebar/ArchitectureTab";
+import { StyleTab } from "./sidebar/StyleTab";
+import { ContextTab } from "./sidebar/ContextTab";
 import { motion } from "motion/react";
 
 interface SidebarProps {
   config: AppConfig;
   setConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
   onDownload: () => void;
+  onDownloadSvg: () => void;
   isDownloading: boolean;
   isOpen?: boolean;
   onToggle?: () => void;
@@ -20,14 +21,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   config,
   setConfig,
   onDownload,
+  onDownloadSvg,
   isDownloading,
   isOpen,
   onToggle,
   resetConfig,
 }) => {
-  const [activeTab, setActiveTab ] = useState<"config" | "layout" | "style">(
-    "config",
-  );
   const [searchQuery, setSearchQuery] = useState("");
   const [shareText, setShareText] = useState("SHARE LINK");
   const [downloadLinkText, setDownloadLinkText] = useState("COPY DL LINK");
@@ -147,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               id="sidebar-panel-header" 
               data-toc 
               data-toc-depth="2" 
-              data-toc-title={`WORKSPACE: ${activeTab.toUpperCase()}`}
+              data-toc-title={`WORKSPACE: OPTIONS`}
               className="text-xl font-extrabold tracking-[0.2em] uppercase text-white flex items-center gap-2 drop-shadow-md select-none font-sans"
             >
               <span className="material-symbols-outlined text-[#ea580c] !text-[28px] animate-pulse">
@@ -170,36 +169,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Controls - UNIFIED */}
         <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-[#07070a]/90">
-          {/* Premium Tab Navigation Slider */}
-          <div className="p-2 border-b border-zinc-800/40 bg-[#0a0a0c] sticky top-0 z-20 flex gap-1">
-            {(["config", "style", "layout"] as const).map((tab) => {
-              const label = tab === "config" ? "Setup" : tab === "style" ? "Aesthetics" : "Overlays";
-              const isSelected = activeTab === tab;
-              return (
-                <button
-                  key={tab}
-                  id={`tab-btn-${tab}`}
-                  onClick={() => setActiveTab(tab)}
-                  className={`relative flex-1 py-1.5 text-[9px] font-mono tracking-widest uppercase transition-colors z-10 font-bold ${
-                    isSelected ? "text-[#ea580c]" : "text-zinc-500 hover:text-zinc-200"
-                  }`}
-                >
-                  {isSelected && (
-                    <motion.div
-                      layoutId="sidebarActiveTabIndicator"
-                      className="absolute inset-0 bg-[#ea580c]/8 border border-[#ea580c]/15 rounded-md -z-10 shadow-[0_2px_10px_-4px_rgba(234,88,12,0.15)]"
-                      transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                    />
-                  )}
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
           {/* Quick Find Options Filter */}
-          <div className="px-4 py-2 bg-[#09090c] border-b border-[#181820]/45">
-            <div className="relative flex items-center border border-zinc-800/80 bg-[#050508]/60 rounded-lg px-2.5 focus-within:border-accent/50 transition-all shadow-inner">
+          <div className="px-4 py-2 bg-[#09090c] sticky top-0 z-20 border-b border-[#181820]/45">
+            <div className="relative flex items-center border border-zinc-800/80 bg-[#050508]/60 rounded-lg px-2.5 focus-within:border-accent/50 transition-colors shadow-inner">
               <span className="material-symbols-outlined text-[15px] text-zinc-500 shrink-0 select-none">search</span>
               <input
                 type="text"
@@ -219,22 +191,32 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 px-4 divide-y divide-zinc-800/30 pb-20">
-            {activeTab === "config" && <SetupTab config={config} setConfig={setConfig} searchQuery={searchQuery} />}
-            {activeTab === "style" && <AestheticsTab config={config} setConfig={setConfig} searchQuery={searchQuery} />}
-            {activeTab === "layout" && <OverlaysTab config={config} setConfig={setConfig} searchQuery={searchQuery} />}
+          <div className="flex-1 px-4 divide-y divide-zinc-800/30 pb-20 [&_>_div]:opacity-0 [&_>_div:nth-child(1)]:animate-[fade-in_400ms_ease-out_0ms_forwards] [&_>_div:nth-child(2)]:animate-[fade-in_400ms_ease-out_100ms_forwards] [&_>_div:nth-child(3)]:animate-[fade-in_400ms_ease-out_200ms_forwards]">
+            <ArchitectureTab config={config} setConfig={setConfig} searchQuery={searchQuery} />
+            <StyleTab config={config} setConfig={setConfig} searchQuery={searchQuery} />
+            <ContextTab config={config} setConfig={setConfig} searchQuery={searchQuery} />
           </div>
 
           {/* Persistent Footer */}
           <div className="p-4 bg-[#09090c]/98 border-t border-zinc-800/60 flex flex-col gap-1.5 sticky bottom-0 z-10 shadow-lg">
-            <Button
-              variant="primary"
-              icon="download"
-              label={isDownloading ? "PROCESSING" : "DOWNLOAD ASSET"}
-              onClick={onDownload}
-              disabled={isDownloading}
-              className="w-full h-11"
-            />
+            <div className="grid grid-cols-2 gap-2 w-full">
+              <Button
+                variant="primary"
+                icon="image"
+                label={isDownloading ? "..." : "EXPORT PNG"}
+                onClick={onDownload}
+                disabled={isDownloading}
+                className="w-full h-11 text-[10px]"
+              />
+              <Button
+                variant="primary"
+                icon="polyline"
+                label={isDownloading ? "..." : "EXPORT SVG"}
+                onClick={onDownloadSvg}
+                disabled={isDownloading}
+                className="w-full h-11 text-[10px]"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-2 w-full">
               <Button
                 variant="secondary"

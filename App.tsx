@@ -127,9 +127,10 @@ const App: React.FC = () => {
           
           if (isCancelled) return;
           window.__imageBase64 = canvas.toDataURL('image/png');
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error("Auto-export failed", e);
-          window.__imageBase64Error = e?.message || e?.toString() || "Unknown rendering error";
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          window.__imageBase64Error = errorMessage || "Unknown rendering error";
         }
       };
       
@@ -230,6 +231,39 @@ const App: React.FC = () => {
     }
   };
 
+  const handleDownloadSvg = async () => {
+    if (!gridRef.current) {
+      alert('Could not find grid element. Please try again.');
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+      // Wait for React state, Framer MotionConfig, and transitions to settle
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      const { toSvg } = await import('html-to-image');
+      
+      const svgDataUrl = await toSvg(gridRef.current, {
+        backgroundColor: config.transparentBg ? null : config.colors.bg,
+        pixelRatio: config.resolutionScale || 2,
+      });
+
+      const link = document.createElement('a');
+      link.download = `year-grid-${config.date}.svg`;
+      link.href = svgDataUrl;
+      link.click();
+    } catch (error) {
+      console.error('SVG Download failed:', error);
+      alert('Failed to generate SVG. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   // 3. Render "Image View" (Standalone)
   if (viewMode === 'image' || viewMode === 'export_base64') {
     return (
@@ -285,6 +319,7 @@ const App: React.FC = () => {
           config={config} 
           setConfig={setConfig} 
           onDownload={handleDownload}
+          onDownloadSvg={handleDownloadSvg}
           isDownloading={isDownloading}
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}

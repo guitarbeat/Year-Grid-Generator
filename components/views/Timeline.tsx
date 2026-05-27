@@ -117,7 +117,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                   );
                 })}
 
-                {granularity === 'week' && m.weeksInMonth.map((w: any) => (
+                {granularity === 'week' && m.weeksInMonth.map(w => (
                   <Cell
                     key={`week-${w.weekNum}`}
                     id={`week-${m.year}-${w.weekNum}`}

@@ -44,11 +44,10 @@ export interface SeasonGroup<T> {
 
 export const SEASONS_ORDER = ['WINTER', 'SPRING', 'SUMMER', 'FALL'] as const;
 
-export function groupMonthsBySeason<T = any>(months: T[]): SeasonGroup<T>[] {
-  const list = months as any[];
-  const groupsMap = new Map<string, { sortTime: number; months: any[] }>();
+export function groupMonthsBySeason<T extends { year: number; month: number }>(months: T[]): SeasonGroup<T>[] {
+  const groupsMap = new Map<string, { sortTime: number; months: T[] }>();
 
-  for (const m of list) {
+  for (const m of months) {
     if (!m) continue;
     const { seasonKey, sortTime } = getSeasonGroupInfo(m.year, m.month);
     if (!groupsMap.has(seasonKey)) {

@@ -6,6 +6,7 @@ import { CalendarView } from './views/CalendarView';
 import { FlatWeeks } from './views/FlatWeeks';
 import { FlatMonths } from './views/FlatMonths';
 import { Timeline } from './views/Timeline';
+import { SpiralView } from './views/SpiralView';
 import { StatsBar } from './ui/StatsBar';
 import { LifeView } from './views/LifeView';
 import { QUOTES } from '../utils/quotes';
@@ -39,6 +40,10 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const renderContent = () => {
     if (config.isLifeMode) {
       return <LifeView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
+    }
+
+    if (config.mode === 'spiral') {
+      return <SpiralView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
     }
 
     if (config.mode === 'timeline') {
