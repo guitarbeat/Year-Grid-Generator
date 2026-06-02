@@ -6,10 +6,8 @@ import { CalendarView } from './views/CalendarView';
 import { FlatWeeks } from './views/FlatWeeks';
 import { FlatMonths } from './views/FlatMonths';
 import { Timeline } from './views/Timeline';
-import { SpiralView } from './views/SpiralView';
 import { StatsBar } from './ui/StatsBar';
 import { LifeView } from './views/LifeView';
-import { QUOTES } from '../utils/quotes';
 
 interface YearGridProps {
   config: AppConfig;
@@ -30,20 +28,9 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   const months = useGridData(targetDate, config);
   const currentYear = targetDate.getFullYear();
 
-  const activeQuote = useMemo(() => {
-    if (config.customQuoteText) {
-      return { text: config.customQuoteText, author: 'Self' };
-    }
-    return QUOTES.find(q => q.id === config.selectedQuoteId) || QUOTES[0];
-  }, [config.selectedQuoteId, config.customQuoteText]);
-
   const renderContent = () => {
     if (config.isLifeMode) {
       return <LifeView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
-    }
-
-    if (config.mode === 'spiral') {
-      return <SpiralView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
     }
 
     if (config.mode === 'timeline') {
@@ -164,51 +151,6 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
         {/* 2. Calendar Stats Bar (Only shown for calendar views) */}
         {!config.isLifeMode && config.showStats && (
           <StatsBar config={config} targetDate={targetDate} currentYear={currentYear} />
-        )}
-
-        {/* 3. Interactive Memento Mori Quotes Plugin (from Ti-03/remainders) */}
-        {config.showQiQuotes && activeQuote && (
-          <div 
-            onClick={() => onCellClick?.('action:cycle-quote')}
-            style={{ 
-              maxWidth: '420px', 
-              textAlign: 'center', 
-              border: `1px solid ${config.colors.text}10`,
-              backgroundColor: `${config.colors.text}04`,
-              padding: `${config.gap * 3.5}px ${config.gap * 5}px`, 
-              borderRadius: `${config.radius * 2 || 8}px`,
-              marginTop: `${config.gap * 3}px`,
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              transition: 'all 0.2s',
-              width: '100%',
-              boxSizing: 'border-box'
-            }}
-            className="hover:bg-white/[0.02] active:scale-[0.99] group"
-          >
-            <p style={{ 
-              fontSize: `${config.fontSize * 1.1}px`, 
-              lineHeight: '1.45',
-              fontStyle: 'italic',
-              color: config.colors.text,
-              opacity: 0.8,
-              marginBottom: `${config.gap * 1.5}px`
-            }} className="text-pretty">
-              "{activeQuote.text}"
-            </p>
-            <span style={{ 
-              fontSize: `${config.fontSize * 0.8}px`, 
-              fontWeight: 'bold',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              opacity: 0.35,
-              fontFamily: 'monospace'
-            }}>
-              — {activeQuote.author} <span style={{ opacity: 0.7, color: config.colors.stats }} className="ml-1 text-[7px] font-normal tracking-normal">(CYCLE ↻)</span>
-            </span>
-          </div>
         )}
       </motion.div>
     </MotionConfig>

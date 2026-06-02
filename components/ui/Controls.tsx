@@ -232,9 +232,16 @@ export const IconButton: React.FC<{
   </button>
 );
 
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input {...props} className={`input-text ${props.className || ''}`} />
-);
+export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => {
+  const isRange = props.type === 'range';
+  const defaultClass = isRange ? 'range-input py-3' : 'input-text';
+  return (
+    <input 
+      {...props} 
+      className={`${defaultClass} ${props.className || ''}`} 
+    />
+  );
+};
 
 export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) => (
   <select {...props} className={`input-text ${props.className || ''} py-1.5`} />

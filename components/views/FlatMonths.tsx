@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
-import { groupMonthsBySeason } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
 
 const containerVariants = {
@@ -25,8 +24,9 @@ const itemVariants = {
   },
   exit: { 
     opacity: 0, 
+    y: -8,
     scale: 0.95, 
-    transition: { duration: 0.15 } 
+    transition: { duration: 0.12, ease: "easeIn" as const } 
   }
 };
 import { getActiveCellText } from '../../utils/formatUtils';
@@ -35,9 +35,6 @@ import { getDimmedColor } from '../../utils/colorUtils';
 export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
   const {
     mode,
-    groupBy,
-    showSeasonLabels,
-    seasonsSideBySide,
     showMonthAxis,
     showMonthLabels,
     gap,
@@ -76,103 +73,6 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
 
   const cols = mode === 'columns' ? 1 : mode === 'rows' ? 12 : itemsPerRow;
 
-  if (groupBy === 'season') {
-    const grouped = groupMonthsBySeason(months);
-
-    const gridColsClass = 'grid grid-cols-4';
-
-    return (
-      <motion.div layout
-        className={seasonsSideBySide ? gridColsClass : undefined}
-        style={{ 
-          display: seasonsSideBySide ? 'grid' : 'flex', 
-          flexDirection: seasonsSideBySide ? undefined : 'column', 
-          gap: seasonsSideBySide ? `${gap * 6}px` : `${gap * 10}px`, 
-          width: '100%',
-          alignItems: seasonsSideBySide ? 'start' : (blockAlignment === 'top' ? 'start' : 'center')
-        }}
-      >
-        {grouped.map(g => (
-          <motion.div layout
-            key={g.season} 
-            style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: `${gap * 4}px`,
-              backgroundColor: `${colors.text}05`,
-              padding: `${gap * 4}px`,
-              borderRadius: `${radius * 2}px`,
-              border: `1px solid ${colors.text}08`,
-              width: '100%',
-              boxSizing: 'border-box'
-            }}
-          >
-            {showSeasonLabels && (
-              <motion.div layout style={{ 
-                fontSize: `${fontSize * 1.3}px`, 
-                fontWeight: 900, 
-                letterSpacing: '0.2em', 
-                opacity: 0.35,
-                textAlign: 'center',
-                borderBottom: `1px solid ${colors.text}15`,
-                paddingBottom: `${gap * 2.5}px`,
-                marginBottom: `${gap * 3}px`,
-                textTransform: 'uppercase'
-              }}>
-                {g.season}
-              </motion.div>
-            )}
-            <motion.div 
-              layout 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: mode === 'rows' ? '1fr' : `repeat(${g.months.length}, auto)`,
-                gap: `${gap * 4}px`, 
-                justifyContent: 'center',
-                alignItems: blockAlignment === 'top' ? 'start' : 'center'
-              }}
-            >
-              {g.months.map(m => {
-                const isPast = m.year < currentYear || (m.year === currentYear && m.month < currentMonth);
-                const isToday = m.year === currentYear && m.month === currentMonth;
-                const color = getMonthColor(m.year, m.month, isToday, isPast);
-
-                return (
-                  <motion.div 
-                    layout 
-                    key={`${m.year}-${m.month}`} 
-                    variants={itemVariants}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}
-                  >
-                    {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>}
-                    <Cell
-                      id={`month-${m.year}-${m.month}`}
-                      color={color}
-                      dotSize={(dotSize * 2.5) / 1.5} 
-                      radius={radius}
-                      fontSize={fontSize * 1.5}
-                      textColor={colors.bg}
-                      isActive={isToday}
-                      activeText={getActiveCellText(m.year, m.month, config)}
-                      fallbackText={showMonthLabels ? m.name.toUpperCase().substring(0, 3) : null}
-                      config={config}
-                      onCellClick={onCellClick}
-                      isLarge
-                      isDownloading={isDownloading}
-                    />
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </motion.div>
-        ))}
-      </motion.div>
-    );
-  }
-
   return (
     <motion.div 
       layout 
@@ -187,7 +87,7 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
         alignItems: blockAlignment === 'top' ? 'start' : 'center'
       }}
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="popLayout" initial={false}>
         {months.map(m => {
           const isPast = m.year < currentYear || (m.year === currentYear && m.month < currentMonth);
           const isToday = m.year === currentYear && m.month === currentMonth;

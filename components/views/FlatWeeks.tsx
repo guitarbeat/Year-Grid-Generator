@@ -24,19 +24,17 @@ const itemVariants = {
   },
   exit: { 
     opacity: 0, 
+    y: -8,
     scale: 0.95, 
-    transition: { duration: 0.15 } 
+    transition: { duration: 0.12, ease: "easeIn" as const } 
   }
 };
 import { getActiveCellText } from '../../utils/formatUtils';
-import { getWeekNumber, groupMonthsBySeason } from '../../utils/dateUtils';
+import { getWeekNumber } from '../../utils/dateUtils';
 
 export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
   const {
     mode,
-    groupBy,
-    showSeasonLabels,
-    seasonsSideBySide,
     showMonthAxis,
     showWeekNumbers,
     showMonthNumbers,
@@ -63,93 +61,6 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
   const currentMonth = anchorDate.getMonth();
   const currentWeekNumber = getWeekNumber(anchorDate);
 
-  if (groupBy === 'season') {
-    const grouped = groupMonthsBySeason(months);
-
-    const gridColsClass = mode === 'columns' 
-      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
-      : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
-
-    return (
-      <motion.div layout
-        className={seasonsSideBySide ? gridColsClass : undefined}
-        style={{ 
-          display: seasonsSideBySide ? 'grid' : 'flex', 
-          flexDirection: seasonsSideBySide ? undefined : 'column', 
-          gap: seasonsSideBySide ? `${gap * 6}px` : `${gap * 10}px`, 
-          width: '100%',
-          alignItems: seasonsSideBySide ? 'start' : (blockAlignment === 'top' ? 'start' : 'center')
-        }}
-      >
-        {grouped.map(g => (
-          <motion.div layout
-            key={g.season} 
-            style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: `${gap * 4}px`,
-              backgroundColor: `${colors.text}05`,
-              padding: `${gap * 4}px`,
-              borderRadius: `${radius * 2}px`,
-              border: `1px solid ${colors.text}08`,
-              width: '100%',
-              boxSizing: 'border-box'
-            }}
-          >
-            {showSeasonLabels && (
-              <motion.div layout style={{ 
-                fontSize: `${fontSize * 1.3}px`, 
-                fontWeight: 900, 
-                letterSpacing: '0.2em', 
-                opacity: 0.35,
-                textAlign: 'center',
-                borderBottom: `1px solid ${colors.text}15`,
-                paddingBottom: `${gap * 2.5}px`,
-                marginBottom: `${gap * 3}px`,
-                textTransform: 'uppercase'
-              }}>
-                {g.season}
-              </motion.div>
-            )}
-            <motion.div layout style={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: `${gap * 6}px`, 
-              justifyContent: 'center',
-              alignItems: blockAlignment === 'top' ? 'start' : 'center'
-            }}>
-              {g.months.map(m => (
-                 <motion.div layout key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
-                  {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{m.name}</motion.span>}
-                  <motion.div layout style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
-                    {m.weeksInMonth.map(w => (
-                       <Cell
-                        key={w.weekNum}
-                        id={`week-${m.year}-${w.weekNum}`}
-                        color={w.color}
-                        dotSize={dotSize}
-                        radius={radius}
-                        fontSize={fontSize}
-                        textColor={colors.bg}
-                        isActive={m.year === currentYear && w.weekNum === currentWeekNumber}
-                        activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
-                        fallbackText={showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null)}
-                        config={config}
-                        onCellClick={onCellClick}
-                        isLarge
-                        isDownloading={isDownloading}
-                      />
-                    ))}
-                  </motion.div>
-                 </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        ))}
-      </motion.div>
-    );
-  }
-
   // If showMonthAxis is on, we'll use a grouped approach to show month labels
   if (showMonthAxis) {
     return (
@@ -166,7 +77,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
           alignItems: blockAlignment === 'top' ? 'start' : 'center'
         }}
       >
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="popLayout" initial={false}>
           {months.map(m => (
             <motion.div 
               layout
@@ -220,7 +131,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
         alignItems: blockAlignment === 'top' ? 'start' : 'center'
       }}
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="popLayout" initial={false}>
         {allWeeks.map((w, i) => (
           <motion.div 
             layout 

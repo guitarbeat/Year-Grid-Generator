@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { motion } from 'motion/react';
 import { AppConfig } from '../../types';
 
@@ -18,7 +18,37 @@ interface CellProps {
   isDownloading?: boolean;
 }
 
-export const Cell: React.FC<CellProps> = ({
+const arePropsEqual = (prevProps: CellProps, nextProps: CellProps): boolean => {
+  if (prevProps.id !== nextProps.id) return false;
+  if (prevProps.color !== nextProps.color) return false;
+  if (prevProps.dotSize !== nextProps.dotSize) return false;
+  if (prevProps.radius !== nextProps.radius) return false;
+  if (prevProps.fontSize !== nextProps.fontSize) return false;
+  if (prevProps.textColor !== nextProps.textColor) return false;
+  if (prevProps.isActive !== nextProps.isActive) return false;
+  if (prevProps.activeText !== nextProps.activeText) return false;
+  if (prevProps.fallbackText !== nextProps.fallbackText) return false;
+  if (prevProps.isLarge !== nextProps.isLarge) return false;
+  if (prevProps.isDownloading !== nextProps.isDownloading) return false;
+  if (prevProps.onCellClick !== nextProps.onCellClick) return false;
+  
+  // Config comparisons
+  const prevConfig = prevProps.config;
+  const nextConfig = nextProps.config;
+  
+  if (prevConfig.showActiveLabel !== nextConfig.showActiveLabel) return false;
+  if (prevConfig.activeLabelFormat !== nextConfig.activeLabelFormat) return false;
+  if (prevConfig.colors?.today !== nextConfig.colors?.today) return false;
+  if (prevConfig.colors?.bg !== nextConfig.colors?.bg) return false;
+  if (prevConfig.highlightWeekends !== nextConfig.highlightWeekends) return false;
+  
+  // Only compare the specific override for this cell's ID
+  if (prevConfig.overrides?.[prevProps.id] !== nextConfig.overrides?.[nextProps.id]) return false;
+  
+  return true;
+};
+
+export const Cell: React.FC<CellProps> = memo(({
   id,
   color,
   dotSize,
@@ -123,9 +153,8 @@ export const Cell: React.FC<CellProps> = ({
 
   return (
     <motion.div
-      layout={!isDownloading}
       onClick={(e) => { e.stopPropagation(); onCellClick?.(id); }}
-      initial={isDownloading ? false : { scale: 0 }}
+      initial={isDownloading ? false : { scale: 1 }}
       animate={isDownloading ? false : { scale: 1 }}
       title={getCellTooltipText(id, activeText, config)}
       whileHover={isDownloading ? undefined : { 
@@ -134,7 +163,7 @@ export const Cell: React.FC<CellProps> = ({
         zIndex: 5,
         transition: { type: "spring", stiffness: 450, damping: 15 }
       }}
-      whileTap={isDownloading ? undefined : { scale: 0.88 }}
+      whileTap={isDownloading ? undefined : { scale: 0.96 }}
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -164,4 +193,4 @@ export const Cell: React.FC<CellProps> = ({
       </span>
     </motion.div>
   );
-};
+}, arePropsEqual);

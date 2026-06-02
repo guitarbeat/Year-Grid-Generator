@@ -23,8 +23,9 @@ const itemVariants = {
   },
   exit: { 
     opacity: 0, 
+    y: -4,
     scale: 0.97, 
-    transition: { duration: 0.1 } 
+    transition: { duration: 0.1, ease: "easeIn" as const } 
   }
 };
 import { getDimmedColor } from '../../utils/colorUtils';
@@ -188,7 +189,7 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
         </motion.div>
 
         {/* Year Rows */}
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="popLayout" initial={false}>
           {rows.map((r) => {
             // Highlight decade starts or label them clearly
             const isDecadeStart = r.year % 10 === 0;

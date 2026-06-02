@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { AppConfig } from '../types';
-import { getSeason, getWeekNumber, monthNames } from '../utils/dateUtils';
+import { getWeekNumber, monthNames } from '../utils/dateUtils';
 import { getDimmedColor } from '../utils/colorUtils';
 
 export interface WeekData {
@@ -16,7 +16,6 @@ export interface MonthData {
   daysInMonth: number;
   weeksInMonth: WeekData[];
   startOffset: number;
-  season: string;
 }
 
 export const useGridData = (targetDate: Date, config: AppConfig): MonthData[] => {
@@ -37,8 +36,7 @@ export const useGridData = (targetDate: Date, config: AppConfig): MonthData[] =>
     const currentWeekNumber = getWeekNumber(targetDate);
     
     const result: MonthData[] = [];
-    const seasonShift = config.groupBy === 'season' ? -1 : 0;
-    const effectiveOffset = (startFromJan ? -currentMonth + (monthOffset * 12) : monthOffset) + seasonShift;
+    const effectiveOffset = (startFromJan ? -currentMonth + (monthOffset * 12) : monthOffset);
     
     for (let i = effectiveOffset; i < effectiveOffset + monthsToShow; i++) {
       let targetMonthIndex = currentMonth + i;
@@ -81,8 +79,7 @@ export const useGridData = (targetDate: Date, config: AppConfig): MonthData[] =>
         name: monthNames[month],
         daysInMonth,
         weeksInMonth,
-        startOffset,
-        season: getSeason(month)
+        startOffset
       });
     }
     return result;
@@ -95,7 +92,6 @@ export const useGridData = (targetDate: Date, config: AppConfig): MonthData[] =>
     colors, 
     dimPastDays, 
     dimPastDaysStrength, 
-    overrides,
-    config.groupBy
+    overrides
   ]);
 };

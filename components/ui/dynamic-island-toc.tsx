@@ -495,7 +495,7 @@ export function DynamicIslandTOC({
   };
 
   // Quick setup slider values
-  const handleSliderChange = <K extends keyof AppConfig>(key: K, val: any) => {
+  const handleSliderChange = <K extends keyof AppConfig>(key: K, val: AppConfig[K]) => {
     if (setConfig) {
       setConfig((prev) => ({ ...prev, [key]: val }));
     }
@@ -620,7 +620,7 @@ export function DynamicIslandTOC({
                     key={panel.mode}
                     onClick={() => setHudMode(panel.mode as HUDMode)}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-1 py-1.5 rounded text-[8px] font-mono tracking-wider uppercase transition-all border cursor-pointer",
+                      "flex flex-col items-center justify-center gap-1 py-1.5 rounded text-[8px] font-mono tracking-wider uppercase active:scale-[0.95] transition-[scale,background-color,border-color,color] duration-150 border cursor-pointer",
                       isSelected 
                         ? "bg-[#ea580c]/10 border-[#ea580c]/30 text-[#ea580c] font-bold shadow-[0_2px_10px_-4px_rgba(234,88,12,0.15)]" 
                         : "bg-transparent border-transparent text-gray-500 hover:text-gray-300 hover:bg-white/5"
@@ -755,7 +755,7 @@ export function DynamicIslandTOC({
                                 key={theme.name}
                                 onClick={() => handleApplyColors(theme.colors)}
                                 className={cn(
-                                  "relative aspect-square rounded-full border-2 flex items-center justify-center transition-all select-none active:scale-95 cursor-pointer shadow-md",
+                                  "relative aspect-square rounded-full border-2 flex items-center justify-center transition-[border-color,scale,box-shadow] duration-150 select-none active:scale-[0.96] cursor-pointer shadow-md",
                                   isCurrent ? "border-[#ea580c] shadow-[#ea580c]/30" : "border-transparent"
                                 )}
                                 title={theme.name}
@@ -779,7 +779,7 @@ export function DynamicIslandTOC({
                       <div className="space-y-1">
                         <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest text-gray-400">
                           <span>Dot Size (Spacing)</span>
-                          <span className="text-[#ea580c] font-bold">{config.dotSize}px</span>
+                          <span className="text-[#ea580c] font-bold tabular-nums">{config.dotSize}px</span>
                         </div>
                         <input
                           type="range"
@@ -796,7 +796,7 @@ export function DynamicIslandTOC({
                       <div className="space-y-1">
                         <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest text-gray-400">
                           <span>Corner Radius</span>
-                          <span className="text-[#ea580c] font-bold">{config.radius}px</span>
+                          <span className="text-[#ea580c] font-bold tabular-nums">{config.radius}px</span>
                         </div>
                         <input
                           type="range"
@@ -813,7 +813,7 @@ export function DynamicIslandTOC({
                       <div className="space-y-1">
                         <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest text-gray-400">
                           <span>Grid Spacing Gap</span>
-                          <span className="text-[#ea580c] font-bold">{config.gap}px</span>
+                          <span className="text-[#ea580c] font-bold tabular-nums">{config.gap}px</span>
                         </div>
                         <input
                           type="range"
@@ -831,7 +831,7 @@ export function DynamicIslandTOC({
                         <button
                           onClick={onDownload}
                           disabled={isDownloading}
-                          className="w-full mt-4 flex items-center justify-center gap-2 bg-[#ea580c] hover:bg-[#c2410c] text-white py-2.5 rounded-lg font-mono tracking-widest uppercase text-[10px] font-extrabold transition-all shadow-[0_4px_20px_rgba(234,88,12,0.25)] select-none cursor-pointer active:scale-[0.98] disabled:opacity-50"
+                          className="w-full mt-4 flex items-center justify-center gap-2 bg-[#ea580c] hover:bg-[#c2410c] text-white py-2.5 rounded-lg font-mono tracking-widest uppercase text-[10px] font-extrabold transition-all shadow-[0_4px_20px_rgba(234,88,12,0.25)] select-none cursor-pointer active:scale-[0.96] disabled:opacity-50"
                         >
                           <Download className="h-3.5 w-3.5" />
                           <span>{isDownloading ? "CAPTURING GRID..." : "DOWNLOAD POSTER"}</span>
@@ -882,12 +882,12 @@ export function DynamicIslandTOC({
                         <span className="text-[8px] text-gray-500 tracking-widest block font-bold">Active Palette Colors Hex-Map</span>
                         <div className="space-y-1.5">
                           {[
-                            { label: "Empty Cell color", key: "empty" },
-                            { label: "Fill Highlight", key: "fill" },
-                            { label: "Primary Font Text", key: "text" },
-                            { label: "Background canvas", key: "bg" }
+                            { label: "Empty Cell color", key: "empty" as keyof AppColors },
+                            { label: "Fill Highlight", key: "fill" as keyof AppColors },
+                            { label: "Primary Font Text", key: "text" as keyof AppColors },
+                            { label: "Background canvas", key: "bg" as keyof AppColors }
                           ].map((clrKey) => {
-                            const hexVal = (config.colors as any)?.[clrKey.key];
+                            const hexVal = config.colors?.[clrKey.key];
                             return (
                               <div key={clrKey.key} className="flex items-center justify-between bg-black/20 p-1.5 rounded border border-white/5">
                                 <div className="flex items-center gap-2">

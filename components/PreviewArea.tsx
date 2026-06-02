@@ -27,7 +27,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   isDownloading = false
 }) => {
   const [zoom, setZoom] = useState(1);
-  const [is3D, setIs3D] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   
@@ -104,7 +103,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
     config.mode, 
     config.granularity, 
     config.monthsToShow, 
-    config.groupBy,
     config.monthsPerRow,
     config.itemsPerRow,
     config.gap,
@@ -142,7 +140,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       >
         <button 
           onClick={onToggleSidebar}
-          className="md:hidden w-10 h-10 bg-[#0c0c0f]/80 backdrop-blur-md rounded-xl flex items-center justify-center border border-zinc-805 text-accent pointer-events-auto shadow-xl transition-[scale,border-color,background-color,color] active:scale-[0.96] duration-150"
+          className="md:hidden w-10 h-10 bg-[#0c0c0f]/80 backdrop-blur-md rounded-xl flex items-center justify-center border border-zinc-800/80 text-accent pointer-events-auto shadow-xl transition-[scale,border-color,background-color,color] active:scale-[0.96] duration-150"
         >
           <span className="material-symbols-outlined">menu</span>
         </button>
@@ -205,14 +203,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
           onClick={() => handleZoom(0.1)}
           className="!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none text-zinc-400"
         />
-        <div className="w-[1px] h-4 bg-zinc-800/80" />
-        <Button 
-          variant="action"
-          icon="view_in_ar"
-          onClick={() => setIs3D(!is3D)}
-          className={`!w-9 !h-9 !bg-transparent hover:!bg-white/5 !border-0 !shadow-none ${is3D ? 'text-accent' : 'text-zinc-400'}`}
-          title="Toggle 3D Perspective"
-        />
       </div>
 
       {/* Render Content */}
@@ -222,9 +212,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
           isPanning ? '' : 'transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]'
         }`}
         style={{ 
-          transform: `translate(${position.x}px, ${position.y}px) scale(${zoom}) ${is3D ? 'rotateX(55deg) rotateZ(-40deg) translateY(-100px) scale3d(1.2, 1.2, 1.2)' : ''}`,
-          transformStyle: 'preserve-3d',
-          perspective: '1200px'
+          transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`
         }}
       >
         <YearGrid config={config} domRef={gridRef} onCellClick={onCellClick} isDownloading={isDownloading} />

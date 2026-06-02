@@ -6,7 +6,6 @@ import { AppConfig } from './types';
 import html2canvas from 'html2canvas';
 import { DynamicIslandTOC } from './components/ui/dynamic-island-toc';
 import { MotionConfig } from 'motion/react';
-import { QUOTES } from './utils/quotes';
 import { useHistory } from './hooks/useHistory';
 import {
   DEFAULT_CONFIG,
@@ -165,24 +164,6 @@ const App: React.FC = () => {
   };
 
   const handleCellClick = (id: string) => {
-    if (id === 'action:cycle-quote') {
-      setConfig(prev => {
-        const cat = prev.quotesCategory || 'all';
-        const filtered = cat !== 'all'
-          ? QUOTES.filter(q => q.category === cat)
-          : QUOTES;
-        if (filtered.length === 0) return prev;
-        const currentIndex = filtered.findIndex(q => q.id === prev.selectedQuoteId);
-        const nextIndex = (currentIndex + 1) % filtered.length;
-        const nextQuote = filtered[nextIndex] || filtered[0];
-        return {
-          ...prev,
-          selectedQuoteId: nextQuote?.id || 'seneca-1'
-        };
-      });
-      return;
-    }
-
     setSelectedCellId(id);
     setConfig(prev => {
       const overrides = { ...(prev.overrides || {}) };

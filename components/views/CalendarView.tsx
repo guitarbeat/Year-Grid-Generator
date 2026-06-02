@@ -1,12 +1,22 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { getActiveCellText } from '../../utils/formatUtils';
 import { getDayColor } from '../../utils/colorUtils';
 import { getWeekNumber } from '../../utils/dateUtils';
 import { Cell } from '../ui/Cell';
-import { getLayoutStrategyRenderer } from './layouts/factory';
 import { MonthData } from '../../hooks/useGridData';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.03,
+      delayChildren: 0.02
+    }
+  }
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12, scale: 0.97 },
@@ -18,8 +28,9 @@ const itemVariants = {
   },
   exit: { 
     opacity: 0, 
-    scale: 0.95, 
-    transition: { duration: 0.15 } 
+    y: -8,
+    scale: 0.97, 
+    transition: { duration: 0.12, ease: "easeIn" as const } 
   }
 };
 
@@ -27,7 +38,6 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
   const {
     mode,
     granularity,
-    groupBy,
     showMonthAxis,
     showWeekdayAxis,
     showMonthNumbers,
@@ -232,14 +242,67 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     );
   };
 
-  const LayoutRenderer = getLayoutStrategyRenderer(groupBy);
+  // In-line chunked grouping logic directly
+  const groupedMonths = React.useMemo(() => {
+    if (mode !== 'grid') {
+      return [{ id: 'all-months', months }];
+    }
+    const chunks = [];
+    const size = config.monthsPerRow || 3;
+    for (let i = 0; i < months.length; i += size) {
+      chunks.push({
+        id: `chunk-${i}`,
+        months: months.slice(i, i + size)
+      });
+    }
+    return chunks;
+  }, [months, mode, config.monthsPerRow]);
+
+  const blockAlignment = config.blockAlignment || 'top';
 
   return (
-    <LayoutRenderer 
-      config={config} 
-      months={months} 
-      renderMonth={renderMonthItem} 
-      renderSideAxis={renderSideDayAxisColumn} 
-    />
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 10}px`,
+      width: '100%',
+      alignItems: blockAlignment === 'top' ? 'start' : 'center'
+    }}>
+      {groupedMonths.map((group, rowIdx) => (
+        <div 
+          key={group.id || `row-${rowIdx}`}
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: blockAlignment === 'top' ? 'start' : 'center',
+            gap: `${gap * 4}px`,
+            justifyContent: 'center',
+            width: '100%',
+          }}
+        >
+          {config.showSideDayAxis && mode === 'columns' && renderSideDayAxisColumn()}
+          <motion.div 
+            layout 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: mode === 'rows' 
+                ? '1fr' 
+                : (mode === 'columns' ? `repeat(${config.monthsPerRow || 3}, ${dotSize}px)` : `repeat(${config.monthsPerRow || 3}, 1fr)`),
+              gap: mode === 'grid' ? `${gap * 6}px` : `${gap * 3}px`,
+              flex: mode === 'columns' ? 'none' : 1,
+              justifyItems: 'center',
+              alignItems: blockAlignment === 'top' ? 'start' : 'center'
+            }}
+          >
+            <AnimatePresence mode="popLayout" initial={false}>
+              {group.months.map((m) => renderMonthItem(m))}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      ))}
+    </div>
   );
 };

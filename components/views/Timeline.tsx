@@ -23,8 +23,9 @@ const itemVariants = {
   },
   exit: { 
     opacity: 0, 
-    scale: 0.95, 
-    transition: { duration: 0.15 } 
+    x: 8,
+    scale: 0.97, 
+    transition: { duration: 0.12, ease: "easeIn" as const } 
   }
 };
 import { getActiveCellText } from '../../utils/formatUtils';
@@ -67,7 +68,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
       animate="visible"
       style={{ display: 'flex', flexDirection: 'column', gap: `${gap * 4}px` }}
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="popLayout" initial={false}>
         {months.map(m => {
           const hasWeekdayAxis = granularity === 'day' && showWeekdayAxis;
           return (

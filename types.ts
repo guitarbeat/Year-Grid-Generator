@@ -14,7 +14,7 @@ export interface AppColors {
 
 export interface AppConfig {
   date: string; // YYYY-MM-DD
-  mode: 'grid' | 'rows' | 'columns' | 'timeline' | 'spiral';
+  mode: 'grid' | 'rows' | 'columns' | 'timeline';
   granularity: 'day' | 'week' | 'month';
   itemsPerRow: number;
   isMondayFirst: boolean;
@@ -45,9 +45,6 @@ export interface AppConfig {
   showActiveLabel: boolean;
   activeLabelFormat: 'date' | 'weekNum' | 'dayName' | 'monthName' | 'monthDate' | 'full';
   startFromJan: boolean;
-  groupBy: 'none' | 'day' | 'week' | 'month' | 'season';
-  showSeasonLabels: boolean;
-  seasonsSideBySide: boolean;
   anchorTodayToRealTime: boolean;
   blockAlignment: 'top' | 'center';
   // New Life Mode & Memento Mori features (from Ti-03/remainders)
@@ -56,10 +53,6 @@ export interface AppConfig {
   lifeExpectancy?: number;
   lifeGranularity?: 'week' | 'month';
   showLifeStats?: boolean;
-  showQiQuotes?: boolean;
-  quotesCategory?: 'stoic' | 'intention' | 'time' | 'all';
-  selectedQuoteId?: string;
-  customQuoteText?: string;
   showHeaderPlugin?: boolean;
   labelRotation?: 0 | 45 | 90 | -45 | -90;
   // Visual refinement

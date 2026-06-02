@@ -43,7 +43,6 @@ export function useHistory(
       prev.fontSize !== config.fontSize ||
       prev.dimPastDaysStrength !== config.dimPastDaysStrength ||
       prev.itemsPerRow !== config.itemsPerRow ||
-      prev.customQuoteText !== config.customQuoteText ||
       prev.customTitle !== config.customTitle ||
       prev.monthsToShow !== config.monthsToShow ||
       prev.monthsPerRow !== config.monthsPerRow ||
