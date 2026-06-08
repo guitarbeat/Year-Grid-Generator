@@ -63,6 +63,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
   const currentYear = anchorDate.getFullYear();
   const currentMonth = anchorDate.getMonth();
   const currentDay = anchorDate.getDate();
+  const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
 
   const dayHeaderLabels = isMondayFirst 
     ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] 
@@ -144,7 +145,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
           {/* Day items */}
           {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
             const day = i + 1;
-            const color = getDayColor(m.year, m.month, day, config, currentDate);
+            const color = getDayColor(m.year, m.month, day, config, absCurrent);
             return (
               <Cell
                 key={`day-${day}`}
@@ -154,7 +155,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
                 radius={radius}
                 fontSize={fontSize}
                 textColor={showDayNumbers && !keepCellShapeWithNumbers ? color : colors.bg}
-                isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + currentDay)}
+                isActive={(m.year * 10000 + m.month * 100 + day) === absCurrent}
                 activeText={getActiveCellText(m.year, m.month, config, day)}
                 fallbackText={showDayNumbers ? day : null}
                 config={config}
@@ -183,6 +184,26 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
               isDownloading={isDownloading}
             />
           ))}
+
+          {/* Month items (single dot per month) */}
+          {granularity === 'month' && (
+            <Cell
+              key={`month-${m.month}`}
+              id={`month-${m.year}-${m.month}`}
+              color={getDayColor(m.year, m.month, 1, config, absCurrent)}
+              dotSize={dotSize * 3}
+              radius={radius}
+              fontSize={fontSize}
+              textColor={colors.bg}
+              isActive={m.year === currentYear && m.month === currentMonth}
+              activeText={getActiveCellText(m.year, m.month, config, undefined, undefined)}
+              fallbackText={null}
+              config={config}
+              onCellClick={onCellClick}
+              isLarge
+              isDownloading={isDownloading}
+            />
+          )}
         </div>
       </motion.div>
     );

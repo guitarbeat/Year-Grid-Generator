@@ -60,7 +60,9 @@ export const useGridData = (targetDate: Date, config: AppConfig): MonthData[] =>
           let color = colors.futureDay;
           const id = `week-${year}-${weekNum}`;
           if (overrides[id]) {
-            color = colors[overrides[id] as keyof typeof colors] || overrides[id];
+            const overrideVal = overrides[id];
+            const colorKey = overrideVal.includes('|') ? overrideVal.split('|')[0] : overrideVal;
+            color = colors[colorKey as keyof typeof colors] || colorKey;
           } else if (isToday) {
             color = colors.today;
           } else if (isPast) {

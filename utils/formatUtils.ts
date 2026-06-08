@@ -1,4 +1,4 @@
-import { getWeekNumber } from './dateUtils';
+import { getWeekNumber, monthNamesFull, monthNamesShort, dayNamesShort } from './dateUtils';
 import { AppConfig } from '../types';
 
 export const getActiveCellText = (
@@ -12,9 +12,9 @@ export const getActiveCellText = (
   let text = '';
   const d = day ? new Date(year, month, day) : new Date(year, month, 1);
 
-  const dayNameShort = d.toLocaleDateString('default', { weekday: 'short' });
-  const monthNameShort = d.toLocaleDateString('default', { month: 'short' });
-  const monthNameLong = d.toLocaleDateString('default', { month: 'long' });
+  const dayNameShort = dayNamesShort[d.getDay()];
+  const monthNameShort = monthNamesShort[d.getMonth()];
+  const monthNameLong = monthNamesFull[d.getMonth()];
   const dateNum = d.getDate();
   const weekOfMonth = Math.ceil(dateNum / 7);
   const weekOfYear = getWeekNumber(d);

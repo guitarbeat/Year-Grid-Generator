@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { AppConfig } from '../../types';
+import { CircleProgress } from './hud/CircleProgress';
 
 interface StatsBarProps {
   config: AppConfig;
@@ -8,34 +9,69 @@ interface StatsBarProps {
   currentYear: number;
 }
 
-export const StatsBar: React.FC<StatsBarProps> = ({ config, targetDate, currentYear }) => {
+const StatsLegend: React.FC<{ config: Pick<AppConfig, 'colors' | 'highlightWeekends' | 'radius'> }> = memo(({ config }) => {
+  const { colors, highlightWeekends, radius } = config;
+  const dotRadius = radius ? Math.min(2, radius) : 2;
+
+  return (
+    <div className="flex flex-wrap items-center justify-center sm:justify-between gap-x-4 gap-y-2 text-[9px] uppercase tracking-wider font-mono opacity-60 pt-2 select-none text-zinc-400">
+      <div className="flex items-center gap-1.5">
+        <div style={{ width: 8, height: 8, backgroundColor: colors.pastDay, borderRadius: `${dotRadius}px` }} />
+        <span>Lived</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="animate-pulse" style={{ width: 8, height: 8, backgroundColor: colors.today, borderRadius: `${dotRadius}px` }} />
+        <span>Today</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div style={{ width: 8, height: 8, backgroundColor: colors.futureDay, borderRadius: `${dotRadius}px` }} />
+        <span>Future</span>
+      </div>
+      {highlightWeekends && (
+        <div className="flex items-center gap-1.5">
+          <div style={{ width: 8, height: 8, backgroundColor: colors.weekend, borderRadius: `${dotRadius}px` }} />
+          <span>Weekend</span>
+        </div>
+      )}
+      <div className="flex items-center gap-1.5">
+        <div style={{ width: 8, height: 8, backgroundColor: colors.significant, borderRadius: `${dotRadius}px` }} />
+        <span>Milestone</span>
+      </div>
+    </div>
+  );
+});
+
+export const StatsBar: React.FC<StatsBarProps> = memo(({ config, targetDate, currentYear }) => {
   const { showStats, fontSize, colors } = config;
 
   if (!showStats) return null;
 
-  const startOfYear = new Date(currentYear, 0, 1);
-  const endOfYear = new Date(currentYear + 1, 0, 1);
-  const totalDays = (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24);
-  
-  let effectiveDate = targetDate;
-  if (config.anchorTodayToRealTime) {
-    const realYear = new Date().getFullYear();
-    if (currentYear < realYear) {
-      effectiveDate = new Date(currentYear, 11, 31);
-    } else if (currentYear > realYear) {
-      effectiveDate = new Date(currentYear, 0, 1);
-    } else {
-      effectiveDate = new Date();
+  const percentPassed = useMemo(() => {
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear + 1, 0, 1);
+    const totalDays = (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24);
+    
+    let effectiveDate = targetDate;
+    if (config.anchorTodayToRealTime) {
+      const realYear = new Date().getFullYear();
+      if (currentYear < realYear) {
+        effectiveDate = new Date(currentYear, 11, 31);
+      } else if (currentYear > realYear) {
+        effectiveDate = new Date(currentYear, 0, 1);
+      } else {
+        effectiveDate = new Date();
+      }
     }
-  }
 
-  const daysPassed = Math.ceil(Math.abs(effectiveDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
-  const percentPassed = Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
+    const daysPassed = Math.ceil(Math.abs(effectiveDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
+  }, [currentYear, targetDate, config.anchorTodayToRealTime]);
 
   return (
     <div className="w-full space-y-4 pt-4 border-t border-white/5">
-      <div className="flex justify-between items-end gap-10">
-        <div className="flex flex-col items-start">
+      <div className="flex justify-between items-center gap-10">
+        <div className="flex items-center gap-2.5">
+          <CircleProgress percentage={Math.round(percentPassed)} color={colors.stats} />
           <span style={{ fontSize: `${fontSize * 0.8}px`, opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             Year Progress
           </span>
@@ -53,31 +89,7 @@ export const StatsBar: React.FC<StatsBarProps> = ({ config, targetDate, currentY
         />
       </div>
 
-      {/* Aesthetic Legend Block */}
-      <div className="flex flex-wrap items-center justify-center sm:justify-between gap-x-4 gap-y-2 text-[9px] uppercase tracking-wider font-mono opacity-60 pt-2 select-none text-zinc-400">
-        <div className="flex items-center gap-1.5">
-          <div style={{ width: 8, height: 8, backgroundColor: colors.pastDay, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
-          <span>Lived</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="animate-pulse" style={{ width: 8, height: 8, backgroundColor: colors.today, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
-          <span>Today</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div style={{ width: 8, height: 8, backgroundColor: colors.futureDay, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
-          <span>Future</span>
-        </div>
-        {config.highlightWeekends && (
-          <div className="flex items-center gap-1.5">
-            <div style={{ width: 8, height: 8, backgroundColor: colors.weekend, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
-            <span>Weekend</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1.5">
-          <div style={{ width: 8, height: 8, backgroundColor: colors.significant, borderRadius: `${config.radius ? Math.min(2, config.radius) : 2}px` }} />
-          <span>Milestone</span>
-        </div>
-      </div>
+      <StatsLegend config={config} />
     </div>
   );
-};
+});

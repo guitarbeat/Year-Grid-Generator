@@ -12,6 +12,8 @@ export interface AppColors {
   stats: string;
 }
 
+export type ViewMode = 'editor' | 'image' | 'export_base64';
+
 export interface AppConfig {
   date: string; // YYYY-MM-DD
   mode: 'grid' | 'rows' | 'columns' | 'timeline';
@@ -57,23 +59,7 @@ export interface AppConfig {
   labelRotation?: 0 | 45 | 90 | -45 | -90;
   // Visual refinement
   customTitle?: string;
-  assetFormat: 'auto' | 'square' | 'ios-widget' | 'ios-wallpaper';
-  density: 'compact' | 'normal' | 'spacious';
   resolutionScale: 1 | 2 | 3 | 4;
-  backdropType?: 'solid' | 'ambient-spotlight' | 'cosmic-mesh' | 'industrial-border' | 'editorial-float';
-  cardRadius?: number;
-  innerPadding?: 'compact' | 'normal' | 'relaxed';
-  gridFrameStyle?: 'none' | 'minimal' | 'cyber' | 'glass' | 'brutalist';
+  disableSidebarBlur?: boolean;
   overrides: Record<string, string>;
-}
-
-export interface DayData {
-  date?: Date;
-  label: string;
-  filled: boolean;
-  active?: boolean;
-  // For Day view specific metadata
-  dayOfWeek?: number;
-  month?: number;
-  weekIndex?: number; // New property
 }

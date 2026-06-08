@@ -62,17 +62,7 @@
 }
 
 @layer components {
-  .sidebar-section {
-    @apply py-6 border-b border-border/60 last:border-0 relative;
-  }
-  
-  .sidebar-label {
-    @apply text-[9px] uppercase tracking-[0.2em] text-gray-600 font-mono font-bold mb-4 block;
-  }
-
-  .control-group {
-    @apply space-y-4;
-  }
+  /* Utilities removed */
 
   .input-text {
     @apply w-full bg-[#08080a] border border-zinc-800/80 rounded-lg px-3 py-2 min-h-[40px] text-xs text-zinc-100 font-mono focus:border-accent/55 focus:ring-4 focus:ring-accent/10 outline-none transition-[border-color,box-shadow] placeholder:text-zinc-600 shadow-inner;
@@ -87,58 +77,37 @@
     @apply normal-case;
   }
 
-  /* Industrial Range Slider */
+  /* Interactive Playful Range Slider w/ Magic Interaction Details */
   .range-input {
-    @apply w-full h-1 bg-[#1a1a1a] rounded-none appearance-none cursor-pointer border-x border-[#222];
-    background-image: linear-gradient(to right, #333 1px, transparent 1px);
-    background-size: 10% 100%;
+    @apply w-full h-2 bg-[#121214] rounded-full appearance-none cursor-pointer shadow-inner border border-zinc-800/80 transition-all duration-300;
+  }
+
+  /* When hovering over the track */
+  .range-input:hover {
+    @apply bg-zinc-800/80;
   }
 
   .range-input::-webkit-slider-thumb {
-    @apply appearance-none w-2 h-4 bg-accent rounded-none cursor-pointer hover:bg-white active:scale-y-110 transition-[transform,background-color] border border-black/20;
+    @apply appearance-none w-4 h-4 bg-zinc-400 rounded-full cursor-pointer border border-zinc-600 transition-all duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)];
+  }
+
+  .range-input::-webkit-slider-thumb:hover {
+    @apply bg-white scale-125 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)];
+  }
+
+  .range-input:active::-webkit-slider-thumb {
+    @apply scale-90 w-5 bg-accent border-accent shadow-[0_0_16px_rgba(234,88,12,0.6)];
   }
 
   .range-input::-moz-range-thumb {
-    @apply w-2 h-4 bg-accent rounded-none cursor-pointer border-none hover:bg-white transition-colors;
+    @apply w-4 h-4 bg-zinc-400 rounded-full cursor-pointer border-none transition-all duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)];
   }
 
-  /* Toggle */
-  .toggle-track {
-    @apply w-7 h-3.5 bg-[#121214] rounded-full transition-colors duration-200 border border-[#222];
+  .range-input::-moz-range-thumb:hover {
+    @apply bg-white scale-125 shadow-[0_0_12px_rgba(255,255,255,0.4)];
   }
 
-  .toggle-checkbox input:checked + .toggle-track {
-    @apply bg-accent/20 border-accent/40;
-  }
-
-  .toggle-thumb {
-    @apply absolute left-[3px] top-[2.5px] w-2 h-2 bg-[#444] rounded-full transition-transform duration-250 ease-out;
-  }
-
-  .toggle-checkbox input:checked + .toggle-track .toggle-thumb {
-    @apply translate-x-3 bg-accent shadow-[0_0_8px_rgba(234,88,12,0.5)];
-  }
-
-  .toggle-checkbox {
-    position: relative;
-  }
-
-  .toggle-checkbox::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 44px;
-    height: 44px;
-  }
-
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
-    to { opacity: 1; transform: translateY(0); filter: blur(0); }
-  }
-  .animate-fade-in {
-    opacity: 0;
-    animation: fade-in 400ms ease-out forwards;
+  .range-input:active::-moz-range-thumb {
+    @apply scale-90 w-5 bg-accent shadow-[0_0_16px_rgba(234,88,12,0.6)];
   }
 }

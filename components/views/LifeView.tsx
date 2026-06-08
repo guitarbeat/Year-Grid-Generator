@@ -91,7 +91,9 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
       
       if (overrides[cellId]) {
         // Custom override applied by user clicking cell
-        color = colors[overrides[cellId] as keyof typeof colors] || overrides[cellId];
+        const val = overrides[cellId];
+        const colorKey = val.includes('|') ? val.split('|')[0] : val;
+        color = colors[colorKey as keyof typeof colors] || colorKey;
       } else if (isCurrent) {
         color = colors.today;
       } else if (isPast) {

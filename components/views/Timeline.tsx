@@ -2,6 +2,9 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ViewProps } from './types';
 import { Cell } from '../ui/Cell';
+import { getActiveCellText } from '../../utils/formatUtils';
+import { getDayColor } from '../../utils/colorUtils';
+import { getWeekNumber } from '../../utils/dateUtils';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,9 +31,6 @@ const itemVariants = {
     transition: { duration: 0.12, ease: "easeIn" as const } 
   }
 };
-import { getActiveCellText } from '../../utils/formatUtils';
-import { getDayColor } from '../../utils/colorUtils';
-import { getWeekNumber } from '../../utils/dateUtils';
 
 export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
   const {
@@ -59,6 +59,8 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
   const anchorDate = config.anchorTodayToRealTime ? new Date() : currentDate;
   const currentYear = anchorDate.getFullYear();
   const currentMonth = anchorDate.getMonth();
+  const currentDay = anchorDate.getDate();
+  const absCurrent = currentYear * 10000 + currentMonth * 100 + currentDay;
 
   return (
     <motion.div 
@@ -79,8 +81,8 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
               style={{ display: 'flex', gap: `${gap * 2}px`, alignItems: 'center' }}
             >
               {showMonthAxis && (
-                <motion.div layout style={{ minWidth: `${fontSize * 5}px`, fontSize: `${fontSize}px`, fontWeight: 'bold', color: colors.text, opacity: 0.8 }}>
-                  {m.name}
+                <motion.div layout style={{ minWidth: `${fontSize * 5}px`, fontSize: `${fontSize}px`, fontWeight: 'bold', color: colors.text, opacity: 0.8, ...rotateStyle }}>
+                  {config.showMonthNumbers ? (m.month + 1) : m.name}
                 </motion.div>
               )}
               <motion.div layout style={{ display: 'flex', gap: `${gap}px` }}>
@@ -91,8 +93,8 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                 {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
                   const day = i + 1;
                   const dateObj = new Date(m.year, m.month, day);
-                  const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
-                  const color = getDayColor(m.year, m.month, day, config, currentDate);
+                  const dayName = ["S", "M", "T", "W", "T", "F", "S"][dateObj.getDay()];
+                  const color = getDayColor(m.year, m.month, day, config, absCurrent);
                   return (
                     <motion.div layout key={`day-${day}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                       {hasWeekdayAxis && (
@@ -107,7 +109,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                         radius={radius}
                         fontSize={fontSize}
                         textColor={showDayNumbers && !keepCellShapeWithNumbers ? color : colors.bg}
-                        isActive={(m.year * 10000 + m.month * 100 + day) === (currentYear * 10000 + currentMonth * 100 + anchorDate.getDate())}
+                        isActive={(m.year * 10000 + m.month * 100 + day) === absCurrent}
                         activeText={getActiveCellText(m.year, m.month, config, day)}
                         fallbackText={showDayNumbers ? day : null}
                         config={config}

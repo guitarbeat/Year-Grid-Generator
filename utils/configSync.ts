@@ -47,7 +47,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   startFromJan: false,
   anchorTodayToRealTime: true,
   blockAlignment: 'top',
-  density: 'normal',
   isLifeMode: false,
   birthDate: '2000-01-01',
   lifeExpectancy: 80,
@@ -56,8 +55,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   showHeaderPlugin: false,
   labelRotation: 0,
   customTitle: '',
-  assetFormat: 'auto',
   resolutionScale: 2,
+  disableSidebarBlur: true,
   overrides: {}
 };
 
@@ -73,7 +72,7 @@ export const KEY_MAP: Record<string, string> = {
   anchorTodayToRealTime: 'J', blockAlignment: 'K',
   isLifeMode: 'L', birthDate: 'M', lifeExpectancy: 'N', lifeGranularity: 'O',
   showLifeStats: 'P', showHeaderPlugin: 'U', labelRotation: 'V', customTitle: 'W',
-  assetFormat: 'X', density: 'Y', resolutionScale: 'Z', overrides: '_'
+  resolutionScale: 'Z', disableSidebarBlur: 'S', overrides: '_'
 };
 
 export const COLOR_MAP: Record<string, string> = {
