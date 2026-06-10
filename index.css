@@ -79,7 +79,7 @@
 
   /* Interactive Playful Range Slider w/ Magic Interaction Details */
   .range-input {
-    @apply w-full h-2 bg-[#121214] rounded-full appearance-none cursor-pointer shadow-inner border border-zinc-800/80 transition-all duration-300;
+    @apply w-full h-2 bg-[#121214] rounded-full appearance-none cursor-pointer shadow-inner border border-zinc-800/80 transition-colors duration-300;
   }
 
   /* When hovering over the track */
@@ -88,7 +88,7 @@
   }
 
   .range-input::-webkit-slider-thumb {
-    @apply appearance-none w-4 h-4 bg-zinc-400 rounded-full cursor-pointer border border-zinc-600 transition-all duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)];
+    @apply appearance-none w-4 h-4 bg-zinc-400 rounded-full cursor-pointer border border-zinc-600 transition-[background-color,border-color,transform,box-shadow,width] duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)];
   }
 
   .range-input::-webkit-slider-thumb:hover {
@@ -100,7 +100,7 @@
   }
 
   .range-input::-moz-range-thumb {
-    @apply w-4 h-4 bg-zinc-400 rounded-full cursor-pointer border-none transition-all duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)];
+    @apply w-4 h-4 bg-zinc-400 rounded-full cursor-pointer border-none transition-[background-color,transform,box-shadow,width] duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)];
   }
 
   .range-input::-moz-range-thumb:hover {

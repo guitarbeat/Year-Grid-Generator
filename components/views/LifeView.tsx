@@ -256,7 +256,7 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
           {/* Progress bar visual */}
           <div className="w-full max-w-xs mx-auto bg-white/5 rounded-full h-1 mt-1 overflow-hidden">
             <div 
-              className="h-full rounded-full transition-all duration-500" 
+              className="h-full rounded-full transition-[width,background-color] duration-500" 
               style={{ 
                 width: `${percentageLived}%`, 
                 backgroundColor: colors.fill || colors.pastDay 

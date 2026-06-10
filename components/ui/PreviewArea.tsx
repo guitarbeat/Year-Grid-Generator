@@ -98,12 +98,12 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
       </div>
 
       {/* Control Dock */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 no-pan select-none">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 no-pan select-none">
         <motion.div 
-          initial={{ y: 24, opacity: 0, filter: "blur(4px)" }}
+          initial={{ y: -24, opacity: 0, filter: "blur(4px)" }}
           animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
           transition={{ type: "spring", stiffness: 400, damping: 24, delay: 0.15 }}
-          className="flex items-center gap-2 p-1.5 rounded-full bg-zinc-950/80 border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl"
+          className="flex items-center gap-2.5 p-1.5 rounded-full bg-zinc-950/85 border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-shadow duration-300 hover:border-white/15"
         >
           {/* History Operations Pill */}
           <div className="flex items-center gap-1 bg-white/[0.02] border border-white/[0.04] p-0.5 rounded-full">
@@ -112,10 +112,10 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
               whileTap={canUndo ? { scale: 0.96 } : {}}
               disabled={!canUndo}
               onClick={(e) => { e.stopPropagation(); onUndo(); }}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white disabled:opacity-20 disabled:hover:text-zinc-400 transition-colors cursor-pointer"
+              className="relative before:absolute before:-inset-1 w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white disabled:opacity-20 disabled:hover:text-zinc-400 transition-colors cursor-pointer"
               title="Undo custom edit"
             >
-              <Undo className="w-3.5 h-3.5" />
+              <Undo className="relative w-3.5 h-3.5" />
             </motion.button>
 
             <motion.button
@@ -123,10 +123,10 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
               whileTap={canRedo ? { scale: 0.96 } : {}}
               disabled={!canRedo}
               onClick={(e) => { e.stopPropagation(); onRedo(); }}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white disabled:opacity-20 disabled:hover:text-zinc-400 transition-colors cursor-pointer"
+              className="relative before:absolute before:-inset-1 w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white disabled:opacity-20 disabled:hover:text-zinc-400 transition-colors cursor-pointer"
               title="Redo custom edit"
             >
-              <Redo className="w-3.5 h-3.5" />
+              <Redo className="relative w-3.5 h-3.5" />
             </motion.button>
           </div>
 
@@ -138,10 +138,10 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.96 }}
               onClick={(e) => { e.stopPropagation(); setZoom(Math.max(0.05, zoom - 0.1)); }}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+              className="relative before:absolute before:-inset-1 w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
               title="Zoom Out"
             >
-              <ZoomOut className="w-3.5 h-3.5" />
+              <ZoomOut className="relative w-3.5 h-3.5" />
             </motion.button>
 
             <span className="text-[10px] font-mono font-bold tracking-wider px-1.5 min-w-[48px] text-center text-zinc-350 tabular-nums">
@@ -152,10 +152,10 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.96 }}
               onClick={(e) => { e.stopPropagation(); setZoom(Math.min(3.0, zoom + 0.1)); }}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+              className="relative before:absolute before:-inset-1 w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
               title="Zoom In"
             >
-              <ZoomIn className="w-3.5 h-3.5" />
+              <ZoomIn className="relative w-3.5 h-3.5" />
             </motion.button>
           </div>
 
@@ -166,10 +166,10 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.96 }}
             onClick={(e) => { e.stopPropagation(); fitToScreen(); }}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-accent hover:text-white bg-accent/10 border border-accent/20 hover:bg-accent/25 transition-all cursor-pointer"
+            className="relative before:absolute before:-inset-1 w-8 h-8 rounded-full flex items-center justify-center text-accent hover:text-white bg-accent/10 border border-accent/20 hover:bg-accent/25 transition-colors cursor-pointer"
             title="Fit visual grid to screen"
           >
-            <Maximize2 className="w-3.5 h-3.5" />
+            <Maximize2 className="relative w-3.5 h-3.5" />
           </motion.button>
         </motion.div>
       </div>
