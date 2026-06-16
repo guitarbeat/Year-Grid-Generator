@@ -57,6 +57,8 @@ export interface AppConfig {
   showLifeStats?: boolean;
   showHeaderPlugin?: boolean;
   labelRotation?: 0 | 45 | 90 | -45 | -90;
+  monthLabelScale?: number;
+  axisPadding?: number;
   // Visual refinement
   customTitle?: string;
   resolutionScale: 1 | 2 | 3 | 4;

@@ -11,6 +11,7 @@ interface CellProps {
   fontSize: number;
   textColor: string;
   isActive: boolean;
+  isSelected?: boolean;
   activeText: string;
   fallbackText: React.ReactNode;
   config: AppConfig;
@@ -27,6 +28,7 @@ const arePropsEqual = (prevProps: CellProps, nextProps: CellProps): boolean => {
   if (prevProps.fontSize !== nextProps.fontSize) return false;
   if (prevProps.textColor !== nextProps.textColor) return false;
   if (prevProps.isActive !== nextProps.isActive) return false;
+  if (prevProps.isSelected !== nextProps.isSelected) return false;
   if (prevProps.activeText !== nextProps.activeText) return false;
   if (prevProps.fallbackText !== nextProps.fallbackText) return false;
   if (prevProps.isLarge !== nextProps.isLarge) return false;
@@ -112,6 +114,7 @@ export const Cell: React.FC<CellProps> = memo(({
   fontSize,
   textColor,
   isActive,
+  isSelected = false,
   activeText,
   fallbackText,
   config,
@@ -171,12 +174,13 @@ export const Cell: React.FC<CellProps> = memo(({
     <motion.div
       onClick={(e) => { e.stopPropagation(); onCellClick?.(id); }}
       initial={isDownloading ? false : { scale: 1 }}
-      animate={isDownloading ? false : { scale: 1 }}
+      animate={isDownloading ? false : { scale: isSelected ? 1.12 : 1 }}
+      transition={{ type: "spring", stiffness: 450, damping: 25 }}
       title={getCellTooltipText(id, activeText, config)}
       whileHover={isDownloading ? undefined : { 
         scale: 1.25, 
         filter: "brightness(1.15)", 
-        zIndex: 5,
+        zIndex: 10,
         transition: { type: "spring", stiffness: 450, damping: 15 }
       }}
       whileTap={isDownloading ? undefined : { scale: 0.96 }}
@@ -195,7 +199,11 @@ export const Cell: React.FC<CellProps> = memo(({
         cursor: onCellClick ? 'pointer' : 'default',
         lineHeight: 1,
         fontVariantNumeric: 'tabular-nums',
-        opacity: dimWeekend ? 0.6 : 1
+        opacity: dimWeekend ? 0.6 : 1,
+        zIndex: isSelected ? 4 : 1,
+        boxShadow: isSelected 
+          ? `0 0 0 1.5px ${colors.bg || '#050505'}, 0 0 0 3px ${colors.today || '#ea580c'}, 0 4px 12px ${colors.today ? colors.today + '50' : 'rgba(234,88,12,0.5)'}`
+          : undefined
       }}
     >
       <span style={{

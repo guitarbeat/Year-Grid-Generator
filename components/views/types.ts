@@ -9,6 +9,7 @@ export interface ViewProps {
   currentDate: Date;
   onCellClick?: (id: string) => void;
   isDownloading?: boolean;
+  selectedCellId?: string | null;
 }
 
 export interface LayoutProps {

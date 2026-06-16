@@ -741,7 +741,7 @@ export const Button: React.FC<{
   disabled?: boolean;
   title?: string;
 }> = ({ onClick, variant = 'primary', icon, label, className = '', disabled, title }) => {
-  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-colors disabled:opacity-40 disabled:cursor-not-allowed select-none overflow-hidden origin-center active:scale-[0.96] duration-150 ease-out";
+  const baseClasses = "flex items-center justify-center gap-2 font-mono font-bold uppercase tracking-wider transition-[scale,background-color,border-color,color] disabled:opacity-40 disabled:cursor-not-allowed select-none overflow-hidden origin-center active:scale-[0.96] duration-150 ease-out";
   const variants = {
     primary: "btn-primary !rounded-xl " + (icon && label ? "pl-5 pr-4 py-3 text-[11px]" : "px-5 py-3 text-[11px]"),
     secondary: "bg-[#0b0b0d] hover:bg-zinc-900 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white shadow-md hover:shadow-lg rounded-xl p-3 md:p-2.5 text-[10px]",

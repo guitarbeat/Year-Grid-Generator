@@ -26,8 +26,8 @@ const itemVariants = {
   }
 };
 
-export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
-  const { mode, showMonthAxis, showMonthLabels, gap, fontSize, colors, radius, itemsPerRow = 4, dotSize, blockAlignment = 'top', labelRotation = 0 } = config;
+export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false, selectedCellId }) => {
+  const { mode, showMonthAxis, showMonthLabels, gap, fontSize, colors, radius, itemsPerRow = 4, dotSize, blockAlignment = 'top', labelRotation = 0, axisPadding = 0 } = config;
   const rotateStyle: React.CSSProperties = labelRotation ? { transform: `rotate(${labelRotation}deg)`, display: 'inline-block', transformOrigin: 'center center', width: 'max-content' } : {};
   const anchorDate = config.anchorTodayToRealTime ? new Date() : currentDate;
   const currentYear = anchorDate.getFullYear();
@@ -55,8 +55,8 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
           const isToday = m.year === currentYear && m.month === currentMonth;
           return (
             <motion.div layout key={`${m.year}-${m.month}`} variants={itemVariants} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${gap}px` }}>
-              {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{config.showMonthNumbers ? (m.month + 1) : m.name}</motion.span>}
-              <Cell id={`month-${m.year}-${m.month}`} color={getMonthColor(m.year, m.month, isToday, isPast)} dotSize={(dotSize * 2.5) / 1.5} radius={radius} fontSize={fontSize * 1.3} textColor={colors.bg} isActive={isToday} activeText={getActiveCellText(m.year, m.month, config)} fallbackText={showMonthLabels ? m.name.toUpperCase().substring(0, 3) : null} config={config} onCellClick={onCellClick} isLarge isDownloading={isDownloading} />
+              {showMonthAxis && <motion.span layout style={{ fontSize: `${fontSize * (config.monthLabelScale ?? 1.0) * 0.8}px`, fontWeight: 'bold', opacity: 0.5, marginBottom: `${axisPadding}px`, ...rotateStyle }}>{config.showMonthNumbers ? (m.month + 1) : m.name}</motion.span>}
+              <Cell id={`month-${m.year}-${m.month}`} color={getMonthColor(m.year, m.month, isToday, isPast)} dotSize={(dotSize * 2.5) / 1.5} radius={radius} fontSize={fontSize * 1.3} textColor={colors.bg} isActive={isToday} isSelected={selectedCellId === `month-${m.year}-${m.month}`} activeText={getActiveCellText(m.year, m.month, config)} fallbackText={showMonthLabels ? m.name.toUpperCase().substring(0, 3) : null} config={config} onCellClick={onCellClick} isLarge isDownloading={isDownloading} />
             </motion.div>
           );
         })}
@@ -65,8 +65,8 @@ export const FlatMonths: React.FC<ViewProps> = ({ config, months, currentDate, o
   );
 };
 
-export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
-  const { mode, showMonthAxis, showWeekNumbers, showMonthNumbers, gap, fontSize, colors, radius, itemsPerRow = 13, monthsPerRow = 3, dotSize, blockAlignment = 'top', labelRotation = 0 } = config;
+export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false, selectedCellId }) => {
+  const { mode, showMonthAxis, showWeekNumbers, showMonthNumbers, gap, fontSize, colors, radius, itemsPerRow = 13, monthsPerRow = 3, dotSize, blockAlignment = 'top', labelRotation = 0, axisPadding = 0 } = config;
   const rotateStyle: React.CSSProperties = labelRotation ? { transform: `rotate(${labelRotation}deg)`, display: 'inline-block', transformOrigin: 'center center', width: 'max-content' } : {};
   const anchorDate = config.anchorTodayToRealTime ? new Date() : currentDate;
   const currentYear = anchorDate.getFullYear();
@@ -79,10 +79,10 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
         <AnimatePresence mode="popLayout" initial={false}>
           {months.map(m => (
             <motion.div layout variants={itemVariants} key={`${m.year}-${m.month}`} style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: 'center' }}>
-              <motion.span layout style={{ fontSize: `${fontSize * 0.8}px`, fontWeight: 'bold', opacity: 0.5, ...rotateStyle }}>{showMonthNumbers ? (m.month + 1) : m.name}</motion.span>
+              <motion.span layout style={{ fontSize: `${fontSize * (config.monthLabelScale ?? 1.0) * 0.8}px`, fontWeight: 'bold', opacity: 0.5, marginBottom: `${axisPadding}px`, ...rotateStyle }}>{showMonthNumbers ? (m.month + 1) : m.name}</motion.span>
               <motion.div layout style={{ display: 'flex', flexDirection: mode === 'columns' ? 'column' : 'row', gap: `${gap}px` }}>
                 {m.weeksInMonth.map(w => (
-                  <Cell key={w.weekNum} id={`week-${m.year}-${w.weekNum}`} color={w.color} dotSize={dotSize} radius={radius} fontSize={fontSize} textColor={colors.bg} isActive={m.year === currentYear && w.weekNum === currentWeekNumber} activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)} fallbackText={showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null)} config={config} onCellClick={onCellClick} isLarge isDownloading={isDownloading} />
+                  <Cell key={w.weekNum} id={`week-${m.year}-${w.weekNum}`} color={w.color} dotSize={dotSize} radius={radius} fontSize={fontSize} textColor={colors.bg} isActive={m.year === currentYear && w.weekNum === currentWeekNumber} isSelected={selectedCellId === `week-${m.year}-${w.weekNum}`} activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)} fallbackText={showWeekNumbers ? w.weekNum : (showMonthNumbers ? m.month + 1 : null)} config={config} onCellClick={onCellClick} isLarge isDownloading={isDownloading} />
                 ))}
               </motion.div>
             </motion.div>
@@ -100,7 +100,7 @@ export const FlatWeeks: React.FC<ViewProps> = ({ config, months, currentDate, on
       <AnimatePresence mode="popLayout" initial={false}>
         {allWeeks.map((w, i) => (
           <motion.div layout key={`${w.identifier}-${i}`} variants={itemVariants}>
-            <Cell id={`week-${w.year}-${w.weekNum}`} color={w.color} dotSize={dotSize} radius={radius} fontSize={fontSize} textColor={colors.bg} isActive={w.year === currentYear && w.weekNum === currentWeekNumber} activeText={getActiveCellText(currentYear, currentMonth, config, undefined, currentWeekNumber)} fallbackText={showWeekNumbers ? w.weekNum : null} config={config} onCellClick={onCellClick} isLarge isDownloading={isDownloading} />
+            <Cell id={`week-${w.year}-${w.weekNum}`} color={w.color} dotSize={dotSize} radius={radius} fontSize={fontSize} textColor={colors.bg} isActive={w.year === currentYear && w.weekNum === currentWeekNumber} isSelected={selectedCellId === `week-${w.year}-${w.weekNum}`} activeText={getActiveCellText(currentYear, currentMonth, config, undefined, currentWeekNumber)} fallbackText={showWeekNumbers ? w.weekNum : null} config={config} onCellClick={onCellClick} isLarge isDownloading={isDownloading} />
           </motion.div>
         ))}
       </AnimatePresence>

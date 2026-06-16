@@ -28,6 +28,9 @@ type SystemHUDProps = {
   setZoom: Dispatch<SetStateAction<number>>;
   isExpanded: boolean;
   setIsExpanded: Dispatch<SetStateAction<boolean>>;
+  undockedTabs: Record<string, { x: number; y: number; isMinimized: boolean }>;
+  undockTab: (tab: string) => void;
+  dockTab: (tab: string) => void;
 };
 
 export function SystemHUD({
@@ -48,6 +51,9 @@ export function SystemHUD({
   setZoom,
   isExpanded,
   setIsExpanded,
+  undockedTabs,
+  undockTab,
+  dockTab,
 }: SystemHUDProps) {
 
   // Auto-refit the grid boundaries in real-time as the sidebar expands or collapses
@@ -97,7 +103,7 @@ export function SystemHUD({
           x: typeof window !== "undefined" && window.innerWidth < 768 && !isExpanded ? "100%" : "0%",
         }}
         transition={sidebarTransition}
-        className="h-full bg-[#0c0c0e]/95 text-white flex flex-col relative overflow-hidden flex-shrink-0 z-[9999] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl max-md:fixed max-md:top-0 max-md:right-0 max-md:h-screen max-md:w-[85vw] max-md:max-w-[420px]"
+        className="h-full bg-[#0a0a0c]/92 text-white flex flex-col relative overflow-hidden flex-shrink-0 z-[9999] border-l border-white/[0.06] shadow-[0_0_60px_rgba(0,0,0,0.92)] backdrop-blur-2xl max-md:fixed max-md:top-0 max-md:right-0 max-md:h-screen max-md:w-[85vw] max-md:max-w-[420px]"
       >
         <AnimatePresence mode="wait">
           {!isExpanded ? (
@@ -110,22 +116,25 @@ export function SystemHUD({
               transition={{ duration: 0.15 }}
               className="flex-1 flex flex-col items-center py-6 px-3 select-none"
             >
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setIsExpanded(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.03] border border-white/5 hover:bg-[#1a1a24] hover:bg-white/[0.08] hover:border-white/10 text-accent transition-[background-color,border-color,transform] duration-200 cursor-pointer"
-                title="Expand Options Sidebar"
-              >
-                <Settings2 className="h-4 w-4 text-accent animate-[spin_12s_linear_infinite]" />
-              </motion.button>
+              <div className="relative group flex items-center justify-center h-10 w-10">
+                <div className="absolute inset-0 bg-accent/20 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setIsExpanded(true)}
+                  className="relative z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.03] border border-white/5 hover:bg-[#1a1a24] hover:bg-white/[0.08] hover:border-white/10 text-accent transition-[background-color,border-color,transform] duration-200 cursor-pointer"
+                  title="Expand Options Sidebar"
+                >
+                  <Settings2 className="h-4 w-4 text-accent animate-[spin_12s_linear_infinite] group-hover:animate-[spin_4s_linear_infinite] transition-transform duration-300" />
+                </motion.button>
+              </div>
 
               <div className="h-[1px] w-8 bg-white/10 my-6" />
 
               <motion.div 
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.96 }}
-                className="flex-1 flex items-center justify-center cursor-pointer transition-transform duration-150" 
+                className="flex-1 flex items-center justify-center cursor-pointer transition-transform duration-150 group" 
                 onClick={() => setIsExpanded(true)}
               >
                 <span className="text-[10px] [writing-mode:vertical-lr] rotate-180 uppercase tracking-[0.25em] font-mono font-bold text-zinc-500 hover:text-accent transition-colors duration-200">
@@ -135,7 +144,7 @@ export function SystemHUD({
 
               <div className="h-[1px] w-8 bg-white/10 my-6" />
 
-              <div className="text-[9px] font-mono font-extrabold text-zinc-650 tracking-wider hover:text-zinc-400 transition-colors duration-200 cursor-default select-none">
+              <div className="text-[9px] font-mono font-extrabold text-zinc-600 tracking-wider hover:text-zinc-400 transition-colors duration-200 cursor-default select-none">
                 Y-GRID
               </div>
             </motion.div>
@@ -161,7 +170,7 @@ export function SystemHUD({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setIsExpanded(false)}
-                  className="relative before:absolute before:-inset-2 flex items-center justify-center h-8 w-8 text-zinc-400 hover:text-white transition-all bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 rounded-xl cursor-pointer"
+                  className="relative before:absolute before:-inset-2 flex items-center justify-center h-8 w-8 text-zinc-400 hover:text-white transition-[background-color,border-color,color] duration-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 rounded-xl cursor-pointer"
                   title="Minimize Sidebar"
                 >
                   <X className="h-4 w-4 relative z-10" />
@@ -186,6 +195,9 @@ export function SystemHUD({
                     onRedo={onRedo}
                     zoom={zoom}
                     setZoom={setZoom}
+                    undockedTabs={undockedTabs}
+                    undockTab={undockTab}
+                    dockTab={dockTab}
                   />
                 )}
               </div>

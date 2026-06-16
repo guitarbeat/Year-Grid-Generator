@@ -34,7 +34,7 @@ const itemVariants = {
   }
 };
 
-export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
+export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false, selectedCellId }) => {
   const {
     mode,
     granularity,
@@ -49,7 +49,8 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
     radius,
     dotSize,
     isMondayFirst,
-    labelRotation = 0
+    labelRotation = 0,
+    axisPadding = 0
   } = config;
 
   const rotateStyle: React.CSSProperties = labelRotation ? {
@@ -89,7 +90,7 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
       >
         {showMonthAxis && (
           <div style={{ 
-            fontSize: `${fontSize * 1.1}px`, 
+            fontSize: `${fontSize * (config.monthLabelScale ?? 1.0) * 1.1}px`, 
             fontWeight: 700, 
             color: colors.text,
             minWidth: mode === 'rows' ? `${MONTH_LABEL_WIDTH}px` : 'auto',
@@ -97,6 +98,8 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
             letterSpacing: '-0.02em',
             textAlign: mode === 'rows' ? 'left' : 'center',
             width: mode === 'rows' ? `${MONTH_LABEL_WIDTH}px` : '100%',
+            marginBottom: mode !== 'rows' ? `${axisPadding}px` : undefined,
+            marginRight: mode === 'rows' ? `${axisPadding}px` : undefined,
             ...rotateStyle
           }}>
             {showMonthNumbers ? `${m.month + 1}` : m.name}
@@ -107,7 +110,8 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
           <div style={{
             display: 'grid',
             gridTemplateColumns: `repeat(7, ${dotSize}px)`,
-            gap: `${gap}px`
+            gap: `${gap}px`,
+            marginBottom: `${axisPadding}px`
           }}>
             {dayHeaderLabels.map((lbl, idx) => (
               <div 
@@ -146,16 +150,18 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
           {granularity === 'day' && Array.from({ length: m.daysInMonth }).map((_, i) => {
             const day = i + 1;
             const color = getDayColor(m.year, m.month, day, config, absCurrent);
+            const cellId = `day-${m.year}-${m.month}-${day}`;
             return (
               <Cell
                 key={`day-${day}`}
-                id={`day-${m.year}-${m.month}-${day}`}
+                id={cellId}
                 color={showDayNumbers && !keepCellShapeWithNumbers ? 'transparent' : color}
                 dotSize={dotSize}
                 radius={radius}
                 fontSize={fontSize}
                 textColor={showDayNumbers && !keepCellShapeWithNumbers ? color : colors.bg}
                 isActive={(m.year * 10000 + m.month * 100 + day) === absCurrent}
+                isSelected={selectedCellId === cellId}
                 activeText={getActiveCellText(m.year, m.month, config, day)}
                 fallbackText={showDayNumbers ? day : null}
                 config={config}
@@ -166,44 +172,52 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
           })}
 
           {/* Week items */}
-          {granularity === 'week' && m.weeksInMonth.map(w => (
-            <Cell
-              key={`week-${w.weekNum}`}
-              id={`week-${m.year}-${w.weekNum}`}
-              color={w.color}
-              dotSize={dotSize}
-              radius={radius}
-              fontSize={fontSize}
-              textColor={colors.bg}
-              isActive={m.year === currentYear && w.weekNum === getWeekNumber(anchorDate)}
-              activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
-              fallbackText={null}
-              config={config}
-              onCellClick={onCellClick}
-              isLarge
-              isDownloading={isDownloading}
-            />
-          ))}
+          {granularity === 'week' && m.weeksInMonth.map(w => {
+            const cellId = `week-${m.year}-${w.weekNum}`;
+            return (
+              <Cell
+                key={`week-${w.weekNum}`}
+                id={cellId}
+                color={w.color}
+                dotSize={dotSize}
+                radius={radius}
+                fontSize={fontSize}
+                textColor={colors.bg}
+                isActive={m.year === currentYear && w.weekNum === getWeekNumber(anchorDate)}
+                isSelected={selectedCellId === cellId}
+                activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
+                fallbackText={null}
+                config={config}
+                onCellClick={onCellClick}
+                isLarge
+                isDownloading={isDownloading}
+              />
+            );
+          })}
 
           {/* Month items (single dot per month) */}
-          {granularity === 'month' && (
-            <Cell
-              key={`month-${m.month}`}
-              id={`month-${m.year}-${m.month}`}
-              color={getDayColor(m.year, m.month, 1, config, absCurrent)}
-              dotSize={dotSize * 3}
-              radius={radius}
-              fontSize={fontSize}
-              textColor={colors.bg}
-              isActive={m.year === currentYear && m.month === currentMonth}
-              activeText={getActiveCellText(m.year, m.month, config, undefined, undefined)}
-              fallbackText={null}
-              config={config}
-              onCellClick={onCellClick}
-              isLarge
-              isDownloading={isDownloading}
-            />
-          )}
+          {granularity === 'month' && (() => {
+            const cellId = `month-${m.year}-${m.month}`;
+            return (
+              <Cell
+                key={`month-${m.month}`}
+                id={cellId}
+                color={getDayColor(m.year, m.month, 1, config, absCurrent)}
+                dotSize={dotSize * 3}
+                radius={radius}
+                fontSize={fontSize}
+                textColor={colors.bg}
+                isActive={m.year === currentYear && m.month === currentMonth}
+                isSelected={selectedCellId === cellId}
+                activeText={getActiveCellText(m.year, m.month, config, undefined, undefined)}
+                fallbackText={null}
+                config={config}
+                onCellClick={onCellClick}
+                isLarge
+                isDownloading={isDownloading}
+              />
+            );
+          })()}
         </div>
       </motion.div>
     );
@@ -217,12 +231,13 @@ export const CalendarView: React.FC<ViewProps> = ({ config, months, currentDate,
           flexDirection: 'column',
           alignItems: 'center',
           gap: `${gap * 2}px`,
-          userSelect: 'none'
+          userSelect: 'none',
+          marginRight: `${axisPadding}px`
         }}
       >
         {showMonthAxis && (
           <div style={{ 
-            fontSize: `${fontSize * 1.1}px`, 
+            fontSize: `${fontSize * (config.monthLabelScale ?? 1.0) * 1.1}px`, 
             fontWeight: 700, 
             opacity: 0,
             pointerEvents: 'none',

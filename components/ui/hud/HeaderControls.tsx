@@ -106,84 +106,84 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
     <div className="bg-[#0a0a0c] p-6 space-y-6 select-none border-b border-white/[0.04] flex flex-col">
       {/* 1. Layout Presets */}
       <div className="space-y-3">
-        <label className="text-[11px] font-sans font-semibold tracking-wide text-zinc-500">
-          Template Templates
+        <label className="text-[10px] font-mono font-extrabold uppercase tracking-[0.2em] text-zinc-500">
+          Grid Timeline Presets
         </label>
         <div className="grid grid-cols-3 gap-3">
           {/* Year Grid Card */}
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.96 }}
             onClick={applyYearPreset}
             className={cn(
-              "flex flex-col items-start p-3.5 rounded-xl border transition-all cursor-pointer text-left h-full group",
+              "flex flex-col items-start p-3.5 rounded-xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer text-left h-full group",
               isYearActive
-                ? "bg-accent/[0.03] border-accent/30 shadow-[0_4px_12px_rgba(234,88,12,0.05)]"
-                : "bg-[#121215] border-white/5 hover:border-white/10 hover:bg-[#16161a]"
+                ? "bg-accent/[0.04] border-accent/40 shadow-[0_8px_20px_rgba(234,88,12,0.12)]"
+                : "bg-[#111114] border-white/[0.04] hover:border-white/10 hover:bg-[#15151a]"
             )}
             title="Switch grid to full calendar year"
           >
             <span
               className={cn(
-                "text-xs font-sans font-semibold transition-colors",
-                isYearActive ? "text-accent" : "text-zinc-200 group-hover:text-white"
+                "text-xs font-sans font-bold tracking-tight transition-colors",
+                isYearActive ? "text-accent drop-shadow-[0_0_10px_rgba(234,88,12,0.25)]" : "text-zinc-250 group-hover:text-white"
               )}
             >
               Year Grid
             </span>
-            <span className="text-[10px] text-zinc-500 mt-1 leading-normal">
+            <span className="text-[10px] text-zinc-500 mt-1 leading-normal pr-1" style={{ textWrap: "balance" }}>
               Full 12-month calendar at a single glance
             </span>
           </motion.button>
 
           {/* Month Focus Card */}
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.96 }}
             onClick={applyMonthPreset}
             className={cn(
-              "flex flex-col items-start p-3.5 rounded-xl border transition-all cursor-pointer text-left h-full group",
+              "flex flex-col items-start p-3.5 rounded-xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer text-left h-full group",
               isMonthActive
-                ? "bg-accent/[0.03] border-accent/30 shadow-[0_4px_12px_rgba(234,88,12,0.05)]"
-                : "bg-[#121215] border-white/5 hover:border-white/10 hover:bg-[#16161a]"
+                ? "bg-accent/[0.04] border-accent/40 shadow-[0_8px_20px_rgba(234,88,12,0.12)]"
+                : "bg-[#111114] border-white/[0.04] hover:border-white/10 hover:bg-[#15151a]"
             )}
             title="Focus starting from current month"
           >
             <span
               className={cn(
-                "text-xs font-sans font-semibold transition-colors",
-                isMonthActive ? "text-accent" : "text-zinc-200 group-hover:text-white"
+                "text-xs font-sans font-bold tracking-tight transition-colors",
+                isMonthActive ? "text-accent drop-shadow-[0_0_10px_rgba(234,88,12,0.25)]" : "text-zinc-250 group-hover:text-white"
               )}
             >
               Month Focus
             </span>
-            <span className="text-[10px] text-zinc-500 mt-1 leading-normal">
+            <span className="text-[10px] text-zinc-500 mt-1 leading-normal pr-1" style={{ textWrap: "balance" }}>
               Deep focus for the current active month
             </span>
           </motion.button>
 
           {/* 12-Week Cycle Card */}
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.96 }}
             onClick={applyTwelveWkPreset}
             className={cn(
-              "flex flex-col items-start p-3.5 rounded-xl border transition-all cursor-pointer text-left h-full group",
+              "flex flex-col items-start p-3.5 rounded-xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer text-left h-full group",
               isTwelveWkActive
-                ? "bg-accent/[0.03] border-accent/30 shadow-[0_4px_12px_rgba(234,88,12,0.05)]"
-                : "bg-[#121215] border-white/5 hover:border-white/10 hover:bg-[#16161a]"
+                ? "bg-accent/[0.04] border-accent/40 shadow-[0_8px_20px_rgba(234,88,12,0.12)]"
+                : "bg-[#111114] border-white/[0.04] hover:border-white/10 hover:bg-[#15151a]"
             )}
             title="Focus standard 12 week layout cycle"
           >
             <span
               className={cn(
-                "text-xs font-sans font-semibold transition-colors",
-                isTwelveWkActive ? "text-accent" : "text-zinc-200 group-hover:text-white"
+                "text-xs font-sans font-bold tracking-tight transition-colors",
+                isTwelveWkActive ? "text-accent drop-shadow-[0_0_10px_rgba(234,88,12,0.25)]" : "text-zinc-250 group-hover:text-white"
               )}
             >
               12-Wk Cycle
             </span>
-            <span className="text-[10px] text-zinc-500 mt-1 leading-normal">
+            <span className="text-[10px] text-zinc-500 mt-1 leading-normal pr-1" style={{ textWrap: "balance" }}>
               Macro sprint planning across 3 months
             </span>
           </motion.button>
@@ -230,7 +230,7 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
               disabled={!canUndo}
               whileTap={canUndo ? { scale: 0.96 } : {}}
               onClick={onUndo}
-              className="flex-1 flex items-center justify-center rounded-lg hover:bg-white/[0.04] disabled:opacity-20 text-zinc-400 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer transition-all"
+              className="flex-1 flex items-center justify-center rounded-lg hover:bg-white/[0.04] disabled:opacity-20 text-zinc-400 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer transition-[background-color,color,opacity] duration-150"
               title="Undo"
             >
               <Undo className="h-3.5 w-3.5" />
@@ -240,7 +240,7 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
               disabled={!canRedo}
               whileTap={canRedo ? { scale: 0.96 } : {}}
               onClick={onRedo}
-              className="flex-1 flex items-center justify-center rounded-lg hover:bg-white/[0.04] disabled:opacity-20 text-zinc-400 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer transition-all"
+              className="flex-1 flex items-center justify-center rounded-lg hover:bg-white/[0.04] disabled:opacity-20 text-zinc-400 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer transition-[background-color,color,opacity] duration-150"
               title="Redo"
             >
               <Redo className="h-3.5 w-3.5" />
@@ -251,7 +251,7 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
               onClick={() =>
                 window.dispatchEvent(new CustomEvent("fit-grid-to-screen"))
               }
-              className="flex-1 flex items-center justify-center rounded-lg hover:bg-white/[0.04] text-zinc-400 cursor-pointer transition-all"
+              className="flex-1 flex items-center justify-center rounded-lg hover:bg-white/[0.04] text-zinc-400 cursor-pointer transition-[background-color,color] duration-150"
               title="Fit to Screen"
             >
               <Maximize2 className="h-3.5 w-3.5" />
@@ -260,7 +260,7 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={resetConfig}
-              className="flex-1 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-red-400/80 hover:text-red-450 cursor-pointer transition-all"
+              className="flex-1 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-red-400/80 hover:text-red-450 cursor-pointer transition-[background-color,color] duration-150"
               title="Reset Config Defaults"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -277,7 +277,7 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.96 }}
             onClick={onDownload}
-            className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-accent hover:opacity-90 active:opacity-100 text-white text-xs font-sans font-semibold transition-all disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer shadow-md"
+            className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-accent hover:opacity-90 active:opacity-100 text-white text-xs font-sans font-semibold transition-[background-color,opacity,box-shadow] duration-200 disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer shadow-md"
           >
             <Download className="h-4 w-4" />
             Export PNG
@@ -288,7 +288,7 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
             whileHover={{ scale: 1.01, borderColor: "rgba(255,255,255,0.12)" }}
             whileTap={{ scale: 0.96 }}
             onClick={onDownloadSvg}
-            className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl border border-white/5 bg-[#121215] hover:bg-white/[0.04] text-zinc-300 text-xs font-sans font-semibold transition-all disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl border border-white/5 bg-[#121215] hover:bg-white/[0.04] text-zinc-300 text-xs font-sans font-semibold transition-[background-color,border-color,color,opacity] duration-200 disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
           >
             <Download className="h-4 w-4 text-zinc-500" />
             Export SVG

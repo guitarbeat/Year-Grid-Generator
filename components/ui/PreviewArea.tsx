@@ -15,6 +15,7 @@ interface PreviewAreaProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  selectedCellId: string | null;
 }
 
 export const PreviewArea: React.FC<PreviewAreaProps> = ({
@@ -28,6 +29,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
   canRedo,
   onUndo,
   onRedo,
+  selectedCellId,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -94,7 +96,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
          className={`origin-center drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] cursor-pointer ${isPanning ? '' : 'transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]'}`}
         style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})` }}
       >
-        <YearGrid config={config} domRef={gridRef} onCellClick={onCellClick} isDownloading={isDownloading} />
+        <YearGrid config={config} domRef={gridRef} onCellClick={onCellClick} isDownloading={isDownloading} selectedCellId={selectedCellId} />
       </div>
 
       {/* Control Dock */}

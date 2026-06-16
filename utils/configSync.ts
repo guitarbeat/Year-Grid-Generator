@@ -54,6 +54,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   showLifeStats: true,
   showHeaderPlugin: false,
   labelRotation: 0,
+  monthLabelScale: 1.0,
+  axisPadding: 0,
   customTitle: '',
   resolutionScale: 2,
   disableSidebarBlur: true,
@@ -71,7 +73,7 @@ export const KEY_MAP: Record<string, string> = {
   showActiveLabel: 'D', activeLabelFormat: 'E', startFromJan: 'F',
   anchorTodayToRealTime: 'J', blockAlignment: 'K',
   isLifeMode: 'L', birthDate: 'M', lifeExpectancy: 'N', lifeGranularity: 'O',
-  showLifeStats: 'P', showHeaderPlugin: 'U', labelRotation: 'V', customTitle: 'W',
+  showLifeStats: 'P', showHeaderPlugin: 'U', labelRotation: 'V', monthLabelScale: 'Y', axisPadding: 'ap', customTitle: 'W',
   resolutionScale: 'Z', disableSidebarBlur: 'S', overrides: '_'
 };
 
@@ -169,11 +171,17 @@ export const encodeConfig = (config: AppConfig): string => {
   try {
     const diff = getDiffConfig(config);
     const compressed = serializeDiff(diff);
-    return btoa(unescape(encodeURIComponent(JSON.stringify(compressed))));
+    const jsonStr = JSON.stringify(compressed);
+    const bytes = new TextEncoder().encode(jsonStr);
+    const binString = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+    return btoa(binString);
   } catch (e) {
     console.warn('Failed to encode config', e);
     try {
-      return btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+      const jsonStr = JSON.stringify(config);
+      const bytes = new TextEncoder().encode(jsonStr);
+      const binString = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+      return btoa(binString);
     } catch {
       return '';
     }
@@ -189,7 +197,10 @@ export const decodeConfig = (str: string): Partial<AppConfig> | null => {
       rawParsed = JSON.parse(decodeURIComponent(trimmed));
     } else {
       try {
-        rawParsed = JSON.parse(decodeURIComponent(escape(atob(trimmed))));
+        const binString = atob(trimmed);
+        const bytes = Uint8Array.from(binString, (c) => c.charCodeAt(0));
+        const decoded = new TextDecoder().decode(bytes);
+        rawParsed = JSON.parse(decoded);
       } catch {
         try {
           rawParsed = JSON.parse(decodeURIComponent(atob(trimmed)));

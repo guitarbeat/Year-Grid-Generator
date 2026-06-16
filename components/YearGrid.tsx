@@ -14,9 +14,10 @@ interface YearGridProps {
   domRef?: React.RefObject<HTMLDivElement>;
   onCellClick?: (id: string) => void;
   isDownloading?: boolean;
+  selectedCellId?: string | null;
 }
 
-const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellClick, isDownloading = false }) => {
+const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellClick, isDownloading = false, selectedCellId }) => {
   const targetDate = useMemo(() => {
     const d = new Date(config.date);
     if (isNaN(d.getTime())) return new Date();
@@ -29,22 +30,22 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
 
   const renderContent = () => {
     if (config.isLifeMode) {
-      return <LifeView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
+      return <LifeView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} selectedCellId={selectedCellId} />;
     }
 
     if (config.mode === 'timeline') {
-      return <Timeline config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
+      return <Timeline config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} selectedCellId={selectedCellId} />;
     }
 
     if (config.granularity === 'month') {
-      return <FlatMonths config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
+      return <FlatMonths config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} selectedCellId={selectedCellId} />;
     }
 
     if (config.granularity === 'week' && config.mode === 'grid') { // Original logic for flat weeks
-      return <FlatWeeks config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
+      return <FlatWeeks config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} selectedCellId={selectedCellId} />;
     }
 
-    return <CalendarView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} />;
+    return <CalendarView config={config} months={months} currentDate={targetDate} onCellClick={onCellClick} isDownloading={isDownloading} selectedCellId={selectedCellId} />;
   };
 
   const containerStyle: React.CSSProperties = {
@@ -58,9 +59,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     gap: `${Math.max(16, config.fontSize * 2)}px`,
     borderRadius: `${config.radius || 16}px`,
     position: 'relative',
-    transition: (typeof window !== 'undefined' && window.location.search.includes('view')) || isDownloading
+    transitionProperty: (typeof window !== 'undefined' && window.location.search.includes('view')) || isDownloading
       ? 'none' 
-      : 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+      : 'background-color, color, border-radius, font-family, box-shadow, opacity, transform, gap, padding',
+    transitionDuration: (typeof window !== 'undefined' && window.location.search.includes('view')) || isDownloading
+      ? '0s'
+      : '0.4s',
+    transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
   };
 
   return (

@@ -30,7 +30,7 @@ const itemVariants = {
 };
 import { getDimmedColor } from '../../utils/colorUtils';
 
-export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick, isDownloading = false }) => {
+export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick, isDownloading = false, selectedCellId }) => {
   const {
     birthDate = '2000-01-01',
     lifeExpectancy = 80,
@@ -227,6 +227,7 @@ export const LifeView: React.FC<ViewProps> = ({ config, currentDate, onCellClick
                     fontSize={fontSize}
                     textColor={colors.bg}
                     isActive={cell.isActive}
+                    isSelected={selectedCellId === cell.id}
                     activeText={cell.activeText}
                     fallbackText=""
                     config={config}

@@ -32,7 +32,7 @@ const itemVariants = {
   }
 };
 
-export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false }) => {
+export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onCellClick, isDownloading = false, selectedCellId }) => {
   const {
     granularity,
     showMonthAxis,
@@ -46,7 +46,8 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
     radius,
     dotSize,
     isMondayFirst,
-    labelRotation = 0
+    labelRotation = 0,
+    axisPadding = 0
   } = config;
 
   const rotateStyle: React.CSSProperties = labelRotation ? {
@@ -81,7 +82,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
               style={{ display: 'flex', gap: `${gap * 2}px`, alignItems: 'center' }}
             >
               {showMonthAxis && (
-                <motion.div layout style={{ minWidth: `${fontSize * 5}px`, fontSize: `${fontSize}px`, fontWeight: 'bold', color: colors.text, opacity: 0.8, ...rotateStyle }}>
+                <motion.div layout style={{ minWidth: `${fontSize * 5}px`, fontSize: `${fontSize * (config.monthLabelScale ?? 1.0)}px`, fontWeight: 'bold', color: colors.text, opacity: 0.8, marginRight: `${axisPadding}px`, ...rotateStyle }}>
                   {config.showMonthNumbers ? (m.month + 1) : m.name}
                 </motion.div>
               )}
@@ -98,7 +99,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                   return (
                     <motion.div layout key={`day-${day}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                       {hasWeekdayAxis && (
-                        <motion.span layout style={{ fontSize: `${fontSize * 0.7}px`, opacity: 0.5, fontWeight: 'bold', fontFamily: 'JetBrains Mono, monospace' }}>
+                        <motion.span layout style={{ fontSize: `${fontSize * 0.7}px`, opacity: 0.5, fontWeight: 'bold', fontFamily: 'JetBrains Mono, monospace', marginBottom: `${axisPadding}px` }}>
                           {dayName}
                         </motion.span>
                       )}
@@ -110,6 +111,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                         fontSize={fontSize}
                         textColor={showDayNumbers && !keepCellShapeWithNumbers ? color : colors.bg}
                         isActive={(m.year * 10000 + m.month * 100 + day) === absCurrent}
+                        isSelected={selectedCellId === `day-${m.year}-${m.month}-${day}`}
                         activeText={getActiveCellText(m.year, m.month, config, day)}
                         fallbackText={showDayNumbers ? day : null}
                         config={config}
@@ -130,6 +132,7 @@ export const Timeline: React.FC<ViewProps> = ({ config, months, currentDate, onC
                     fontSize={fontSize}
                     textColor={colors.bg}
                     isActive={m.year === currentYear && w.weekNum === getWeekNumber(anchorDate)}
+                    isSelected={selectedCellId === `week-${m.year}-${w.weekNum}`}
                     activeText={getActiveCellText(m.year, m.month, config, undefined, w.weekNum)}
                     fallbackText={showWeekNumbers ? w.weekNum : null}
                     config={config}
