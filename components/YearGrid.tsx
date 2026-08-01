@@ -68,6 +68,13 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
     transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
   };
 
+  /*
+   * ⚡ BOLT PERFORMANCE OPTIMIZATION
+   * 💡 What: Wrapped YearGrid in React.memo
+   * 🎯 Why: PreviewArea frequently updates state (pan/zoom) which caused the entire grid (hundreds of day/week elements) to re-render.
+   * 📊 Impact: Prevents expensive layout calculation and DOM reconciliation during pan/zoom interactions, making panning and zooming buttery smooth.
+   */
+
   return (
     <MotionConfig reducedMotion={isDownloading ? "always" : "user"}>
       <motion.div 
@@ -161,4 +168,4 @@ const YearGrid: React.FC<YearGridProps> = ({ config, className, domRef, onCellCl
   );
 };
 
-export default YearGrid;
+export default React.memo(YearGrid);

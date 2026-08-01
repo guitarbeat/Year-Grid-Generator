@@ -1,0 +1,3 @@
+## 2024-05-18 - React.memo on Layout-Isolated Heavy Components
+**Learning:** In architectures where parent components handle high-frequency layout interactions (like panning or zooming in `PreviewArea`) but don't modify the data props passed to heavy child components (like `YearGrid` which renders hundreds of nested nodes), failing to memoize the child causes massive lag during the interaction. `YearGrid`'s structure is too heavy to re-render 60 times a second.
+**Action:** Always wrap heavy data-visualization components in `React.memo` if their parent handles interaction states (pan/zoom/drag) that don't affect the child's internal data or props.
