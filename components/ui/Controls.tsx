@@ -438,7 +438,7 @@ export const SegmentedControl = <T extends string | number | boolean>({
                 className="absolute inset-0 bg-accent border-[0.5px] border-white/20 rounded-lg shadow-md"
               />
             )}
-            <span className="relative z-20">{opt.label}</span>
+            <span className="relative z-20 px-2 py-1">{opt.label}</span>
           </button>
         );
       })}
